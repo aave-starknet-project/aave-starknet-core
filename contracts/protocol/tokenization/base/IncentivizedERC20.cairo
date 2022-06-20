@@ -9,30 +9,17 @@ from starkware.cairo.common.bool import TRUE
 # from openzeppelin.token.erc20.library import ERC20
 from contracts.protocol.interfaces.IPool import IPOOL
 
-# onlyPool modifier
-func incentivized_erc20_only_Pool{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    alloc_locals
-    let (caller_address) = get_caller_address()
-    let (pool_) = POOL.read()
-    with_attr error_message("Caller address should be bridge: {l2_bridge_}"):
-        assert caller_address = pool_
-    end
-    return ()
+# @dev UserState - additionalData is a flexible field.
+# ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
+# StableDebtTokens use this field to store the user's stable rate.
+struct UserState:
+    member balance : felt
+    member additionalData : felt
 end
 
-# onlyPoolAdmin modifier
-func incentivized_erc20_only_PoolAdmin{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    let (caller_address) = get_caller_address()
-
-    # @TODO: get pool admin from IACLManager
-    return ()
+@storage_var
+func _userState(address : felt) -> (state : UserState):
 end
-
-# @storage_var
-# func _userState(address : felt) -> (state : UserState):
-# end
 
 @storage_var
 func _allowances(delegator : felt, delegatee : felt) -> (allowance : Uint256):
@@ -72,12 +59,45 @@ end
 func owner() -> (owner : felt):
 end
 
+# modifiers
+
+# onlyPool modifier
+func incentivized_erc20_only_Pool{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (caller_address) = get_caller_address()
+    let (pool_) = POOL.read()
+    with_attr error_message("Caller address should be bridge: {l2_bridge_}"):
+        assert caller_address = pool_
+    end
+    return ()
+end
+
+# onlyPoolAdmin modifier
+func incentivized_erc20_only_PoolAdmin{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (caller_address) = get_caller_address()
+
+    # @TODO: get pool admin from IACLManager
+    return ()
+end
+
+# getters
+
+@view
+func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+    let (res) = POOL.read()
+    return (res)
+end
+
 # @param pool The reference to the main Pool contract
 # @param name The name of the token
 # @param symbol The symbol of the token
-# @param decimals The number of decimals of the token "
-@constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+# @param decimals The number of decimals of the token
+
+@external
+func incentivized_erc20_initialize{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pool : felt, name : felt, symbol : felt, decimals : felt):
     alloc_locals
     let (addresses_provider) = IPOOL.get_addresses_provider(contract_address=pool)
@@ -87,10 +107,4 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     _decimals.write(decimals)
     POOL.write(pool)
     return ()
-end
-
-@view
-func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
-    let (res) = POOL.read()
-    return (res)
 end

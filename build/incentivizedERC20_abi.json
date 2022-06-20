@@ -1,25 +1,14 @@
 [
     {
-        "inputs": [
+        "inputs": [],
+        "name": "get_pool",
+        "outputs": [
             {
-                "name": "pool",
-                "type": "felt"
-            },
-            {
-                "name": "name",
-                "type": "felt"
-            },
-            {
-                "name": "symbol",
-                "type": "felt"
-            },
-            {
-                "name": "decimals",
+                "name": "res",
                 "type": "felt"
             }
         ],
-        "name": "constructor",
-        "outputs": [],
-        "type": "constructor"
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
