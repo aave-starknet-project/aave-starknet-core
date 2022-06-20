@@ -5,6 +5,7 @@ protostar_version = "0.1.0"
 libs_path = "lib"
 
 ["protostar.contracts"]
-main = [
-    "",
+incentivizedERC20 = [
+    "./contracts/protocol/tokenization/base/incentivizedERC20.cairo",
 ]
+

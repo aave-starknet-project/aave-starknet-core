@@ -1,0 +1,25 @@
+[
+    {
+        "inputs": [
+            {
+                "name": "pool",
+                "type": "felt"
+            },
+            {
+                "name": "name",
+                "type": "felt"
+            },
+            {
+                "name": "symbol",
+                "type": "felt"
+            },
+            {
+                "name": "decimals",
+                "type": "felt"
+            }
+        ],
+        "name": "constructor",
+        "outputs": [],
+        "type": "constructor"
+    }
+]
