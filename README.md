@@ -4,10 +4,11 @@
 
 ## Installation
 
-To Enable Amarna hooks using [pre-commit-cairo](https://github.com/franalgaba/pre-commit-cairo)
-
-`pip install pre-commit`
-
-`pre-commit --version`
-
-run `pre-commit install` to set up the git hook scripts
+To enable pre-commit hooks using: [pre-commit-cairo](https://github.com/franalgaba/pre-commit-cairo)
+Run the following: 
+```bash
+$ pip install pre-commit
+$ pre-commit --version #check if successfully installed
+$ pre-commit install #to set up the git hook scripts
+$ cp pre-commit ./.git/hooks/pre-commit
+```
