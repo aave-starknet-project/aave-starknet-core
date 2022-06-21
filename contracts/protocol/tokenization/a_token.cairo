@@ -1,34 +1,36 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE
-from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
+from starkware.cairo.common.uint256 import Uint256
+
 from openzeppelin.token.erc20.library import ERC20
-from openzeppelin.access.ownable import Ownable
+
+from contracts.protocol.tokenization.a_token_library import AToken
 
 #
-# Temporary implementation of an aToken
-# TODO : replace with a real implementation
-
-@storage_var
-func _underlying() -> (asset : felt):
-end
+# Constructor
+#
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt,
-    symbol : felt,
-    decimals : felt,
-    initial_supply : Uint256,
-    recipient : felt,
-    owner : felt,
-    underlying : felt,
+    pool : felt,
+    treasury : felt,
+    underlying_asset : felt,
+    incentives_controller : felt,
+    a_token_decimals : felt,
+    a_token_name : felt,
+    a_token_symbol : felt,
 ):
-    ERC20.initializer(name, symbol, decimals)
-    ERC20._mint(recipient, initial_supply)
-    Ownable.initializer(owner)
-    _underlying.write(underlying)
+    AToken.initializer(
+        pool,
+        treasury,
+        underlying_asset,
+        incentives_controller,
+        a_token_decimals,
+        a_token_name,
+        a_token_symbol,
+    )
     return ()
 end
 
@@ -48,13 +50,13 @@ func symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}()
     return (symbol)
 end
 
-@view
-func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-    totalSupply : Uint256
-):
-    let (totalSupply : Uint256) = ERC20.total_supply()
-    return (totalSupply)
-end
+# @view
+# func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+#     totalSupply : Uint256
+# ):
+#     let (totalSupply : Uint256) = AToken.total_supply()
+#     return (totalSupply)
+# end
 
 @view
 func decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
@@ -68,7 +70,7 @@ end
 func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     account : felt
 ) -> (balance : Uint256):
-    let (balance : Uint256) = ERC20.balance_of(account)
+    let (balance : Uint256) = AToken.balance_of(account)
     return (balance)
 end
 
@@ -81,9 +83,23 @@ func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 end
 
 @view
-func owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (owner : felt):
-    let (owner : felt) = Ownable.owner()
-    return (owner)
+func RESERVE_TREASURY_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ) -> (res : felt):
+    let (res) = AToken.RESERVE_TREASURY_ADDRESS()
+    return (res)
+end
+
+@view
+func UNDERLYING_ASSET_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ) -> (res : felt):
+    let (res) = AToken.UNDERLYING_ASSET_ADDRESS()
+    return (res)
+end
+
+@view
+func POOL{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+    let (res) = AToken.POOL()
+    return (res)
 end
 
 #
@@ -104,17 +120,6 @@ func transferFrom{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 ) -> (success : felt):
     ERC20.transfer_from(sender, recipient, amount)
     return (TRUE)
-end
-
-# Needs modifiers to only be called from the pool
-@external
-func transfer_underlying_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    target : felt, amount : Uint256
-):
-    alloc_locals
-    let (local underlying) = _underlying.read()
-    IERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
-    return ()
 end
 
 @external
@@ -141,36 +146,68 @@ func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return (TRUE)
 end
 
+# @external
+# func mint{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
+#     AToken.mint(caller, on_behalf_of, amount, index)
+#     return (TRUE)
+# end
+
+# @external
+# func burn{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
+#     AToken.burn(from_, receiver_or_underlying, amount, index)
+#     return (TRUE)
+# end
+
+# @external
+# func mint_to_treasury{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(amount : Uint256, index : Uint256) -> (success: felt):
+#     AToken.mint_to_treasury(amount, index)
+#     return (TRUE)
+# end
+
 @external
-func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    to : felt, amount : Uint256
+func transfer_on_liquidation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    from_ : felt, to : felt, value : Uint256
 ):
-    Ownable.assert_only_owner()
-    ERC20._mint(to, amount)
+    AToken.transfer_on_liquidation(from_, to, value)
     return ()
 end
 
 @external
-func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    account : felt, recipient : felt, amount : Uint256
-) -> (success : felt):
-    alloc_locals
-    let (local underlying) = _underlying.read()
-    ERC20._burn(account=account, amount=amount)
-    IERC20.transfer(contract_address=underlying, recipient=recipient, amount=amount)
-    return (TRUE)
-end
-
-@external
-func transferOwnership{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    newOwner : felt
+func transfer_underlying_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    target : felt, amount : Uint256
 ):
-    Ownable.transfer_ownership(newOwner)
+    AToken.transfer_underlying_to(target, amount)
     return ()
 end
 
+# @external
+# func handle_repayment{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt, to : felt, amount : Uint256):
+#     AToken.handle_repayment(token, to, amount)
+#     return ()
+# end
+
+# @external
+# func permit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt, to : felt, amount : Uint256):
+#     AToken.permit(token, to, amount)
+#     return ()
+# end
+
 @external
-func renounceOwnership{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    Ownable.renounce_ownership()
+func rescue_tokens{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    token : felt, to : felt, amount : Uint256
+):
+    AToken.rescue_tokens(token, to, amount)
     return ()
 end
