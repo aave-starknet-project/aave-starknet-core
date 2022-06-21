@@ -10,5 +10,28 @@
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "pool",
+                "type": "felt"
+            },
+            {
+                "name": "name",
+                "type": "felt"
+            },
+            {
+                "name": "symbol",
+                "type": "felt"
+            },
+            {
+                "name": "decimals",
+                "type": "felt"
+            }
+        ],
+        "name": "incentivized_erc20_initialize",
+        "outputs": [],
+        "type": "function"
     }
 ]

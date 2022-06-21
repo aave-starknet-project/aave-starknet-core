@@ -6,6 +6,6 @@ libs_path = "lib"
 
 ["protostar.contracts"]
 incentivizedERC20 = [
-    "./contracts/protocol/tokenization/base/incentivizedERC20.cairo",
+    "./contracts/protocol/tokenization/base/incentivized_erc20.cairo",
 ]
 

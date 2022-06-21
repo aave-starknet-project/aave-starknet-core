@@ -22,7 +22,7 @@ func test_incentivizedERC20_contract{syscall_ptr : felt*, range_check_ptr}():
     local pool_address : felt
 
     %{
-        ids.IncentivizedERC20_address = deploy_contract("./contracts/protocol/tokenization/base/incentivizedERC20.cairo").contract_address
+        ids.IncentivizedERC20_address = deploy_contract("./contracts/protocol/tokenization/base/incentivized_erc20.cairo").contract_address
         ids.pool_address=context.pool
     %}
     IncentivizedERC20.incentivized_erc20_initialize(
