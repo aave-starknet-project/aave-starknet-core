@@ -2,7 +2,7 @@
 
 @contract_interface
 namespace IncentivizedERC20:
-    func get_pool() -> (res : felt):
+    func incentivized_erc20_pool() -> (res : felt):
     end
     func incentivized_erc20_initialize(pool : felt, name : felt, symbol : felt, decimals : felt):
     end
@@ -27,7 +27,8 @@ func test_incentivizedERC20_contract{syscall_ptr : felt*, range_check_ptr}():
     %}
     IncentivizedERC20.incentivized_erc20_initialize(
         IncentivizedERC20_address, pool_address, 2, 3, 4)
-    let (res) = IncentivizedERC20.get_pool(contract_address=IncentivizedERC20_address)
+    let (res) = IncentivizedERC20.incentivized_erc20_pool(
+        contract_address=IncentivizedERC20_address)
     assert res = pool_address
 
     return ()

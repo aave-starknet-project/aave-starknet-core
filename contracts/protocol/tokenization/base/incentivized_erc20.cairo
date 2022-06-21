@@ -4,17 +4,15 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_sub
 from starkware.cairo.common.bool import TRUE
-# from lib.cairo_contracts.src.openzeppelin.security.safemath import (
-# uint256_checked_add, uint256_checked_sub_le)
-# from openzeppelin.token.erc20.library import ERC20
+from openzeppelin.token.erc20.library import ERC20
 from contracts.protocol.interfaces.IPool import IPOOL
-
+from openzeppelin.security.safemath import SafeUint256
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
 # StableDebtTokens use this field to store the user's stable rate.
 struct UserState:
-    member balance : felt
-    member additionalData : felt
+    member balance : Uint256
+    member additionalData : Uint256
 end
 
 @storage_var
@@ -62,7 +60,7 @@ end
 # modifiers
 
 # onlyPool modifier
-func incentivized_erc20_only_Pool{
+func incentivized_erc20_only_pool{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (caller_address) = get_caller_address()
@@ -74,7 +72,7 @@ func incentivized_erc20_only_Pool{
 end
 
 # onlyPoolAdmin modifier
-func incentivized_erc20_only_PoolAdmin{
+func incentivized_erc20_only_pool_admin{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     let (caller_address) = get_caller_address()
 
@@ -83,10 +81,18 @@ func incentivized_erc20_only_PoolAdmin{
 end
 
 # getters
+@view
+func incentivized_erc20_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (res : felt):
+    let (res) = POOL.read()
+    return (res)
+end
 
 @view
-func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
-    let (res) = POOL.read()
+func incentivized_erc20_UserState{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(user : felt) -> (
+        res : UserState):
+    let (res) = _userState.read(user)
     return (res)
 end
 
@@ -106,5 +112,78 @@ func incentivized_erc20_initialize{
     _symbol.write(symbol)
     _decimals.write(decimals)
     POOL.write(pool)
+    return ()
+end
+
+@view
+func incentivized_erc20_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (name : felt):
+    let (name) = _name.read()
+    return (name)
+end
+
+@view
+func incentivized_erc20_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (symbol : felt):
+    let (symbol) = _symbol.read()
+    return (symbol)
+end
+
+@view
+func incentivized_erc20_totalSupply{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        totalSupply : Uint256):
+    let (totalSupply : Uint256) = _totalSupply.read()
+    return (totalSupply)
+end
+
+@view
+func incentivized_erc20_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (decimals : felt):
+    let (decimals) = _decimals.read()
+    return (decimals)
+end
+
+@view
+func incentivized_erc20_balanceOf{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(account : felt) -> (
+        balance : Uint256):
+    let (state : UserState) = _userState.read(account)
+    return (state.balance)
+end
+
+@view
+func incentivized_erc20_allowance{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        owner : felt, spender : felt) -> (remaining : Uint256):
+    let (remaining : Uint256) = _allowances.read(owner, spender)
+    return (remaining)
+end
+
+# @dev the amount should be passed as uint128
+func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        sender : felt, recipient : felt, amount : Uint256) -> ():
+    alloc_locals
+    let (oldSenderState) = _userState.read(sender)
+    let (oldRecipientState) = _userState.read(recipient)
+
+    let (newSenderBalance) = SafeUint256.sub_le(oldSenderState.balance, amount)
+    let newSenderState = UserState(newSenderBalance, oldSenderState.additionalData)
+
+    _userState.write(sender, newSenderState)
+
+    let (newRecipientBalance) = SafeUint256.add(oldRecipientState.balance, amount)
+    let newRecipientState = UserState(newRecipientBalance, oldRecipientState.additionalData)
+    _userState.write(recipient, newRecipientState)
+
+    # @TODO: import incentives_controller & handle action
+
+    return ()
+end
+
+func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        owner : felt, spender : felt, amount : Uint256) -> ():
+    alloc_locals
+    _allowances.write(owner, spender, amount)
     return ()
 end

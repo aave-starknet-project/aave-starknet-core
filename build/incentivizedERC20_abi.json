@@ -1,11 +1,100 @@
 [
     {
+        "members": [
+            {
+                "name": "low",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "high",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "Uint256",
+        "size": 2,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "balance",
+                "offset": 0,
+                "type": "Uint256"
+            },
+            {
+                "name": "additionalData",
+                "offset": 2,
+                "type": "Uint256"
+            }
+        ],
+        "name": "UserState",
+        "size": 4,
+        "type": "struct"
+    },
+    {
+        "data": [
+            {
+                "name": "from_",
+                "type": "felt"
+            },
+            {
+                "name": "to",
+                "type": "felt"
+            },
+            {
+                "name": "value",
+                "type": "Uint256"
+            }
+        ],
+        "keys": [],
+        "name": "Transfer",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "spender",
+                "type": "felt"
+            },
+            {
+                "name": "value",
+                "type": "Uint256"
+            }
+        ],
+        "keys": [],
+        "name": "Approval",
+        "type": "event"
+    },
+    {
         "inputs": [],
-        "name": "get_pool",
+        "name": "incentivized_erc20_pool",
         "outputs": [
             {
                 "name": "res",
                 "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "user",
+                "type": "felt"
+            }
+        ],
+        "name": "incentivized_erc20_UserState",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "UserState"
             }
         ],
         "stateMutability": "view",
@@ -32,6 +121,92 @@
         ],
         "name": "incentivized_erc20_initialize",
         "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incentivized_erc20_name",
+        "outputs": [
+            {
+                "name": "name",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incentivized_erc20_symbol",
+        "outputs": [
+            {
+                "name": "symbol",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incentivized_erc20_totalSupply",
+        "outputs": [
+            {
+                "name": "totalSupply",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "incentivized_erc20_decimals",
+        "outputs": [
+            {
+                "name": "decimals",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "account",
+                "type": "felt"
+            }
+        ],
+        "name": "incentivized_erc20_balanceOf",
+        "outputs": [
+            {
+                "name": "balance",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "spender",
+                "type": "felt"
+            }
+        ],
+        "name": "incentivized_erc20_allowance",
+        "outputs": [
+            {
+                "name": "remaining",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     }
 ]
