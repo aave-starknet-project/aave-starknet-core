@@ -7,16 +7,18 @@ from starkware.cairo.common.bool import TRUE
 from openzeppelin.token.erc20.library import ERC20
 from contracts.protocol.interfaces.IPool import IPOOL
 from openzeppelin.security.safemath import SafeUint256
+from starkware.cairo.common.math import assert_le_felt
+
+const MAX_UINT128 = 2 ** 128
+
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
 # StableDebtTokens use this field to store the user's stable rate.
-struct UserState:
-    member balance : Uint256
-    member additionalData : Uint256
-end
-
+# instead of using a struct we will be relying on a Uint256 where
+# low: balance
+# high: additionalData
 @storage_var
-func _userState(address : felt) -> (state : UserState):
+func _userState(address : felt) -> (state : Uint256):
 end
 
 @storage_var
@@ -91,7 +93,7 @@ end
 @view
 func incentivized_erc20_UserState{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(user : felt) -> (
-        res : UserState):
+        res : Uint256):
     let (res) = _userState.read(user)
     return (res)
 end
@@ -147,9 +149,9 @@ end
 @view
 func incentivized_erc20_balanceOf{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(account : felt) -> (
-        balance : Uint256):
-    let (state : UserState) = _userState.read(account)
-    return (state.balance)
+        balance : felt):
+    let (state : Uint256) = _userState.read(account)
+    return (state.low)
 end
 
 @view
@@ -162,18 +164,27 @@ end
 
 # @dev the amount should be passed as uint128
 func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        sender : felt, recipient : felt, amount : Uint256) -> ():
+        sender : felt, recipient : felt, amount : felt) -> ():
     alloc_locals
+
+    with_attr error_message("value doesn't fit in 128 bits"):
+        assert_le_felt(MAX_UINT128, amount)
+    end
+
     let (oldSenderState) = _userState.read(sender)
     let (oldRecipientState) = _userState.read(recipient)
 
-    let (newSenderBalance) = SafeUint256.sub_le(oldSenderState.balance, amount)
-    let newSenderState = UserState(newSenderBalance, oldSenderState.additionalData)
+    with_attr error_message("Not enough balance"):
+        assert_le_felt(oldSenderState.low, amount)
+    end
+
+    let newSenderBalance = oldSenderState.low - amount
+    let newSenderState = Uint256(newSenderBalance, oldSenderState.high)
 
     _userState.write(sender, newSenderState)
 
-    let (newRecipientBalance) = SafeUint256.add(oldRecipientState.balance, amount)
-    let newRecipientState = UserState(newRecipientBalance, oldRecipientState.additionalData)
+    let newRecipientBalance = oldRecipientState.low + amount
+    let newRecipientState = Uint256(newRecipientBalance, oldRecipientState.high)
     _userState.write(recipient, newRecipientState)
 
     # @TODO: import incentives_controller & handle action

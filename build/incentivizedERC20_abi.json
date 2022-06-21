@@ -17,23 +17,6 @@
         "type": "struct"
     },
     {
-        "members": [
-            {
-                "name": "balance",
-                "offset": 0,
-                "type": "Uint256"
-            },
-            {
-                "name": "additionalData",
-                "offset": 2,
-                "type": "Uint256"
-            }
-        ],
-        "name": "UserState",
-        "size": 4,
-        "type": "struct"
-    },
-    {
         "data": [
             {
                 "name": "from_",
@@ -94,7 +77,7 @@
         "outputs": [
             {
                 "name": "res",
-                "type": "UserState"
+                "type": "Uint256"
             }
         ],
         "stateMutability": "view",
@@ -182,7 +165,7 @@
         "outputs": [
             {
                 "name": "balance",
-                "type": "Uint256"
+                "type": "felt"
             }
         ],
         "stateMutability": "view",
