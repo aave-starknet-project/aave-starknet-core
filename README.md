@@ -4,8 +4,9 @@
 
 ## Installation
 
-To enable pre-commit hooks using: [pre-commit-cairo](https://github.com/franalgaba/pre-commit-cairo)
-Run the following: 
+To enable pre-commit hooks using [pre-commit-cairo](https://github.com/franalgaba/pre-commit-cairo)
+
+Make sure you run the following: 
 ```bash
 $ pip install pre-commit
 $ pre-commit --version #check if successfully installed
