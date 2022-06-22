@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7"] # Cairo was tested with this version
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Protostar
+        shell: bash
+        run: |
+          curl -L https://raw.githubusercontent.com/software-mansion/protostar/master/install.sh | bash
+      - name: Build contracts
+        shell: bash
+        run: |
+          exec bash  && source ~/.bashrc && protostar build
+
+      - name: Run tests
+        run: |
+          exec bash  && source ~/.bashrc && protostar test ./tests
