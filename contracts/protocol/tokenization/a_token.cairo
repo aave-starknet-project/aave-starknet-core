@@ -15,7 +15,8 @@ end
 # Increases the balance by the given amount.
 @external
 func increase_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        amount : Uint256):
+    amount : Uint256
+):
     let (read_balance) = balance.read()
     let (new_balance, carry) = uint256_add(read_balance, amount)
     assert carry = 0
@@ -26,7 +27,8 @@ end
 # Returns the current balance.
 @view
 func get_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        res : Uint256):
+    res : Uint256
+):
     let (res) = balance.read()
     return (res)
 end
@@ -39,7 +41,8 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        initial_balance : Uint256, _id : felt):
+    initial_balance : Uint256, _id : felt
+):
     balance.write(initial_balance)
     id.write(_id)
     return ()
