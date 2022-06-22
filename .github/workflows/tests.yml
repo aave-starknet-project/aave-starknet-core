@@ -19,11 +19,11 @@ jobs:
         shell: bash
         run: |
           curl -L https://raw.githubusercontent.com/software-mansion/protostar/master/install.sh | bash
-      - name: Build contracts
+      - name: Protostar build
         shell: bash
         run: |
-          exec bash  && source ~/.bashrc && protostar build
+          export PATH="$PATH:/home/runner/.protostar/dist/protostar" && protostar build
 
-      - name: Run tests
+      - name: Protostar run tests
         run: |
-          exec bash  && source ~/.bashrc && protostar test ./tests
+          export PATH="$PATH:/home/runner/.protostar/dist/protostar" && protostar test ./tests
