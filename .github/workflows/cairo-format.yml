@@ -19,7 +19,7 @@ jobs:
         run: pip install cairo-lang
 
       - name: format contracts
-        run: find contracts/ -iname '*.cairo' -exec cairo-format -c {} +
+        run: find src/ -iname '*.cairo' -exec cairo-format -c {} +
 
       - name: format tests
         run: find tests/ -iname '*.cairo' -exec cairo-format -c {} +
