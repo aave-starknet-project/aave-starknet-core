@@ -8,7 +8,8 @@ end
 
 @external
 func increase_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        amount : felt):
+    amount : felt
+):
     with_attr error_message("Amount must be positive. Got: {amount}."):
         assert_nn(amount)
     end
@@ -20,7 +21,8 @@ end
 
 @view
 func get_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        res : felt):
+    res : felt
+):
     let (res) = balance.read()
     return (res)
 end
