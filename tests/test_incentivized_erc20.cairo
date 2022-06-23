@@ -26,9 +26,11 @@ func test_incentivizedERC20_contract{syscall_ptr : felt*, range_check_ptr}():
         ids.pool_address=context.pool
     %}
     IncentivizedERC20.incentivized_erc20_initialize(
-        IncentivizedERC20_address, pool_address, 2, 3, 4)
+        IncentivizedERC20_address, pool_address, 2, 3, 4
+    )
     let (res) = IncentivizedERC20.incentivized_erc20_pool(
-        contract_address=IncentivizedERC20_address)
+        contract_address=IncentivizedERC20_address
+    )
     assert res = pool_address
 
     return ()
