@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7"] # Cairo was tested with this version
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Protostar
+        shell: bash
+        run: |
+          curl -L https://raw.githubusercontent.com/software-mansion/protostar/master/install.sh | bash
+      - name: Protostar build
+        shell: bash
+        run: |
+          export PATH="$PATH:/home/runner/.protostar/dist/protostar" && protostar build
+
+      - name: Protostar run tests
+        run: |
+          export PATH="$PATH:/home/runner/.protostar/dist/protostar" && protostar test ./tests

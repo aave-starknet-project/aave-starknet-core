@@ -1,0 +1,25 @@
+name: Cairo-format
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install cairo
+        run: pip install cairo-lang
+
+      - name: format contracts
+        run: find contracts/ -iname '*.cairo' -exec cairo-format -c {} +
+
+      - name: format tests
+        run: find tests/ -iname '*.cairo' -exec cairo-format -c {} +
