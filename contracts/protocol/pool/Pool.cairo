@@ -3,7 +3,9 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
-from contracts.protocol.pool.PoolStorage import _reserves, _reserves_count
+from contracts.protocol.pool.PoolStorage import pool_storages
+from contracts.protocol.libraries.logic.PoolLogic import PoolLogic
+from contracts.protocol.libraries.types.DataTypes import DataTypes
 
 # Supplies an `amount` of underlying asset into the reserve, receiving in return overlying aTokens.
 # - E.g. User supplies 100 USDC and gets in return 100 aUSDC
@@ -18,7 +20,7 @@ from contracts.protocol.pool.PoolStorage import _reserves, _reserves_count
 func supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, amount : Uint256, on_behalf_of : felt, referral_code : felt
 ):
-    # insert logic here
+    # TODO insert logic here
     return ()
 end
 
@@ -47,9 +49,27 @@ end
 # @param stableDebtAddress The address of the StableDebtToken that will be assigned to the reserve
 # @param variableDebtAddress The address of the VariableDebtToken that will be assigned to the reserve
 # @param interestRateStrategyAddress The address of the interest rate strategy contract
+@external
 func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, aToken_address : felt
 ):
-    # TODO insert logic here
+    let (reserves_count) = pool_storages.reserves_count_read()
+    # TODO add the rest of reserves parameters (debt tokens, interest_rate_strategy, etc)
+    let (appended) = PoolLogic.execute_init_reserve(
+        params=DataTypes.InitReserveParams(
+        asset=asset,
+        aToken_address=aToken_address,
+        reserves_count=reserves_count,
+        max_number_reserves=128
+        ),
+    )
     return ()
+end
+
+@view
+func get_reserve_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    asset : felt
+) -> (reserve_data : DataTypes.ReserveData):
+    let (reserve) = pool_storages.reserves_read(asset)
+    return (reserve)
 end
