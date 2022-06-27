@@ -7,60 +7,12 @@ from starkware.cairo.common.bool import TRUE
 from src.contracts.protocol.interfaces.i_pool import IPOOL
 # from openzeppelin.security.safemath import SafeUint256
 from starkware.cairo.common.math import assert_le_felt
+from src.contracts.protocol.tokenization.base.incentivized_erc20_storage import (
+    IncentivizedERC20Storage,
+    UserState,
+)
 
 const MAX_UINT128 = 2 ** 128
-
-
-struct UserState:
-
-    member balance : felt
-    member additionalData : felt
-end
-# @dev UserState - additionalData is a flexible field.
-# ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
-# StableDebtTokens use this field to store the user's stable rate.
-
-@storage_var
-func _userState(address : felt) -> (state :UserState ):
-end
-
-@storage_var
-func _allowances(delegator : felt, delegatee : felt) -> (allowance : felt):
-end
-
-@storage_var
-func _totalSupply() -> (totalSupply : Uint256):
-end
-
-@storage_var
-func _name() -> (name : felt):
-end
-
-@storage_var
-func _symbol() -> (symbol : felt):
-end
-
-@storage_var
-func _decimals() -> (decimals : felt):
-end
-
-@storage_var
-func _incentivesController() -> (address : felt):
-end
-
-# addresses provider address
-@storage_var
-func _addressesProvider() -> (addressesProvider : felt):
-end
-
-# using pool address instead of interface
-@storage_var
-func POOL() -> (pool : felt):
-end
-
-@storage_var
-func owner() -> (owner : felt):
-end
 
 # modifiers
 
@@ -70,7 +22,7 @@ func incentivized_erc20_only_pool{
 }():
     alloc_locals
     let (caller_address) = get_caller_address()
-    let (pool_) = POOL.read()
+    let (pool_) = IncentivizedERC20Storage.incentivized_erc20_pool()
     with_attr error_message("Caller address should be bridge: {l2_bridge_}"):
         assert caller_address = pool_
     end
@@ -98,112 +50,11 @@ func incentivized_erc20_initialize{
 }(pool : felt, name : felt, symbol : felt, decimals : felt):
     alloc_locals
     let (addresses_provider) = IPOOL.get_addresses_provider(contract_address=pool)
-    _addressesProvider.write(addresses_provider)
-    _name.write(name)
-    _symbol.write(symbol)
-    _decimals.write(decimals)
-    POOL.write(pool)
-    return ()
-end
-
-# getters
-@view
-func incentivized_erc20_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    ) -> (res : felt):
-    let (res) = POOL.read()
-    return (res)
-end
-
-@view
-func incentivized_erc20_UserState{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(user : felt) -> (res : UserState):
-    let (res) = _userState.read(user)
-    return (res)
-end
-
-# returns the address of the IncentivesController
-@view
-func incentivized_erc20_IncentivesController{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}() -> (incentives_controller : felt):
-    let (incentives_controller) = _incentivesController.read()
-    return (incentives_controller)
-end
-
-@view
-func incentivized_erc20_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    ) -> (name : felt):
-    let (name) = _name.read()
-    return (name)
-end
-
-@view
-func incentivized_erc20_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    ) -> (symbol : felt):
-    let (symbol) = _symbol.read()
-    return (symbol)
-end
-
-@view
-func incentivized_erc20_totalSupply{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}() -> (totalSupply : Uint256):
-    let (totalSupply : Uint256) = _totalSupply.read()
-    return (totalSupply)
-end
-
-@view
-func incentivized_erc20_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    ) -> (decimals : felt):
-    let (decimals) = _decimals.read()
-    return (decimals)
-end
-
-@view
-func incentivized_erc20_balanceOf{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(account : felt) -> (balance : felt):
-    let (state : UserState) = _userState.read(account)
-    return (state.balance)
-end
-
-@view
-func incentivized_erc20_allowance{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(owner : felt, spender : felt) -> (remaining : felt):
-    let (remaining) = _allowances.read(owner, spender)
-    return (remaining)
-end
-
-# setters
-
-func incentivized_erc20_set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt
-):
-    _name.write(name)
-    return ()
-end
-
-func incentivized_erc20_set_symbol{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(symbol : felt):
-    _symbol.write(symbol)
-    return ()
-end
-
-func incentivized_erc20_set_decimals{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(decimals : felt):
-    _decimals.write(decimals)
-    return ()
-end
-
-# @TODO: set onlyPoolAdmin modifier
-func incentivized_erc20_set_IncentivesController{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(IAaveIncentivesController : felt):
-    _incentivesController.write(IAaveIncentivesController)
+    IncentivizedERC20Storage.incentivized_erc20_set_addresses_provider(addresses_provider)
+    IncentivizedERC20Storage.incentivized_erc20_set_name(name)
+    IncentivizedERC20Storage.incentivized_erc20_set_symbol(symbol)
+    IncentivizedERC20Storage.incentivized_erc20_set_decimals(decimals)
+    IncentivizedERC20Storage.incentivized_erc20_set_pool(pool)
     return ()
 end
 
@@ -212,7 +63,7 @@ end
 func incentivized_erc20_increase_balance{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(address : felt, amount : felt):
-    let (oldState) = _userState.read(address)
+    let (oldState) = IncentivizedERC20Storage.incentivized_erc20_UserState(address)
 
     with_attr error_message("value doesn't fit in 128 bits"):
         assert_le_felt(amount, MAX_UINT128)
@@ -226,7 +77,7 @@ func incentivized_erc20_increase_balance{
     end
 
     let newState = UserState(newBalance, oldState.additionalData)
-    _userState.write(address, newState)
+    IncentivizedERC20Storage.incentivized_erc20_set_UserState(address, newState)
     return ()
 end
 
@@ -235,7 +86,7 @@ end
 func incentivized_erc20_decrease_balance{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(address : felt, amount : felt):
-    let (oldState) = _userState.read(address)
+    let (oldState) = IncentivizedERC20Storage.incentivized_erc20_UserState(address)
 
     with_attr error_message("value doesn't fit in 128 bits"):
         assert_le_felt(amount, MAX_UINT128)
@@ -248,7 +99,7 @@ func incentivized_erc20_decrease_balance{
     end
 
     let newState = UserState(newBalance, oldState.additionalData)
-    _userState.write(address, newState)
+    IncentivizedERC20Storage.incentivized_erc20_set_UserState(address, newState)
     return ()
 end
 
@@ -274,8 +125,8 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
         assert_le_felt(amount, MAX_UINT128)
     end
 
-    let (oldSenderState) = _userState.read(sender)
-    let (oldRecipientState) = _userState.read(recipient)
+    let (oldSenderState) = IncentivizedERC20Storage.incentivized_erc20_UserState(sender)
+    let (oldRecipientState) = IncentivizedERC20Storage.incentivized_erc20_UserState(recipient)
 
     with_attr error_message("Not enough balance"):
         assert_le_felt(amount, oldSenderState.balance)
@@ -284,11 +135,11 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     let newSenderBalance = oldSenderState.balance - amount
     let newSenderState = UserState(newSenderBalance, oldSenderState.additionalData)
 
-    _userState.write(sender, newSenderState)
+    IncentivizedERC20Storage.incentivized_erc20_set_UserState(sender, newSenderState)
 
     let newRecipientBalance = oldRecipientState.balance + amount
     let newRecipientState = UserState(newRecipientBalance, oldRecipientState.additionalData)
-    _userState.write(recipient, newRecipientState)
+    IncentivizedERC20Storage.incentivized_erc20_set_UserState(recipient, newRecipientState)
 
     # @TODO: import incentives_controller & handle action
 
@@ -301,7 +152,7 @@ func transferFrom{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     sender : felt, recipient : felt, amount : Uint256
 ) -> (success : felt):
     let (caller_address) = get_caller_address()
-    let (allowance) = _allowances.read(sender, caller_address)
+    let (allowance) = IncentivizedERC20Storage.incentivized_erc20_allowance(sender, caller_address)
 
     with_attr error_message("amount doesn't fit in 128 bits"):
         assert_le_felt(amount.low, MAX_UINT128)
@@ -334,14 +185,12 @@ func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     return ()
 end
 
-
 func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt, amount : felt
 ) -> ():
-    _allowances.write(owner, spender, amount)
+    IncentivizedERC20Storage.incentivized_erc20_set_allowance(owner, spender, amount)
     return ()
 end
-
 
 @external
 func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -349,7 +198,9 @@ func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 ) -> (success : felt):
     alloc_locals
     let (caller_address) = get_caller_address()
-    let (oldAllowance) = _allowances.read(caller_address, spender)
+    let (oldAllowance) = IncentivizedERC20Storage.incentivized_erc20_allowance(
+        caller_address, spender
+    )
 
     with_attr error_message("amount doesn't fit in 128 bits"):
         assert_le_felt(amount.low, MAX_UINT128)
@@ -372,7 +223,9 @@ func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 ) -> (success : felt):
     alloc_locals
     let (caller_address) = get_caller_address()
-    let (oldAllowance) = _allowances.read(caller_address, spender)
+    let (oldAllowance) = IncentivizedERC20Storage.incentivized_erc20_allowance(
+        caller_address, spender
+    )
 
     with_attr error_message("amount doesn't fit in 128 bits"):
         assert_le_felt(amount.low, MAX_UINT128)
@@ -395,6 +248,6 @@ func create_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     address : felt, amount : felt, index : felt
 ):
     let state = UserState(amount, index)
-    _userState.write(address, state)
+    IncentivizedERC20Storage.incentivized_erc20_set_UserState(address, state)
     return ()
 end
