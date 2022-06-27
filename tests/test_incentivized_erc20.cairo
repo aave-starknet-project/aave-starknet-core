@@ -1,62 +1,6 @@
 %lang starknet
 from starkware.cairo.common.uint256 import Uint256
-
-@contract_interface
-namespace IncentivizedERC20:
-    func incentivized_erc20_pool() -> (res : felt):
-    end
-    func incentivized_erc20_initialize(pool : felt, name : felt, symbol : felt, decimals : felt):
-    end
-
-    func incentivized_erc20_symbol() -> (symbol : felt):
-    end
-
-    func incentivized_erc20_name() -> (name : felt):
-    end
-
-    func incentivized_erc20_decimals() -> (decimals : felt):
-    end
-
-    func incentivized_erc20_set_name(name : felt):
-    end
-
-    func incentivized_erc20_set_symbol(symbol : felt):
-    end
-
-    func incentivized_erc20_set_decimals(decimals : felt):
-    end
-
-    # temporary
-    func createState(address : felt, amount : felt, index : felt):
-    end
-
-    func incentivized_erc20_increase_balance(address : felt, amount : felt):
-    end
-
-    func incentivized_erc20_decrease_balance(address : felt, amount : felt):
-    end
-
-    func incentivized_erc20_balanceOf(account : felt) -> (balance : felt):
-    end
-
-    func incentivized_erc20_allowance(owner : felt, spender : felt) -> (remaining : felt):
-    end
-
-    func transfer(recipient : felt, amount : Uint256):
-    end
-
-    func increaseAllowance(spender : felt, amount : Uint256) -> (success : felt):
-    end
-
-    func decreaseAllowance(spender : felt, amount : Uint256) -> (success : felt):
-    end
-
-    func approve(spender : felt, amount : Uint256):
-    end
-
-    func transferFrom(sender : felt, recipient : felt, amount : Uint256) -> (success : felt):
-    end
-end
+from src.contracts.protocol.interfaces.i_incentivized_erc20 import IncentivizedERC20
 
 const PRANK_USER1 = 123
 const PRANK_USER2 = 456
@@ -64,8 +8,8 @@ const PRANK_USER2 = 456
 @view
 func __setup__():
     # deploy pool contract first
-    %{ context.pool = deploy_contract("./contracts/protocol/pool/Pool.cairo").contract_address %}
-    %{ context.incentivized_erc_20=deploy_contract("./contracts/protocol/tokenization/base/incentivized_erc20.cairo").contract_address %}
+    %{ context.pool = deploy_contract("./src/contracts/protocol/pool/Pool.cairo").contract_address %}
+    %{ context.incentivized_erc_20=deploy_contract("./src/contracts/protocol/tokenization/base/incentivized_erc20.cairo").contract_address %}
     %{ context.name= 1 %}
     %{ context.symbol= 2 %}
     %{ context.decimals= 3 %}
@@ -178,8 +122,8 @@ func test_incentivizedERC20_balances{syscall_ptr : felt*, range_check_ptr}():
         IncentivizedERC20_address, pool_address, name, symbol, decimals
     )
 
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER1, 100, 1)
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER2, 200, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER1, 100, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER2, 200, 1)
 
     let (balance1) = IncentivizedERC20.incentivized_erc20_balanceOf(
         IncentivizedERC20_address, PRANK_USER1
@@ -232,8 +176,8 @@ func test_incentivizedERC20_transfers{syscall_ptr : felt*, range_check_ptr}():
         IncentivizedERC20_address, pool_address, name, symbol, decimals
     )
 
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER1, 100, 1)
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER2, 200, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER1, 100, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER2, 200, 1)
 
     # User 2 sends 50 to User 1
     %{ stop_prank_transfer1= start_prank(ids.PRANK_USER2, target_contract_address=ids.IncentivizedERC20_address) %}
@@ -300,8 +244,8 @@ func test_incentivizedERC20_allowances{syscall_ptr : felt*, range_check_ptr}():
         IncentivizedERC20_address, pool_address, name, symbol, decimals
     )
 
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER1, 100, 1)
-    IncentivizedERC20.createState(IncentivizedERC20_address, PRANK_USER2, 200, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER1, 100, 1)
+    IncentivizedERC20.create_state(IncentivizedERC20_address, PRANK_USER2, 200, 1)
 
     %{ stop_prank_approve= start_prank(ids.PRANK_USER2, target_contract_address=ids.IncentivizedERC20_address) %}
 

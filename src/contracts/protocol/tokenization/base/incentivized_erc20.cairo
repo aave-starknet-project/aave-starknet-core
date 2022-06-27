@@ -4,20 +4,24 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE
-from contracts.protocol.interfaces.IPool import IPOOL
+from src.contracts.protocol.interfaces.i_pool import IPOOL
 # from openzeppelin.security.safemath import SafeUint256
 from starkware.cairo.common.math import assert_le_felt
 
 const MAX_UINT128 = 2 ** 128
 
+
+struct UserState:
+
+    member balance : felt
+    member additionalData : felt
+end
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
 # StableDebtTokens use this field to store the user's stable rate.
-# instead of using a struct we will be relying on a Uint256 where
-# low: balance
-# high: additionalData
+
 @storage_var
-func _userState(address : felt) -> (state : Uint256):
+func _userState(address : felt) -> (state :UserState ):
 end
 
 @storage_var
@@ -113,7 +117,7 @@ end
 @view
 func incentivized_erc20_UserState{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(user : felt) -> (res : Uint256):
+}(user : felt) -> (res : UserState):
     let (res) = _userState.read(user)
     return (res)
 end
@@ -160,8 +164,8 @@ end
 func incentivized_erc20_balanceOf{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(account : felt) -> (balance : felt):
-    let (state : Uint256) = _userState.read(account)
-    return (state.low)
+    let (state : UserState) = _userState.read(account)
+    return (state.balance)
 end
 
 @view
@@ -173,6 +177,7 @@ func incentivized_erc20_allowance{
 end
 
 # setters
+
 func incentivized_erc20_set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     name : felt
 ):
@@ -213,14 +218,14 @@ func incentivized_erc20_increase_balance{
         assert_le_felt(amount, MAX_UINT128)
     end
 
-    let newBalance = oldState.low + amount
+    let newBalance = oldState.balance + amount
 
     # @TODO: should there be more checks?
     with_attr error_message("result doesn't fit in 128 bits"):
         assert_le_felt(newBalance, MAX_UINT128)
     end
 
-    let newState = Uint256(newBalance, oldState.high)
+    let newState = UserState(newBalance, oldState.additionalData)
     _userState.write(address, newState)
     return ()
 end
@@ -236,13 +241,13 @@ func incentivized_erc20_decrease_balance{
         assert_le_felt(amount, MAX_UINT128)
     end
 
-    let newBalance = oldState.low - amount
+    let newBalance = oldState.balance - amount
 
     with_attr error_message("result doesn't fit in 128 bits"):
         assert_le_felt(newBalance, MAX_UINT128)
     end
 
-    let newState = Uint256(newBalance, oldState.high)
+    let newState = UserState(newBalance, oldState.additionalData)
     _userState.write(address, newState)
     return ()
 end
@@ -273,16 +278,16 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     let (oldRecipientState) = _userState.read(recipient)
 
     with_attr error_message("Not enough balance"):
-        assert_le_felt(amount, oldSenderState.low)
+        assert_le_felt(amount, oldSenderState.balance)
     end
 
-    let newSenderBalance = oldSenderState.low - amount
-    let newSenderState = Uint256(newSenderBalance, oldSenderState.high)
+    let newSenderBalance = oldSenderState.balance - amount
+    let newSenderState = UserState(newSenderBalance, oldSenderState.additionalData)
 
     _userState.write(sender, newSenderState)
 
-    let newRecipientBalance = oldRecipientState.low + amount
-    let newRecipientState = Uint256(newRecipientBalance, oldRecipientState.high)
+    let newRecipientBalance = oldRecipientState.balance + amount
+    let newRecipientState = UserState(newRecipientBalance, oldRecipientState.additionalData)
     _userState.write(recipient, newRecipientState)
 
     # @TODO: import incentives_controller & handle action
@@ -329,7 +334,7 @@ func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     return ()
 end
 
-# Amount takes a uint128 or Uint256.low
+
 func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt, amount : felt
 ) -> ():
@@ -337,7 +342,7 @@ func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     return ()
 end
 
-#
+
 @external
 func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     spender : felt, amount : Uint256
@@ -386,10 +391,10 @@ end
 
 # Test function to be removed
 @external
-func createState{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func create_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, amount : felt, index : felt
 ):
-    let state = Uint256(amount, index)
+    let state = UserState(amount, index)
     _userState.write(address, state)
     return ()
 end
