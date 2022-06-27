@@ -11,13 +11,14 @@ from starkware.cairo.common.uint256 import (
     uint256_lt,
 )
 
-from contracts.protocol.pool.PoolStorage import pool_storages
+from contracts.protocol.libraries.storage.pool_storages import pool_storages
+
 
 namespace ReserveLogic:
     # @notice Initializes a reserve.
     # @param reserve The reserve object
     # @param aTokenAddress The address of the overlying atoken contract
-    func init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func _init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve : DataTypes.ReserveData, aToken_address : felt
     ) -> (reserve : DataTypes.ReserveData):
         with_attr error_message("Reserve already initialized"):

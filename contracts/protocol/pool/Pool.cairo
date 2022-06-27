@@ -3,8 +3,9 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
-from contracts.protocol.pool.PoolStorage import pool_storages
+from contracts.protocol.libraries.storage.pool_storages import pool_storages
 from contracts.protocol.libraries.logic.PoolLogic import PoolLogic
+from contracts.protocol.libraries.logic.SupplyLogic import SupplyLogic
 from contracts.protocol.libraries.types.DataTypes import DataTypes
 
 # Supplies an `amount` of underlying asset into the reserve, receiving in return overlying aTokens.
@@ -20,7 +21,16 @@ from contracts.protocol.libraries.types.DataTypes import DataTypes
 func supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, amount : Uint256, on_behalf_of : felt, referral_code : felt
 ):
-    # TODO insert logic here
+    # TODO user configuration bitmask
+    SupplyLogic._execute_supply(
+        user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
+        params=DataTypes.ExecuteSupplyParams(
+        asset=asset,
+        amount=amount,
+        on_behalf_of=on_behalf_of,
+        referral_code=referral_code,
+        ),
+    )
     return ()
 end
 
@@ -37,7 +47,17 @@ end
 func withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, amount : Uint256, to : felt
 ):
-    # TODO insert logic here
+    let (reserves_count) = pool_storages.reserves_count_read()
+    SupplyLogic._execute_withdraw(
+        user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
+        params=DataTypes.ExecuteWithdrawParams(
+        asset=asset,
+        amount=amount,
+        to=to,
+        reserves_count=reserves_count,
+        ),
+    )
+
     return ()
 end
 
@@ -55,7 +75,7 @@ func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 ):
     let (reserves_count) = pool_storages.reserves_count_read()
     # TODO add the rest of reserves parameters (debt tokens, interest_rate_strategy, etc)
-    let (appended) = PoolLogic.execute_init_reserve(
+    let (appended) = PoolLogic._execute_init_reserve(
         params=DataTypes.InitReserveParams(
         asset=asset,
         aToken_address=aToken_address,
