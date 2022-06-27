@@ -1,10 +1,10 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from contracts.interfaces.IPool import IPool
-from contracts.protocol.libraries.types.DataTypes import DataTypes
+from contracts.interfaces.i_pool import IPool
+from contracts.protocol.libraries.types.data_types import DataTypes
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from starkware.cairo.common.uint256 import Uint256
-from contracts.interfaces.IAtoken import IAToken
+from contracts.interfaces.i_a_token import IAToken
 from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 
 const PRANK_USER = 123
@@ -13,12 +13,12 @@ const PRANK_USER = 123
 @view
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{
-        context.pool = deploy_contract("./contracts/protocol/pool/Pool.cairo").contract_address
+        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo").contract_address
 
         #PRANK_USER receives 1000 test_token
         context.test_token = deploy_contract("./tests/contracts/ERC20.cairo", [1415934836,5526356,18,1000,0,ids.PRANK_USER]).contract_address 
 
-        context.aToken = deploy_contract("./contracts/protocol/tokenization/AToken.cairo", [418027762548,1632916308,18,0,0,context.pool,context.pool,context.test_token]).contract_address
+        context.aToken = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [418027762548,1632916308,18,0,0,context.pool,context.pool,context.test_token]).contract_address
     %}
     tempvar pool
     tempvar test_token

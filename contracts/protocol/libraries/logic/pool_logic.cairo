@@ -2,35 +2,38 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import storage_read, storage_write, get_caller_address
-from contracts.protocol.libraries.types.DataTypes import DataTypes
+from contracts.protocol.libraries.types.data_types import DataTypes
 from openzeppelin.security.safemath import SafeUint256
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.math import assert_lt
 from starkware.cairo.common.bool import TRUE, FALSE
-from contracts.protocol.libraries.helpers.Helpers import is_zero
+from contracts.protocol.libraries.helpers.helpers import is_zero
 from contracts.protocol.libraries.storage.pool_storages import pool_storages
-from contracts.protocol.libraries.logic.ReserveLogic import ReserveLogic
+from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
 
 namespace PoolLogic:
+    # @notice Initialize an asset reserve and add the reserve to the list of reserves
+    # @param params parameters needed for initiation
+    # @return true if appended, false if inserted at existing empty spot
     func _execute_init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         params : DataTypes.InitReserveParams
     ) -> (appended : felt):
         alloc_locals
-        let (reserve) = pool_storages.reserves_read(params.asset)
+        let (initial_reserve) = pool_storages.reserves_read(params.asset)
 
         let (local reserve : DataTypes.ReserveData) = ReserveLogic._init(
-            reserve, params.aToken_address
+            initial_reserve, params.aToken_address
         )
-
         # TODO initialize reserves with debtTokens interestRateStrategy
 
         let (is_id_not_zero) = is_not_zero(reserve.id)
         let (first_listed_asset) = pool_storages.reserves_list_read(0)
         let (is_asset_first) = is_zero(first_listed_asset - params.asset)
 
-        with_attr error_message("Reserve already added"):
-            assert is_id_not_zero + is_asset_first = 0
+        with_attr error_message("Reserve has already been added to reserve list"):
+            let reserve_already_added = is_id_not_zero + is_asset_first
+            assert reserve_already_added = FALSE
         end
 
         let (appended) = init_reserve_append(params.asset, reserve, params.reserves_count, 0)
@@ -39,7 +42,7 @@ namespace PoolLogic:
             return (FALSE)
         end
 
-        with_attr error_message("No more reserves allowed"):
+        with_attr error_message("Maximum amount of reserves in the pool reached"):
             assert_lt(params.reserves_count, params.max_number_reserves)
         end
 
@@ -50,6 +53,12 @@ namespace PoolLogic:
     end
 end
 
+# @notice Recursive function trying to add the reserve to the existing list of reserves
+# @param asset asset to be initialized
+# @param reserve reserve to be initialized
+# @param reserves_count number of reserves in the list
+# @param current index of the list
+# @return false if reserve has been added to the list, true otherwise
 func init_reserve_append{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, reserve : DataTypes.ReserveData, reserves_count : felt, index : felt
 ) -> (appended : felt):

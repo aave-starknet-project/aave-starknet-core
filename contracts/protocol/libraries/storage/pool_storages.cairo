@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-from contracts.protocol.libraries.types.DataTypes import DataTypes
+from contracts.protocol.libraries.types.data_types import DataTypes
 
 @storage_var
 func pool_reserves(asset : felt) -> (reserve_data : DataTypes.ReserveData):

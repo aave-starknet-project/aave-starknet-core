@@ -1,7 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.uint256 import Uint256
-from contracts.protocol.libraries.types.DataTypes import DataTypes
+from contracts.protocol.libraries.types.data_types import DataTypes
 
 @contract_interface
 namespace IPool:

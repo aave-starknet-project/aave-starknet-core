@@ -8,6 +8,9 @@ libs_path = "lib"
 main = [
     "./contracts/main.cairo",
 ]
+pool = [
+    "./contracts/protocol/pool/pool.cairo",
+]
 
 ["protostar.shared_command_configs"]
 cairo_path = ["./lib/cairo_contracts/src"]

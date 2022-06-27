@@ -9,12 +9,13 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from openzeppelin.security.safemath import SafeUint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 
-from contracts.protocol.libraries.types.DataTypes import DataTypes
-from contracts.interfaces.IAToken import IAToken
+from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.libraries.storage.pool_storages import pool_storages
 
-from contracts.protocol.libraries.logic.ValidationLogic import ValidationLogic
-# from contracts.protocol.pool.Pool import withdraw
+from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
+
+const UINT128_MAX = 2 ** 128 - 1
 
 @event
 func withdraw_event(reserve : felt, user : felt, to : felt, amount : Uint256):
@@ -27,18 +28,20 @@ func supply_event(
 end
 
 namespace SupplyLogic:
+    # @notice Implements the supply feature. Through `supply()`, users supply assets to the Aave protocol.
+    # @dev Emits the `supply_event()` event.
+    # @param user_config The user configuration mapping that tracks the supplied/borrowed assets
+    # @param params The additional parameters needed to execute the supply function
     func _execute_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteSupplyParams
     ):
         alloc_locals
-        # amount must be valid
         let (reserve) = pool_storages.reserves_read(params.asset)
+        let (caller_address) = get_caller_address()
 
         ValidationLogic._validate_supply(reserve, params.amount)
 
         # TODO update reserve interest rates
-
-        let (caller_address) = get_caller_address()
 
         # Transfer underlying from caller to aToken_address
         IERC20.transferFrom(
@@ -49,7 +52,7 @@ namespace SupplyLogic:
         )
 
         # TODO boolean to check if it is first supply
-        # Mint aToken to on_behalf_of address
+
         IAToken.mint(
             contract_address=reserve.aToken_address, to=params.on_behalf_of, amount=params.amount
         )
@@ -61,25 +64,37 @@ namespace SupplyLogic:
         return ()
     end
 
+    # @notice Implements the withdraw feature. Through `withdraw()`, users redeem their aTokens for the underlying asset
+    # previously supplied in the Aave protocol.
+    # @dev Emits the `withdraw_event()` event.
+    # @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
+    # @param params The additional parameters needed to execute the withdraw function
+    # @return The actual amount withdrawn
     func _execute_withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteWithdrawParams
     ) -> (amount_to_withdraw : Uint256):
         alloc_locals
 
-        uint256_check(params.amount)
         let (caller_address) = get_caller_address()
         let (reserve) = pool_storages.reserves_read(params.asset)
 
-        tempvar amount_to_withdraw : Uint256 = params.amount
-
-        # aToken balance of caller
         # TODO integration with scaled_balance_of and liquidity_index
         let (local user_balance) = IAToken.balanceOf(reserve.aToken_address, caller_address)
+
+        tempvar uint256_max : Uint256 = Uint256(UINT128_MAX, UINT128_MAX)
+        let (is_amount_max) = uint256_eq(params.amount, uint256_max)
+        local amount_to_withdraw : Uint256
+
+        if is_amount_max == TRUE:
+            assert amount_to_withdraw = user_balance
+        else:
+            assert amount_to_withdraw = params.amount
+        end
 
         ValidationLogic._validate_withdraw(reserve, params.amount, user_balance)
 
         # TODO update interest_rates post-withdraw
-        # for now, simple implementation, burns coins and returns underlying
+
         IAToken.burn(
             contract_address=reserve.aToken_address,
             account=caller_address,
