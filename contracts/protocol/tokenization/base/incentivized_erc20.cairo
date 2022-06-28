@@ -4,10 +4,10 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE
-from src.contracts.protocol.interfaces.i_pool import IPOOL
+from contracts.protocol.interfaces.i_pool import IPOOL
 # from openzeppelin.security.safemath import SafeUint256
 from starkware.cairo.common.math import assert_le_felt
-from src.contracts.protocol.tokenization.base.incentivized_erc20_storage import (
+from contracts.protocol.tokenization.base.incentivized_erc20_storage import (
     IncentivizedERC20Storage,
     UserState,
 )
