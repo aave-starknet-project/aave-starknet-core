@@ -11,7 +11,7 @@ namespace IPool:
     func withdraw(asset : felt, amount : Uint256, to : felt):
     end
 
-    func init_reserve(asset : felt, aToken_address : felt):
+    func init_reserve(asset : felt, a_token_address : felt):
     end
 
     func get_reserve_data(asset : felt) -> (reserve_data : DataTypes.ReserveData):

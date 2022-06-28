@@ -11,7 +11,7 @@ from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_a_token import IAToken
-from contracts.protocol.libraries.storage.pool_storages import pool_storages
+from contracts.protocol.pool.pool_storage import PoolStorage
 
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
 
@@ -36,25 +36,25 @@ namespace SupplyLogic:
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteSupplyParams
     ):
         alloc_locals
-        let (reserve) = pool_storages.reserves_read(params.asset)
+        let (reserve) = PoolStorage.reserves_read(params.asset)
         let (caller_address) = get_caller_address()
 
         ValidationLogic._validate_supply(reserve, params.amount)
 
         # TODO update reserve interest rates
 
-        # Transfer underlying from caller to aToken_address
+        # Transfer underlying from caller to a_token_address
         IERC20.transferFrom(
             contract_address=params.asset,
             sender=caller_address,
-            recipient=reserve.aToken_address,
+            recipient=reserve.a_token_address,
             amount=params.amount,
         )
 
         # TODO boolean to check if it is first supply
 
         IAToken.mint(
-            contract_address=reserve.aToken_address, to=params.on_behalf_of, amount=params.amount
+            contract_address=reserve.a_token_address, to=params.on_behalf_of, amount=params.amount
         )
 
         supply_event.emit(
@@ -76,10 +76,10 @@ namespace SupplyLogic:
         alloc_locals
 
         let (caller_address) = get_caller_address()
-        let (reserve) = pool_storages.reserves_read(params.asset)
+        let (reserve) = PoolStorage.reserves_read(params.asset)
 
         # TODO integration with scaled_balance_of and liquidity_index
-        let (local user_balance) = IAToken.balanceOf(reserve.aToken_address, caller_address)
+        let (local user_balance) = IAToken.balanceOf(reserve.a_token_address, caller_address)
 
         tempvar uint256_max : Uint256 = Uint256(UINT128_MAX, UINT128_MAX)
         let (is_amount_max) = uint256_eq(params.amount, uint256_max)
@@ -96,7 +96,7 @@ namespace SupplyLogic:
         # TODO update interest_rates post-withdraw
 
         IAToken.burn(
-            contract_address=reserve.aToken_address,
+            contract_address=reserve.a_token_address,
             account=caller_address,
             recipient=params.to,
             amount=params.amount,

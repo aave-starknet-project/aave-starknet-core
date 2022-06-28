@@ -11,24 +11,24 @@ from starkware.cairo.common.uint256 import (
     uint256_lt,
 )
 
-from contracts.protocol.libraries.storage.pool_storages import pool_storages
+from contracts.protocol.pool.pool_storage import PoolStorage
 
 namespace ReserveLogic:
     # @notice Initializes a reserve.
     # @param reserve The reserve object
-    # @param aToken_address The address of the overlying atoken contract
+    # @param a_token_address The address of the overlying atoken contract
     func _init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        reserve : DataTypes.ReserveData, aToken_address : felt
+        reserve : DataTypes.ReserveData, a_token_address : felt
     ) -> (reserve : DataTypes.ReserveData):
         with_attr error_message("Reserve already initialized"):
-            assert reserve.aToken_address = 0
+            assert reserve.a_token_address = 0
         end
 
-        # Write aToken_address in reserve
+        # Write a_token_address in reserve
         let new_reserve = DataTypes.ReserveData(
-            id=reserve.id, aToken_address=aToken_address, liquidity_index=1 * 10 ** 27
+            id=reserve.id, a_token_address=a_token_address, liquidity_index=1 * 10 ** 27
         )
-        pool_storages.reserves_write(aToken_address, new_reserve)
+        PoolStorage.reserves_write(a_token_address, new_reserve)
         # TODO add other params such as liq index, debt tokens addresses, use RayMath library
         return (new_reserve)
     end

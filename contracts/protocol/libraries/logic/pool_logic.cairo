@@ -9,8 +9,9 @@ from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.math import assert_lt
 from starkware.cairo.common.bool import TRUE, FALSE
 from contracts.protocol.libraries.helpers.helpers import is_zero
-from contracts.protocol.libraries.storage.pool_storages import pool_storages
+from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 
 namespace PoolLogic:
     # @notice Initialize an asset reserve and add the reserve to the list of reserves
@@ -20,19 +21,19 @@ namespace PoolLogic:
         params : DataTypes.InitReserveParams
     ) -> (appended : felt):
         alloc_locals
-        let (initial_reserve) = pool_storages.reserves_read(params.asset)
+        let (initial_reserve) = PoolStorage.reserves_read(params.asset)
 
         let (local reserve : DataTypes.ReserveData) = ReserveLogic._init(
-            initial_reserve, params.aToken_address
+            initial_reserve, params.a_token_address
         )
         # TODO initialize reserves with debtTokens interestRateStrategy
 
         let (is_id_not_zero) = is_not_zero(reserve.id)
-        let (first_listed_asset) = pool_storages.reserves_list_read(0)
+        let (first_listed_asset) = PoolStorage.reserves_list_read(0)
         let (is_asset_first) = is_zero(first_listed_asset - params.asset)
 
         with_attr error_message("Reserve has already been added to reserve list"):
-            let reserve_already_added = is_id_not_zero + is_asset_first
+            let (reserve_already_added) = BoolCompare.either(is_id_not_zero, is_asset_first)
             assert reserve_already_added = FALSE
         end
 
@@ -47,8 +48,8 @@ namespace PoolLogic:
         end
 
         reserve.id = params.reserves_count
-        pool_storages.reserves_write(params.asset, reserve)
-        pool_storages.reserves_list_write(params.reserves_count, params.asset)
+        PoolStorage.reserves_write(params.asset, reserve)
+        PoolStorage.reserves_list_write(params.reserves_count, params.asset)
         return (TRUE)
     end
 end
@@ -66,13 +67,13 @@ func init_reserve_append{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
         return (TRUE)
     end
 
-    let (reserve_address) = pool_storages.reserves_list_read(index)
+    let (reserve_address) = PoolStorage.reserves_list_read(index)
     let (is_address_zero) = is_zero(reserve_address)
 
     if is_address_zero == TRUE:
         reserve.id = index
-        pool_storages.reserves_write(asset, reserve)
-        pool_storages.reserves_list_write(index, asset)
+        PoolStorage.reserves_write(asset, reserve)
+        PoolStorage.reserves_list_write(index, asset)
         return (FALSE)
     end
 

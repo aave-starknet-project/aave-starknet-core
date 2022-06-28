@@ -13,7 +13,7 @@ const PRANK_USER = 123
 @view
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{
-        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo").contract_address
+        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo",[0]).contract_address
 
         #PRANK_USER receives 1000 test_token
         context.test_token = deploy_contract("./tests/contracts/ERC20.cairo", [1415934836,5526356,18,1000,0,ids.PRANK_USER]).contract_address 
@@ -38,7 +38,7 @@ func _init_reserve{syscall_ptr : felt*, range_check_ptr}(
 end
 
 func get_contract_addresses() -> (
-    contract_address : felt, test_token_address : felt, aToken_address : felt
+    contract_address : felt, test_token_address : felt, a_token_address : felt
 ):
     tempvar pool
     tempvar test_token
@@ -54,7 +54,7 @@ func test_init_reserve{syscall_ptr : felt*, range_check_ptr}():
     alloc_locals
     let (local pool, local test_token, local aToken) = get_contract_addresses()
     let (reserve) = IPool.get_reserve_data(pool, test_token)
-    assert reserve.aToken_address = aToken
+    assert reserve.a_token_address = aToken
     return ()
 end
 
