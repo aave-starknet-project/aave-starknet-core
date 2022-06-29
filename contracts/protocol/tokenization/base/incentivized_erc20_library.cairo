@@ -7,7 +7,6 @@ from starkware.cairo.common.bool import TRUE
 from contracts.interfaces.i_pool import IPOOL
 from starkware.cairo.common.math import assert_le_felt
 
-
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
 # StableDebtTokens use this field to store the user's stable rate.
@@ -60,8 +59,6 @@ end
 func owner() -> (owner : felt):
 end
 
-
-
 # modifiers
 
 # @TODO: set onlyPool modifier
@@ -87,9 +84,7 @@ func incentivized_erc20_only_pool_admin{
     return ()
 end
 
-
-
-#Internal functions- not to be imported
+# Internal functions- not to be imported
 
 # @dev the amount should be passed as uint128
 func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -121,7 +116,6 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return ()
 end
 
-
 func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt, amount : felt
 ) -> ():
@@ -129,93 +123,83 @@ func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     return ()
 end
 
-
-
 namespace IncentivizedERC20Library:
-
-
     # GETTERS
 
     # returns the address of the IncentivesController
     # @view
-    func getIncentivesController{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }() -> (incentives_controller : felt):
+    func getIncentivesController{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (incentives_controller : felt):
         let (incentives_controller) = _incentivesController.read()
         return (incentives_controller)
     end
 
     # @view
-    func name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ) -> (name : felt):
+    func name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (name : felt):
         let (name) = _name.read()
         return (name)
     end
 
     # @view
-    func symbol{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }() -> (symbol : felt):
+    func symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        symbol : felt
+    ):
         let (symbol) = _symbol.read()
         return (symbol)
     end
 
     # @view
-    func totalSupply{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }() -> (totalSupply : Uint256):
+    func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        totalSupply : Uint256
+    ):
         let (totalSupply : Uint256) = _totalSupply.read()
         return (totalSupply)
     end
 
     # @view
-    func decimals{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }() -> (decimals : felt):
+    func decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        decimals : felt
+    ):
         let (decimals) = _decimals.read()
         return (decimals)
     end
 
     # @view
-    func balanceOf{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(account : felt) -> (balance : felt):
+    func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        account : felt
+    ) -> (balance : felt):
         let (state : UserState) = _userState.read(account)
         return (state.balance)
     end
 
     # @view
-    func allowance{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(owner : felt, spender : felt) -> (remaining : felt):
+    func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        owner : felt, spender : felt
+    ) -> (remaining : felt):
         let (remaining) = _allowances.read(owner, spender)
         return (remaining)
     end
 
+    # SETTERS
 
-    #SETTERS
-
-    func set_name{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(name : felt):
+    func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
         _name.write(name)
         return ()
     end
 
-    func set_symbol{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(symbol : felt):
+    func set_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        symbol : felt
+    ):
         _symbol.write(symbol)
         return ()
     end
 
-    func set_decimals{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(decimals : felt):
+    func set_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        decimals : felt
+    ):
         _decimals.write(decimals)
         return ()
     end
-
 
     # @TODO: set onlyPoolAdmin modifier
     func set_incentives_controller{
@@ -225,11 +209,9 @@ namespace IncentivizedERC20Library:
         return ()
     end
 
-
-
-    func initialize{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(pool : felt, name : felt, symbol : felt, decimals : felt):
+    func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        pool : felt, name : felt, symbol : felt, decimals : felt
+    ):
         alloc_locals
         let (addresses_provider) = IPOOL.get_addresses_provider(contract_address=pool)
         _addressesProvider.write(addresses_provider)
@@ -240,11 +222,10 @@ namespace IncentivizedERC20Library:
         return ()
     end
 
-
     # @TODO:set a modifier
-    func increase_balance{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(address : felt, amount : felt):
+    func increase_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
         let (oldState) = _userState.read(address)
 
         with_attr error_message("value doesn't fit in 128 bits"):
@@ -263,11 +244,10 @@ namespace IncentivizedERC20Library:
         return ()
     end
 
-
     # @TODO:set a modifier
-    func decrease_balance{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(address : felt, amount : felt):
+    func decrease_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
         let (oldState) = _userState.read(address)
 
         with_attr error_message("value doesn't fit in 128 bits"):
@@ -285,7 +265,6 @@ namespace IncentivizedERC20Library:
         return ()
     end
 
-
     func transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         recipient : felt, amount : Uint256
     ) -> (success : felt):
@@ -295,7 +274,6 @@ namespace IncentivizedERC20Library:
 
         return (TRUE)
     end
-
 
     func transferFrom{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         sender : felt, recipient : felt, amount : Uint256
@@ -319,7 +297,6 @@ namespace IncentivizedERC20Library:
         return (TRUE)
     end
 
-
     # Amount is passed as Uint256 but only .low is used
     func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
@@ -333,7 +310,6 @@ namespace IncentivizedERC20Library:
         _approve(caller_address, spender, amount.low)
         return ()
     end
-
 
     func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
@@ -357,7 +333,6 @@ namespace IncentivizedERC20Library:
         return (TRUE)
     end
 
-
     func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
     ) -> (success : felt):
@@ -379,7 +354,6 @@ namespace IncentivizedERC20Library:
 
         return (TRUE)
     end
-
 
     # Test function to be removed
     func create_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
