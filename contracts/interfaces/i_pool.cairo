@@ -19,4 +19,7 @@ namespace IPool:
 
     func get_reserve_data(asset : felt) -> (reserve_data : DataTypes.ReserveData):
     end
+
+    func get_reserves_list() -> (assets_len : felt, assets : felt*):
+    end
 end

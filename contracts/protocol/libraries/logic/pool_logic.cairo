@@ -13,6 +13,8 @@ from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+from contracts.protocol.libraries.helpers.helpers import modify_struct
+from starkware.cairo.lang.compiler.lib.registers import get_fp_and_pc
 
 namespace PoolLogic:
     # @notice Initialize an asset reserve and add the reserve to the list of reserves
@@ -48,11 +50,12 @@ namespace PoolLogic:
             assert_lt(params.reserves_count, params.max_number_reserves)
         end
 
-        PoolStorage.reserves_write(params.asset,
-            DataTypes.ReserveData(
-            params.reserves_count, reserve.a_token_address, reserve.liquidity_index
-            ),
+        let (__fp__, _) = get_fp_and_pc()
+        let (updated_reserve_ptr : DataTypes.ReserveData*) = modify_struct(
+            &reserve, DataTypes.ReserveData.SIZE, params.reserves_count, 0
         )
+        let updated_reserve : DataTypes.ReserveData = [updated_reserve_ptr]
+        PoolStorage.reserves_write(params.asset, updated_reserve)
         PoolStorage.reserves_list_write(params.reserves_count, params.asset)
         return (TRUE)
     end
@@ -79,25 +82,30 @@ end
 # @param current index of the list
 # @return false if reserve has been added to the list, true otherwise
 func init_reserve_append{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    asset : felt, reserve : DataTypes.ReserveData, reserves_count : felt, index : felt
+    asset : felt, reserve : DataTypes.ReserveData, reserves_count : felt, current_id : felt
 ) -> (appended : felt):
+    alloc_locals
+    local syscall_ptr : felt* = syscall_ptr
+
+    let (__fp__, _) = get_fp_and_pc()
     if reserves_count == 0:
         return (TRUE)
     end
 
-    let (reserve_address) = PoolStorage.reserves_list_read(index)
+    let (reserve_address) = PoolStorage.reserves_list_read(current_id)
+
     let (is_address_zero) = is_zero(reserve_address)
 
     if is_address_zero == TRUE:
-        PoolStorage.reserves_write(
-            asset,
-            DataTypes.ReserveData(
-            index, reserve.a_token_address, reserve.liquidity_index
-            ),
+        let (updated_reserve_ptr : DataTypes.ReserveData*) = modify_struct(
+            &reserve, DataTypes.ReserveData.SIZE, current_id, 0
         )
-        PoolStorage.reserves_list_write(index, asset)
+
+        let updated_reserve : DataTypes.ReserveData = [updated_reserve_ptr]
+        PoolStorage.reserves_write(asset, updated_reserve)
+        PoolStorage.reserves_list_write(current_id, asset)
         return (FALSE)
     end
 
-    return init_reserve_append(asset, reserve, reserves_count - 1, index + 1)
+    return init_reserve_append(asset, reserve, reserves_count - 1, current_id + 1)
 end

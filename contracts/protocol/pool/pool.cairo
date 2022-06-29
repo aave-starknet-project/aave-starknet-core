@@ -9,6 +9,7 @@ from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.pool_logic import PoolLogic
 from contracts.protocol.libraries.logic.supply_logic import SupplyLogic
 from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.protocol.pool.library import Pool
 
 func assert_only_pool_configurator{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
@@ -167,4 +168,12 @@ func get_reserve_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
 ) -> (reserve_data : DataTypes.ReserveData):
     let (reserve) = PoolStorage.reserves_read(asset)
     return (reserve)
+end
+
+@view
+func get_reserves_list{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    assets_len : felt, assets : felt*
+):
+    let (assets, assets_len) = Pool.get_reserves_list()
+    return (assets, assets_len)
 end
