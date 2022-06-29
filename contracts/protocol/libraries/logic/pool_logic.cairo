@@ -20,13 +20,13 @@ namespace PoolLogic:
     # @notice Initialize an asset reserve and add the reserve to the list of reserves
     # @param params parameters needed for initiation
     # @return true if appended, false if inserted at existing empty spot
-    func _execute_init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func execute_init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         params : DataTypes.InitReserveParams
     ) -> (appended : felt):
         alloc_locals
         let (initial_reserve) = PoolStorage.reserves_read(params.asset)
 
-        let (local reserve : DataTypes.ReserveData) = ReserveLogic._init(
+        let (local reserve : DataTypes.ReserveData) = ReserveLogic.init(
             initial_reserve, params.a_token_address
         )
         # TODO initialize reserves with debtTokens interestRateStrategy
@@ -62,12 +62,12 @@ namespace PoolLogic:
 
     # @notice Drop a reserve
     # @param asset The address of the underlying asset of the reserve
-    func _execute_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func execute_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         asset : felt
     ):
         let (reserve) = PoolStorage.reserves_read(asset)
 
-        ValidationLogic._validate_drop_reserve(reserve, asset)
+        ValidationLogic.validate_drop_reserve(reserve, asset)
 
         PoolStorage.reserves_list_write(reserve.id, 0)
         PoolStorage.reserves_write(asset, DataTypes.ReserveData(0, 0, 0))

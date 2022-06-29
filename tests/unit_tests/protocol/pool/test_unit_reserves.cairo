@@ -1,7 +1,6 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.interfaces.i_pool import IPool
 
 const PRANK_USER = 123

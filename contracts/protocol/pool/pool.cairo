@@ -81,7 +81,7 @@ func supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt, amount : Uint256, on_behalf_of : felt, referral_code : felt
 ):
     # TODO user configuration bitmask
-    SupplyLogic._execute_supply(
+    SupplyLogic.execute_supply(
         user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
         params=DataTypes.ExecuteSupplyParams(
         asset=asset,
@@ -132,7 +132,7 @@ func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 ):
     alloc_locals
     let (local reserves_count) = PoolStorage.reserves_count_read()
-    let (appended) = PoolLogic._execute_init_reserve(
+    let (appended) = PoolLogic.execute_init_reserve(
         params=DataTypes.InitReserveParams(
         asset=asset,
         a_token_address=a_token_address,
@@ -158,7 +158,7 @@ end
 # @param asset The address of the underlying asset of the reserve
 @external
 func drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(asset : felt):
-    PoolLogic._execute_drop_reserve(asset)
+    PoolLogic.execute_drop_reserve(asset)
     return ()
 end
 

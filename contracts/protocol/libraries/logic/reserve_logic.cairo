@@ -17,7 +17,7 @@ namespace ReserveLogic:
     # @notice Initializes a reserve.
     # @param reserve The reserve object
     # @param a_token_address The address of the overlying atoken contract
-    func _init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve : DataTypes.ReserveData, a_token_address : felt
     ) -> (reserve : DataTypes.ReserveData):
         with_attr error_message("Reserve already initialized"):

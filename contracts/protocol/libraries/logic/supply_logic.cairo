@@ -32,14 +32,14 @@ namespace SupplyLogic:
     # @dev Emits the `supply_event()` event.
     # @param user_config The user configuration mapping that tracks the supplied/borrowed assets
     # @param params The additional parameters needed to execute the supply function
-    func _execute_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func execute_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteSupplyParams
     ):
         alloc_locals
         let (reserve) = PoolStorage.reserves_read(params.asset)
         let (caller_address) = get_caller_address()
 
-        ValidationLogic._validate_supply(reserve, params.amount)
+        ValidationLogic.validate_supply(reserve, params.amount)
 
         # TODO update reserve interest rates
 
@@ -91,7 +91,7 @@ namespace SupplyLogic:
             assert amount_to_withdraw = params.amount
         end
 
-        ValidationLogic._validate_withdraw(reserve, params.amount, user_balance)
+        ValidationLogic.validate_withdraw(reserve, params.amount, user_balance)
 
         # TODO update interest_rates post-withdraw
 

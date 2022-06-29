@@ -18,7 +18,7 @@ namespace ValidationLogic:
     # @notice Validates a supply action.
     # @param reserve The data of the reserve
     # @param amount The amount to be supplied
-    func _validate_supply{range_check_ptr}(reserve : DataTypes.ReserveData, amount : Uint256):
+    func validate_supply{range_check_ptr}(reserve : DataTypes.ReserveData, amount : Uint256):
         uint256_check(amount)
 
         with_attr error_message("Amount must be greater than 0"):
@@ -37,7 +37,7 @@ namespace ValidationLogic:
     # @param reserve the data of the reserve
     # @param amount The amount to be withdrawn
     # @param user_balance The balance of the user
-    func _validate_withdraw{syscall_ptr : felt*, range_check_ptr}(
+    func validate_withdraw{syscall_ptr : felt*, range_check_ptr}(
         reserve : DataTypes.ReserveData, amount : Uint256, user_balance : Uint256
     ):
         alloc_locals
@@ -61,7 +61,7 @@ namespace ValidationLogic:
     # @notice Validates a drop reserve action.
     # @param reserve The reserve object
     # @param asset The address of the reserve's underlying asset
-    func _validate_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func validate_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve : DataTypes.ReserveData, asset : felt
     ):
         with_attr error_message("Zero address not valid"):
