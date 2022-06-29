@@ -4,11 +4,15 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import storage_read, storage_write, get_caller_address
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.math import assert_not_equal, assert_not_zero
+from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_le, uint256_check
 from openzeppelin.security.safemath import SafeUint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.protocol.libraries.helpers.helpers import is_zero
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.interfaces.i_a_token import IAToken
+from contracts.protocol.pool.pool_storage import PoolStorage
 
 namespace ValidationLogic:
     # @notice Validates a supply action.
@@ -51,6 +55,34 @@ namespace ValidationLogic:
         end
 
         # TODO verify reserve is active and not paused
+        return ()
+    end
+
+    # @notice Validates a drop reserve action.
+    # @param reserve The reserve object
+    # @param asset The address of the reserve's underlying asset
+    func _validate_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        reserve : DataTypes.ReserveData, asset : felt
+    ):
+        with_attr error_message("Zero address not valid"):
+            assert_not_zero(asset)
+        end
+
+        with_attr error_message("Asset is not listed"):
+            let (is_id_not_zero) = is_not_zero(reserve.id)
+            let (reserve_list_first) = PoolStorage.reserves_list_read(0)
+            let (is_first_asset) = is_zero(reserve_list_first - asset)
+
+            let (asset_listed) = BoolCompare.either(is_id_not_zero, is_first_asset)
+            assert asset_listed = TRUE
+        end
+
+        # TODO verify that stable/var debt are zero
+
+        with_attr error_message("AToken supply is not zero"):
+            let (a_token_supply) = IERC20.totalSupply(contract_address=reserve.a_token_address)
+            assert a_token_supply = Uint256(0, 0)
+        end
         return ()
     end
 end

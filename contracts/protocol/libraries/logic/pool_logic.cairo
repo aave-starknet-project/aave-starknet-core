@@ -11,6 +11,7 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from contracts.protocol.libraries.helpers.helpers import is_zero
 from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
+from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 
 namespace PoolLogic:
@@ -47,10 +48,27 @@ namespace PoolLogic:
             assert_lt(params.reserves_count, params.max_number_reserves)
         end
 
-        reserve.id = params.reserves_count
-        PoolStorage.reserves_write(params.asset, reserve)
+        PoolStorage.reserves_write(params.asset,
+            DataTypes.ReserveData(
+            params.reserves_count, reserve.a_token_address, reserve.liquidity_index
+            ),
+        )
         PoolStorage.reserves_list_write(params.reserves_count, params.asset)
         return (TRUE)
+    end
+
+    # @notice Drop a reserve
+    # @param asset The address of the underlying asset of the reserve
+    func _execute_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        asset : felt
+    ):
+        let (reserve) = PoolStorage.reserves_read(asset)
+
+        ValidationLogic._validate_drop_reserve(reserve, asset)
+
+        PoolStorage.reserves_list_write(reserve.id, 0)
+        PoolStorage.reserves_write(asset, DataTypes.ReserveData(0, 0, 0))
+        return ()
     end
 end
 
@@ -71,8 +89,12 @@ func init_reserve_append{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     let (is_address_zero) = is_zero(reserve_address)
 
     if is_address_zero == TRUE:
-        reserve.id = index
-        PoolStorage.reserves_write(asset, reserve)
+        PoolStorage.reserves_write(
+            asset,
+            DataTypes.ReserveData(
+            index, reserve.a_token_address, reserve.liquidity_index
+            ),
+        )
         PoolStorage.reserves_list_write(index, asset)
         return (FALSE)
     end

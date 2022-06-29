@@ -14,6 +14,9 @@ namespace IPool:
     func init_reserve(asset : felt, a_token_address : felt):
     end
 
+    func drop_reserve(asset : felt):
+    end
+
     func get_reserve_data(asset : felt) -> (reserve_data : DataTypes.ReserveData):
     end
 end

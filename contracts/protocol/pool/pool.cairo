@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.bool import TRUE
+from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.starknet.common.syscalls import get_caller_address
 
 from contracts.protocol.pool.pool_storage import PoolStorage
@@ -149,6 +149,15 @@ func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         tempvar pedersen_ptr = pedersen_ptr
         tempvar range_check_ptr = range_check_ptr
     end
+    return ()
+end
+
+# @notice Drop a reserve
+# @dev Only callable by the PoolConfigurator contract
+# @param asset The address of the underlying asset of the reserve
+@external
+func drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(asset : felt):
+    PoolLogic._execute_drop_reserve(asset)
     return ()
 end
 

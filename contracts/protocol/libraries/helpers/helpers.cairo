@@ -6,4 +6,3 @@ func is_zero(value) -> (res : felt):
     let (res) = is_not_zero(value)
     return (1 - res)
 end
-
