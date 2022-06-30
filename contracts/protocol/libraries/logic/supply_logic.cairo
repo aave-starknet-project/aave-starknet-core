@@ -91,7 +91,7 @@ namespace SupplyLogic:
             assert amount_to_withdraw = params.amount
         end
 
-        ValidationLogic.validate_withdraw(reserve, params.amount, user_balance)
+        ValidationLogic.validate_withdraw(reserve, amount_to_withdraw, user_balance)
 
         # TODO update interest_rates post-withdraw
 
@@ -99,7 +99,7 @@ namespace SupplyLogic:
             contract_address=reserve.a_token_address,
             account=caller_address,
             recipient=params.to,
-            amount=params.amount,
+            amount=amount_to_withdraw,
         )
 
         # TODO validate health_factor
