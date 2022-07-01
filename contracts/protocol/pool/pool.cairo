@@ -9,6 +9,7 @@ from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.pool_logic import PoolLogic
 from contracts.protocol.libraries.logic.supply_logic import SupplyLogic
 from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.protocol.libraries.logic.reserve_configuration import ReserveConfiguration
 from contracts.protocol.pool.pool_library import Pool
 
 func assert_only_pool_configurator{
@@ -177,4 +178,20 @@ func get_reserves_list{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 ):
     let (assets, assets_len) = Pool.get_reserves_list()
     return (assets, assets_len)
+end
+
+@view
+func get_reserve_address_by_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    reserve_id : felt
+) -> (address : felt):
+    let (address : felt) = Pool.get_reserve_address_by_id(reserve_id)
+    return (address)
+end
+
+@view
+func MAX_NUMBER_RESERVES{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    max_number : felt
+):
+    let (max_number) = ReserveConfiguration.GET_MAX_RESERVES_COUNT()
+    return (max_number)
 end
