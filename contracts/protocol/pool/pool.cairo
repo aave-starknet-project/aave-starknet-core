@@ -2,14 +2,14 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.bool import TRUE
 from starkware.starknet.common.syscalls import get_caller_address
 
 from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.pool_logic import PoolLogic
 from contracts.protocol.libraries.logic.supply_logic import SupplyLogic
 from contracts.protocol.libraries.types.data_types import DataTypes
-from contracts.protocol.pool.library import Pool
+from contracts.protocol.pool.pool_library import Pool
 
 func assert_only_pool_configurator{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
@@ -131,6 +131,7 @@ func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     asset : felt, a_token_address : felt
 ):
     alloc_locals
+    assert_only_pool_configurator()
     let (local reserves_count) = PoolStorage.reserves_count_read()
     let (appended) = PoolLogic.execute_init_reserve(
         params=DataTypes.InitReserveParams(

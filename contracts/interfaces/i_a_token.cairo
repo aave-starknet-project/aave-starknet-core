@@ -34,7 +34,7 @@ namespace IAToken:
     func transferFrom(sender : felt, recipient : felt, amount : Uint256) -> (success : felt):
     end
 
-    func transferUnderlyingTo(target : felt, amount : Uint256):
+    func transfer_underlying_to(target : felt, amount : Uint256):
     end
 
     func approve(spender : felt, amount : Uint256) -> (success : felt):

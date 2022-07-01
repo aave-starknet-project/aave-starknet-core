@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.bool import TRUE
 from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.helpers.helpers import is_zero
 namespace Pool:

@@ -1,21 +1,17 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.syscalls import storage_read, storage_write, get_caller_address
-from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import Uint256, uint256_check, uint256_eq, uint256_le
-from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.starknet.common.syscalls import get_caller_address
+from starkware.cairo.common.uint256 import Uint256, uint256_eq
+from starkware.cairo.common.bool import TRUE
 
-from openzeppelin.security.safemath import SafeUint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.pool.pool_storage import PoolStorage
-
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
-
-const UINT128_MAX = 2 ** 128 - 1
+from contracts.protocol.libraries.helpers.values import Generics
 
 @event
 func withdraw_event(reserve : felt, user : felt, to : felt, amount : Uint256):
@@ -81,7 +77,7 @@ namespace SupplyLogic:
         # TODO integration with scaled_balance_of and liquidity_index
         let (local user_balance) = IAToken.balanceOf(reserve.a_token_address, caller_address)
 
-        tempvar uint256_max : Uint256 = Uint256(UINT128_MAX, UINT128_MAX)
+        tempvar uint256_max : Uint256 = Uint256(Generics.UINT128_MAX, Generics.UINT128_MAX)
         let (is_amount_max) = uint256_eq(params.amount, uint256_max)
         local amount_to_withdraw : Uint256
 

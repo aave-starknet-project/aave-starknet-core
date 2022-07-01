@@ -13,11 +13,13 @@ const PRANK_USER = 123
 @view
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{
+        # Deploy pool, pool configurator is not active yet
         context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo",[0]).contract_address
 
-        #PRANK_USER receives 1000 test_token
+        # Deploy Test - TST - 18 decimals - 1000 supply sent to PRANK_USER
         context.test_token = deploy_contract("./tests/contracts/ERC20.cairo", [1415934836,5526356,18,1000,0,ids.PRANK_USER]).contract_address 
 
+        # Deploy aTest - aTST - 18 decimals - 0 supply - Owner is pool - underlying is test_token
         context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [418027762548,1632916308,18,0,0,context.pool,context.pool,context.test_token]).contract_address
     %}
     tempvar pool

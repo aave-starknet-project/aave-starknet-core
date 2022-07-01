@@ -127,7 +127,7 @@ func test_drop_reserve_not_listed{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
     alloc_locals
-    let (local pool, local test_token, local a_token) = get_contract_addresses()
+    let (local pool, _, _) = get_contract_addresses()
 
     %{ expect_revert(error_message="Asset is not listed") %}
     _drop_reserve(pool, MOCK_ASSET_1, MOCK_A_TOKEN_1)

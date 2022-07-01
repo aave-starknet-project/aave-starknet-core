@@ -108,7 +108,7 @@ end
 
 # Needs modifiers to only be called from the pool
 @external
-func transferUnderlyingTo{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func transfer_underlying_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     target : felt, amount : Uint256
 ):
     alloc_locals

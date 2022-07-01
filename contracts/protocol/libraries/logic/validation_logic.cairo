@@ -1,17 +1,14 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.syscalls import storage_read, storage_write, get_caller_address
 from starkware.cairo.common.bool import TRUE, FALSE
-from starkware.cairo.common.math import assert_not_equal, assert_not_zero
+from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_le, uint256_check
-from openzeppelin.security.safemath import SafeUint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.helpers.helpers import is_zero
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
-from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.pool.pool_storage import PoolStorage
 
 namespace ValidationLogic:

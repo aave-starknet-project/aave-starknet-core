@@ -1,15 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.syscalls import storage_read, storage_write, get_caller_address
 from contracts.protocol.libraries.types.data_types import DataTypes
-from starkware.cairo.common.uint256 import (
-    Uint256,
-    uint256_add,
-    uint256_check,
-    uint256_sub,
-    uint256_lt,
-)
 
 from contracts.protocol.pool.pool_storage import PoolStorage
 
