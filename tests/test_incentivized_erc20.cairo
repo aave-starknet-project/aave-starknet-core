@@ -135,16 +135,15 @@ func test_incentivizedERC20_transfers{syscall_ptr : felt*, range_check_ptr}():
     assert balance1_new = 150
 
     # User 2 sends User 1 more than he has in balance- expect revert
-    # %{ stop_prank_transfer3= start_prank(ids.PRANK_USER2, target_contract_address=ids.IncentivizedERC20_address) %}
+    %{ stop_prank_transfer3= start_prank(ids.PRANK_USER2, target_contract_address=ids.IncentivizedERC20_address) %}
 
-    # %{ expect_revert("Not enough balance") %}
-    # IncentivizedERC20.transfer(IncentivizedERC20_address, PRANK_USER1, Uint256(350,0))
+    %{ expect_revert(error_message="Not enough balance") %}
+    IncentivizedERC20.transfer(IncentivizedERC20_address, PRANK_USER1, Uint256(350, 0))
 
-    # %{ stop_prank_transfer3() %}
+    %{ stop_prank_transfer3() %}
 
-    # let (balance1_new) =  IncentivizedERC20.incentivized_erc20_balanceOf(
-    # IncentivizedERC20_address, PRANK_USER2)
-    # assert balance1_new = 150
+    let (balance_new) = IncentivizedERC20.balanceOf(IncentivizedERC20_address, PRANK_USER2)
+    assert balance1_new = 150
 
     return ()
 end
@@ -190,6 +189,25 @@ func test_incentivizedERC20_allowances{syscall_ptr : felt*, range_check_ptr}():
 
     let (balance) = IncentivizedERC20.balanceOf(IncentivizedERC20_address, 678)
     assert balance = 150
+
+    return ()
+end
+
+
+@external
+func test_incentivizedERC20_mint_burn{syscall_ptr : felt*, range_check_ptr}():
+    alloc_locals
+
+    local IncentivizedERC20_address : felt
+
+    %{ ids.IncentivizedERC20_address = context.incentivized_erc_20 %}
+
+    IncentivizedERC20.mint(IncentivizedERC20_address,PRANK_USER1, 500)
+
+    let (balance1) = IncentivizedERC20.balanceOf(IncentivizedERC20_address, PRANK_USER1)
+    assert balance1 = 500
+
+
 
     return ()
 end

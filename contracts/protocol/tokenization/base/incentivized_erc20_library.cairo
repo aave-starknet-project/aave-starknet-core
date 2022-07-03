@@ -6,6 +6,8 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.bool import TRUE
 from contracts.interfaces.i_pool import IPOOL
 from starkware.cairo.common.math import assert_le_felt
+from openzeppelin.security.safemath import SafeUint256
+
 
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
@@ -59,6 +61,21 @@ end
 func owner() -> (owner : felt):
 end
 
+
+#Takes Uint256 as input and returns a felt that fits in 128 bits
+func to_uint_128{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(amount: Uint256)->(res:felt):
+    alloc_locals
+    let res = amount.low
+
+    with_attr error_message("value doesn't fit in 128 bits"):
+        assert_le_felt(res, MAX_UINT128)
+    end
+
+    return (res)
+end
+
 # modifiers
 
 # @TODO: set onlyPool modifier
@@ -84,6 +101,7 @@ func incentivized_erc20_only_pool_admin{
     return ()
 end
 
+
 # Internal functions- not to be imported
 
 # @dev the amount should be passed as uint128
@@ -91,10 +109,6 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     sender : felt, recipient : felt, amount : felt
 ) -> ():
     alloc_locals
-
-    with_attr error_message("value doesn't fit in 128 bits"):
-        assert_le_felt(amount, MAX_UINT128)
-    end
 
     let (oldSenderState) = _userState.read(sender)
 
@@ -123,13 +137,15 @@ func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     return ()
 end
 
-namespace IncentivizedERC20Library:
+
+namespace IncentivizedERC20:
     # GETTERS
 
     # returns the address of the IncentivesController
     # @view
-    func getIncentivesController{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ) -> (incentives_controller : felt):
+    func get_incentives_controller{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }() -> (incentives_controller : felt):
         let (incentives_controller) = _incentivesController.read()
         return (incentives_controller)
     end
@@ -149,7 +165,7 @@ namespace IncentivizedERC20Library:
     end
 
     # @view
-    func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    func total_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         totalSupply : Uint256
     ):
         let (totalSupply : Uint256) = _totalSupply.read()
@@ -165,7 +181,7 @@ namespace IncentivizedERC20Library:
     end
 
     # @view
-    func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         account : felt
     ) -> (balance : felt):
         let (state : UserState) = _userState.read(account)
@@ -182,31 +198,33 @@ namespace IncentivizedERC20Library:
 
     # SETTERS
 
-    func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
+    func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        name : felt
+    ) -> (success : felt):
         _name.write(name)
-        return ()
+        return (TRUE)
     end
 
     func set_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         symbol : felt
-    ):
+    ) -> (success : felt):
         _symbol.write(symbol)
-        return ()
+        return (TRUE)
     end
 
     func set_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         decimals : felt
-    ):
+    ) -> (success : felt):
         _decimals.write(decimals)
-        return ()
+        return (TRUE)
     end
 
     # @TODO: set onlyPoolAdmin modifier
     func set_incentives_controller{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(IAaveIncentivesController : felt):
+    }(IAaveIncentivesController : felt) -> (success : felt):
         _incentivesController.write(IAaveIncentivesController)
-        return ()
+        return (TRUE)
     end
 
     func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -269,30 +287,28 @@ namespace IncentivizedERC20Library:
         recipient : felt, amount : Uint256
     ) -> (success : felt):
         let (caller_address) = get_caller_address()
+        let (amount_128)= to_uint_128(amount)
 
-        _transfer(caller_address, recipient, amount.low)
+        _transfer(caller_address, recipient, amount128)
 
         return (TRUE)
     end
 
-    func transferFrom{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         sender : felt, recipient : felt, amount : Uint256
     ) -> (success : felt):
         let (caller_address) = get_caller_address()
         let (allowance) = _allowances.read(sender, caller_address)
-
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount.low, MAX_UINT128)
-        end
-
-        let new_allowance = allowance - amount.low
+        let (amount_128)= to_uint_128(amount)
+        
+        let new_allowance = allowance - amount_128
 
         with_attr error_message("result doesn't fit in 128 bits"):
             assert_le_felt(new_allowance, MAX_UINT128)
         end
 
         _approve(sender, caller_address, new_allowance)
-        _transfer(sender, recipient, amount.low)
+        _transfer(sender, recipient, amount_128)
 
         return (TRUE)
     end
@@ -303,26 +319,23 @@ namespace IncentivizedERC20Library:
     ) -> ():
         let (caller_address) = get_caller_address()
 
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount.low, MAX_UINT128)
-        end
+        let (amount_128)= to_uint_128(amount)
 
-        _approve(caller_address, spender, amount.low)
+        _approve(caller_address, spender, amount_128)
         return ()
     end
 
-    func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
     ) -> (success : felt):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (oldAllowance) = _allowances.read(caller_address, spender)
 
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount.low, MAX_UINT128)
-        end
+        let (amount_128)= to_uint_128(amount)
 
-        let newAllowance = oldAllowance + amount.low
+
+        let newAllowance = oldAllowance + amount_128
 
         with_attr error_message("result doesn't fit in 128 bits"):
             assert_le_felt(newAllowance, MAX_UINT128)
@@ -333,18 +346,16 @@ namespace IncentivizedERC20Library:
         return (TRUE)
     end
 
-    func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
     ) -> (success : felt):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (oldAllowance) = _allowances.read(caller_address, spender)
 
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount.low, MAX_UINT128)
-        end
+        let (amount_128)= to_uint_128(amount)
 
-        let newAllowance = oldAllowance - amount.low
+        let newAllowance = oldAllowance - amount_128
 
         with_attr error_message("result doesn't fit in 128 bits"):
             assert_le_felt(newAllowance, MAX_UINT128)
@@ -363,4 +374,61 @@ namespace IncentivizedERC20Library:
         _userState.write(address, state)
         return ()
     end
+
+    func _mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+address:felt, amount:felt):
+
+    with_attr error_message("amount doesn't fit in 128 bits"):
+        assert_le_felt(amount, MAX_UINT128)
+    end
+
+    let (oldTotalSupply) = _totalSupply.read()
+
+    let amount_256=Uint256(amount,0)
+
+    #use SafeMath
+    let (newTotalSupply)= SafeUint256.sub_le(oldTotalSupply,amount_256 )
+    _totalSupply.write(newTotalSupply)
+
+
+    #No safemath because amount cannot be a random number
+    let (oldAccountBalance)= _userState.read(account).balance
+    let newAccountBalance= oldAccountBalance+amount
+    _userState.write(newAccountBalance)
+
+    
+    # @Todo: Incentives controller logic here
+
+    return ()
+end
+
+
+
+func _burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+address:felt, amount:felt):
+
+    with_attr error_message("amount doesn't fit in 128 bits"):
+        assert_le_felt(amount, MAX_UINT128)
+    end
+
+    let (oldTotalSupply) = _totalSupply.read()
+
+    let amount_256=Uint256(amount,0)
+
+
+    #use SafeMath
+    let (newTotalSupply)=SafeUint256.add(oldTotalSupply, amount_256)
+    _totalSupply.write(newTotalSupply)
+
+
+    #No safemath because amount cannot be a random number
+    let (oldAccountBalance)= _userState.read(account).balance
+    let newAccountBalance= oldAccountBalance-amount
+    _userState.write(newAccountBalance)
+
+    # @Todo: Incentives controller logic here
+
+    return ()
+end
+
 end
