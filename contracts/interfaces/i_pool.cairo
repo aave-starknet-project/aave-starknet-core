@@ -22,4 +22,10 @@ namespace IPool:
 
     func get_reserves_list() -> (assets_len : felt, assets : felt*):
     end
+
+    func get_reserve_address_by_id(reserve_id : felt) -> (address : felt):
+    end
+
+    func MAX_NUMBER_RESERVES() -> (max_number : felt):
+    end
 end

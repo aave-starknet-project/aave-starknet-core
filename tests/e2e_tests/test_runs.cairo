@@ -1,7 +1,9 @@
 %lang starknet
 from starkware.starknet.common.syscalls import get_contract_address
 from contracts.interfaces.i_pool import IPool
+# importing this will execute all test cases in that file.
 from tests.e2e_tests.pool_drop_spec import PoolDropSpec
+from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressById
 from tests.e2e_tests.pool_supply_withdraw_spec import PoolSupplyWithdrawSpec
 
 @external

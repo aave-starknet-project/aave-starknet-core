@@ -15,6 +15,13 @@ namespace Pool:
         let (assets_len) = read_reserves(assets, 0, reserves_count, 0)
         return (assets_len, assets)
     end
+
+    func get_reserve_address_by_id{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }(reserve_id : felt) -> (address : felt):
+        let (address : felt) = PoolStorage.reserves_list_read(reserve_id)
+        return (address)
+    end
 end
 
 func read_reserves{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
