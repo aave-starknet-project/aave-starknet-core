@@ -8,7 +8,7 @@ from contracts.interfaces.i_pool import IPool
 from contracts.protocol.libraries.helpers.values import Generics
 from tests.contracts.IERC20_Mintable import IERC20_Mintable
 from tests.utils.utils import Utils
-from tests.utils.addresses import UNDEPLOYED_RESERVE, USER_1, USER_2
+from tests.utils.constants import UNDEPLOYED_RESERVE, USER_1, USER_2
 
 # TODO test should integrate pool_configurator when implemented
 

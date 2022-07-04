@@ -1,13 +1,9 @@
 %lang starknet
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 from starkware.cairo.common.uint256 import Uint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
-from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_pool import IPool
 from contracts.interfaces.i_a_token import IAToken
-from tests.utils.addresses import USER_1
-from tests.utils.utils import Utils
+from tests.utils.constants import USER_1
 from tests.contracts.IERC20_Mintable import IERC20_Mintable
 
 namespace PoolSupplyWithdrawSpec:

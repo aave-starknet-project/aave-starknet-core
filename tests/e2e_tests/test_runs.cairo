@@ -1,6 +1,4 @@
 %lang starknet
-
-from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_contract_address
 from contracts.interfaces.i_pool import IPool
 from tests.e2e_tests.pool_drop_spec import PoolDropSpec
@@ -12,16 +10,16 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{
         context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo",[0]).contract_address
 
-        #deploy DAI, owner is deployer, supply is 0
+        #deploy Dai/DAI, owner is deployer, supply is 0
         context.dai = deploy_contract("./tests/contracts/ERC20_Mintable.cairo", [4481385,4473161,18,0,0,ids.deployer, ids.deployer]).contract_address 
 
-        #deploy WETH, owner is deployer, supply is 0
+        #deploy WETH/WETH, owner is deployer, supply is 0
         context.weth = deploy_contract("./tests/contracts/ERC20_Mintable.cairo", [1464161352,1464161352,18,0,0,ids.deployer, ids.deployer]).contract_address
 
-         #deploy aDAI, owner is pool, supply is 0
+         #deploy aDai/aDAI, owner is pool, supply is 0
         context.aDAI = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [1631863113,1631863113,18,0,0,ids.deployer, context.pool, context.dai]).contract_address
 
-         #deploy aWETH, owner is pool, supply is 0
+         #deploy aWETH/aWETH, owner is pool, supply is 0
         context.aWETH = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [418075989064,418075989064,18,0,0,context.pool, ids.deployer, context.weth]).contract_address
 
         context.deployer = ids.deployer
