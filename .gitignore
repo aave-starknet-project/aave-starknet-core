@@ -1,4 +1,7 @@
 build
 *.sarif
 lib
+
+#IDE Files
 .idea
+aave-starknet-core.iml
