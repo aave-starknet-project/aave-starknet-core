@@ -24,6 +24,7 @@ namespace IPool:
     func get_reserves_list() -> (assets_len : felt, assets : felt*):
     end
 
+<<<<<<< HEAD
     func get_reserve_address_by_id(reserve_id : felt) -> (address : felt):
     end
 
@@ -43,6 +44,8 @@ namespace IPool:
     ):
     end
 
+=======
+>>>>>>> 50ee405 (remove test functions)
     func get_addresses_provider() -> (provider : felt):
     end
 end

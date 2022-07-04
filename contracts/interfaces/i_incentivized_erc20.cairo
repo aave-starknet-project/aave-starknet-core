@@ -45,4 +45,13 @@ namespace IIncentivizedERC20:
 
     func transferFrom(sender : felt, recipient : felt, amount : Uint256) -> (success : felt):
     end
+<<<<<<< HEAD
+=======
+
+    func mint(address : felt, amount : felt):
+    end
+
+    func burn(address : felt, amount : felt):
+    end
+>>>>>>> 50ee405 (remove test functions)
 end
