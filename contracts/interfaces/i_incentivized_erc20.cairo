@@ -38,6 +38,9 @@ namespace IncentivizedERC20:
     func balanceOf(account : felt) -> (balance : felt):
     end
 
+    func totalSupply() -> (totalSupply : Uint256):
+    end
+
     func allowance(owner : felt, spender : felt) -> (remaining : felt):
     end
 
@@ -56,11 +59,9 @@ namespace IncentivizedERC20:
     func transferFrom(sender : felt, recipient : felt, amount : Uint256) -> (success : felt):
     end
 
-    func mint(address:felt, amount:felt):
+    func mint(address : felt, amount : felt):
     end
 
-    func burn(address:felt, amount:felt):
+    func burn(address : felt, amount : felt):
     end
-
-
 end

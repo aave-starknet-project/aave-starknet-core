@@ -165,6 +165,13 @@ func drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 end
 
 @view
+func get_addresses_provider{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ) -> (provider : felt):
+    let (provider) = PoolStorage.addresses_provider_read()
+    return (provider)
+end
+
+@view
 func get_reserve_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     asset : felt
 ) -> (reserve_data : DataTypes.ReserveData):

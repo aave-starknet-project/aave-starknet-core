@@ -74,53 +74,31 @@ end
 # setters
 
 @external
-func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt) -> (
-    success : felt
-):
+func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
     IncentivizedERC20.set_name(name)
-    return (TRUE)
+    return ()
 end
 
 @external
-func set_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    symbol : felt
-) -> (success : felt):
+func set_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(symbol : felt):
     IncentivizedERC20.set_symbol(symbol)
-    return (TRUE)
+    return ()
 end
 
 @external
 func set_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     decimals : felt
-) -> (success : felt):
-    IncentivizedERC20.set_decimals(decimals)
-    return (TRUE)
-end
-
-# @TODO: set onlyPoolAdmin modifier
-@external
-func set_incentives_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    IAaveIncentivesController : felt
-) -> (success : felt):
-    IncentivizedERC20.set_incentives_controller(IAaveIncentivesController)
-    return (TRUE)
-end
-
-# @TODO:set a modifier
-@external
-func increase_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt, amount : felt
 ):
-    IncentivizedERC20.increase_balance(address, amount)
+    IncentivizedERC20.set_decimals(decimals)
     return ()
 end
 
-# @TODO:set a modifier
 @external
-func decrease_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt, amount : felt
+func set_incentives_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    IAaveIncentivesController : felt
 ):
-    IncentivizedERC20.decrease_balance(address, amount)
+    IncentivizedERC20.incentivized_erc20_only_pool_admin()
+    IncentivizedERC20.set_incentives_controller(IAaveIncentivesController)
     return ()
 end
 
@@ -165,33 +143,4 @@ func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 ) -> (success : felt):
     IncentivizedERC20.decrease_allowance(spender, amount)
     return (TRUE)
-end
-
-# Test function to be removed
-@external
-func create_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt, amount : felt, index : felt
-):
-    IncentivizedERC20.create_state(address, amount, index)
-    return ()
-end
-
-
-# Test function to be removed
-@external
-func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address:felt, amount:felt
-):
-    IncentivizedERC20._mint(address, amount)
-    return ()
-end
-
-
-# Test function to be removed
-@external
-func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address:felt, amount:felt
-):
-    IncentivizedERC20._burn(address, amount)
-    return ()
 end
