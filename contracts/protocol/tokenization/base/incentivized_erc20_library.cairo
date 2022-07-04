@@ -5,9 +5,11 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 from contracts.interfaces.i_pool import IPool
 from starkware.cairo.common.math import assert_le_felt, assert_nn
+
 from openzeppelin.security.safemath import SafeUint256
-from contracts.protocol.libraries.math.uint_128 import Uint128
+
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
+from contracts.protocol.libraries.helpers.uint_128 import Uint128
 
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
@@ -16,6 +18,8 @@ struct UserState:
     member balance : felt
     member additionalData : felt
 end
+
+const MAX_UINT128 = 2 ** 128 - 1
 
 @storage_var
 func incentivized_erc20_user_state(address : felt) -> (state : UserState):
@@ -342,10 +346,77 @@ namespace IncentivizedERC20:
         end
 
         with_attr error_message("result doesn't fit in 128 bits"):
+            assert_le_felt(new_allowance, MAX_UINT128)
+        end
+
+        with_attr error_message("result doesn't fit in 128 bits"):
             assert_le_felt(new_allowance, UINT128_MAX)
         end
 
         _approve(caller_address, spender, new_allowance)
+
+        return ()
+    end
+
+    # Function wa originally in MintableIncentivizedERC20 contract in Solidity
+    # but was combined with IncentivizedERC20 for ease of access to IncentivizedERC20's
+    # storage variables without exposing them through an external functions
+    func _mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
+        alloc_locals
+
+        let (oldUserState) = _userState.read(address)
+        let (oldTotalSupply) = _totalSupply.read()
+
+        with_attr error_message("amount doesn't fit in 128 bits"):
+            assert_le_felt(amount, MAX_UINT128)
+        end
+
+        let amount_256 = Uint256(amount, 0)
+
+        # use SafeMath
+        let (newTotalSupply) = SafeUint256.add(oldTotalSupply, amount_256)
+        _totalSupply.write(newTotalSupply)
+
+        let oldAccountBalance = oldUserState.balance
+        let newAccountBalance = oldAccountBalance + amount
+        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+
+        _userState.write(address, newUserState)
+
+        # @Todo: Incentives controller logic here
+
+        return ()
+    end
+
+    # Function wa originally in MintableIncentivizedERC20 contract in Solidity
+    # but was combined with IncentivizedERC20 for ease of access to IncentivizedERC20's
+    # storage variables without exposing them through an external functions
+    func _burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
+        alloc_locals
+        let (oldUserState) = _userState.read(address)
+        let (oldTotalSupply) = _totalSupply.read()
+
+        with_attr error_message("amount doesn't fit in 128 bits"):
+            assert_le_felt(amount, MAX_UINT128)
+        end
+
+        let amount_256 = Uint256(amount, 0)
+
+        # use SafeMath
+        let (newTotalSupply) = SafeUint256.sub_le(oldTotalSupply, amount_256)
+        _totalSupply.write(newTotalSupply)
+
+        let oldAccountBalance = oldUserState.balance
+        let newAccountBalance = oldAccountBalance - amount
+        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+
+        _userState.write(address, newUserState)
+
+        # @Todo: Incentives controller logic here
 
         return ()
     end
