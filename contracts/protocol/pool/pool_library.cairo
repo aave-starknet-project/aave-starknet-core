@@ -16,9 +16,9 @@ namespace Pool:
         return (assets_len, assets)
     end
 
-    func get_reserve_address_by_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        reserve_id : felt
-    ) -> (address : felt):
+    func get_reserve_address_by_id{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }(reserve_id : felt) -> (address : felt):
         let (address : felt) = PoolStorage.reserves_list_read(reserve_id)
         return (address)
     end

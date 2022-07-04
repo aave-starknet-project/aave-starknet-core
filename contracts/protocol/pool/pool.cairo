@@ -192,6 +192,6 @@ end
 func MAX_NUMBER_RESERVES{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     max_number : felt
 ):
-    let (max_number) = ReserveConfiguration.GET_MAX_RESERVES_COUNT()
+    let max_number = ReserveConfiguration.MAX_RESERVES_COUNT
     return (max_number)
 end

@@ -2,9 +2,10 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from contracts.interfaces.i_pool import IPool
-from tests.e2e_tests.pool_drop_spec import PoolDropSpec
 from starkware.starknet.common.syscalls import get_contract_address
 # importing this will execute all test cases in that file.
+from tests.e2e_tests.pool_drop_spec import PoolDropSpec
+from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressById
 
 @external
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
