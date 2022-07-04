@@ -6,7 +6,6 @@ from tests.e2e_tests.pool_drop_spec import PoolDropSpec
 from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressById
 from tests.e2e_tests.pool_supply_withdraw_spec import PoolSupplyWithdrawSpec
 
-
 @external
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     let (deployer) = get_contract_address()
