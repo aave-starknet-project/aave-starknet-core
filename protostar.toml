@@ -5,20 +5,8 @@ protostar_version = "0.2.3"
 libs_path = "lib"
 
 ["protostar.contracts"]
-i_pool = [
-    "contracts/interfaces/i_pool.cairo",
-]
-i_a_token = [
-    "contracts/interfaces/i_a_token.cairo",
-]
-wad_ray_math = [
-    "contracts/protocol/libraries/math/wad_ray_math.cairo",
-]
 a_token = [
     "contracts/protocol/tokenization/a_token.cairo",
-]
-a_token_library = [
-    "contracts/protocol/tokenization/a_token_library.cairo",
 ]
 pool = [
     "./contracts/protocol/pool/pool.cairo",

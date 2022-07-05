@@ -1,3 +1,4 @@
+from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_add,
@@ -6,6 +7,8 @@ from starkware.cairo.common.uint256 import (
     uint256_unsigned_div_rem,
     uint256_le,
 )
+
+from contracts.protocol.libraries.helpers.values import Generics
 
 struct Wad:
     member wad : Uint256
@@ -22,8 +25,6 @@ const HALF_WAD = WAD / 2
 # RAY = 1 * 10 ^ 27
 const RAY = 10 ** 27
 const HALF_RAY = RAY / 2
-
-const UINT128_MAX = 2 ** 128 - 1
 
 # WAD_RAY_RATIO = 1 * 10 ^ 9
 const WAD_RAY_RATIO = 10 ** 9
@@ -54,7 +55,7 @@ func half_wad_ray_ratio() -> (ratio : Uint256):
 end
 
 func uint256_max() -> (max : Uint256):
-    return (Uint256(UINT128_MAX, UINT128_MAX))
+    return (Uint256(Generics.UINT128_MAX, Generics.UINT128_MAX))
 end
 
 func wad_mul{range_check_ptr}(a : Wad, b : Wad) -> (res : Wad):
@@ -86,9 +87,7 @@ end
 func wad_div{range_check_ptr}(a : Wad, b : Wad) -> (res : Wad):
     alloc_locals
     with_attr error_message("WAD divide by zero"):
-        if b.wad.high + b.wad.low == 0:
-            assert 1 = 0
-        end
+        assert_not_zero(b.wad.high + b.wad.low)
     end
 
     let (halfB, _) = uint256_unsigned_div_rem(b.wad, Uint256(2, 0))
@@ -148,9 +147,7 @@ end
 func ray_div{range_check_ptr}(a : Ray, b : Ray) -> (res : Ray):
     alloc_locals
     with_attr error_message("RAY divide by zero"):
-        if b.ray.high + b.ray.low == 0:
-            assert 1 = 0
-        end
+        assert_not_zero(b.ray.high + b.ray.low)
     end
 
     let (halfB, _) = uint256_unsigned_div_rem(b.ray, Uint256(2, 0))
@@ -218,9 +215,7 @@ end
 func ray_div_no_rounding{range_check_ptr}(a : Ray, b : Ray) -> (res : Ray):
     alloc_locals
     with_attr error_message("RAY divide by zero"):
-        if b.ray.high + b.ray.low == 0:
-            assert 1 = 0
-        end
+        assert_not_zero(b.ray.high + b.ray.low)
     end
 
     let (RAY_UINT) = ray()

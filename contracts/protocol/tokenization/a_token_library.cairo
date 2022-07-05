@@ -64,7 +64,7 @@ end
 namespace AToken:
     # Authorization
 
-    func only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    func assert_only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         let (caller_address) = get_caller_address()
         let (pool) = POOL()
@@ -74,7 +74,8 @@ namespace AToken:
         return ()
     end
 
-    func only_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    func assert_only_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ):
         assert TRUE = FALSE
         return ()
     end
@@ -117,7 +118,7 @@ namespace AToken:
     #         pedersen_ptr : HashBuiltin*,
     #         range_check_ptr
     #     }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
-    #     only_pool()
+    #     assert_only_pool()
     #     ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index);
     #     return ()
     # end
@@ -127,7 +128,7 @@ namespace AToken:
     #         pedersen_ptr : HashBuiltin*,
     #         range_check_ptr
     #     }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
-    #     only_pool()
+    #     assert_only_pool()
     #     ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index);
     #     let (contract_address) = get_contract_address()
     #     if (receiver_or_underlying != contract_address):
@@ -137,7 +138,7 @@ namespace AToken:
     # end
 
     # func mint_to_treasury(amount : Uint256, index : Uint256) {
-    #     only_pool()
+    #     assert_only_pool()
     #     if (amount == 0):
     #         return ()
     #     end
@@ -148,7 +149,7 @@ namespace AToken:
         from_ : felt, to : felt, value : Uint256
     ):
         alloc_locals
-        only_pool()
+        assert_only_pool()
         _transfer_base(from_, to, value, FALSE)
         Transfer.emit(from_, to, value)
         return ()
@@ -183,14 +184,14 @@ namespace AToken:
         target : felt, amount : Uint256
     ):
         alloc_locals
-        only_pool()
+        assert_only_pool()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
         IERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
         return ()
     end
 
     # func handle_repayment{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    #     only_pool()
+    #     assert_only_pool()
     #     return ()
     # end
 
@@ -201,7 +202,7 @@ namespace AToken:
         token : felt, to : felt, amount : Uint256
     ):
         alloc_locals
-        only_pool_admin()
+        assert_only_pool_admin()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
         with_attr error_message("Token {token} should be different from underlying {underlying}."):
             assert_not_equal(token, underlying)
