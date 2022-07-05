@@ -8,6 +8,9 @@ libs_path = "lib"
 i_pool = [
     "contracts/interfaces/i_pool.cairo",
 ]
+i_a_token = [
+    "contracts/interfaces/i_a_token.cairo",
+]
 wad_ray_math = [
     "contracts/protocol/libraries/math/wad_ray_math.cairo",
 ]

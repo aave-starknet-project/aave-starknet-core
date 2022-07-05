@@ -1,6 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+
 from contracts.interfaces.i_pool import IPool
 
 const PRANK_USER = 123
@@ -18,7 +19,7 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
         #PRANK_USER receives 1000 test_token
         context.test_token = deploy_contract("./tests/contracts/ERC20.cairo", [1415934836,5526356,18,1000,0,ids.PRANK_USER]).contract_address 
 
-        context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [418027762548,1632916308,18,0,0,context.pool,context.pool,context.test_token]).contract_address
+        context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [context.pool,1632916308,context.test_token,43232,18,1,2]).contract_address
     %}
     tempvar pool
     tempvar test_token
@@ -111,7 +112,10 @@ end
 func test_drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local pool, local test_token, local a_token) = get_contract_addresses()
+    # Drop the first reserve
+    %{ stop_mock = mock_call(ids.a_token, "totalSupply", [0,0]) %}
     _drop_reserve(pool, test_token, a_token)
+    %{ stop_mock() %}
 
     let (reserve) = IPool.get_reserve_data(pool, test_token)
 

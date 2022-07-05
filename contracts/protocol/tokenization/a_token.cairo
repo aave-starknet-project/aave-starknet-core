@@ -4,6 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE
 from starkware.cairo.common.uint256 import Uint256
 
+from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from openzeppelin.token.erc20.library import ERC20
 
 from contracts.protocol.tokenization.a_token_library import AToken
@@ -156,6 +157,15 @@ end
 #     return (TRUE)
 # end
 
+# TODO: remove this once AToken.mint works
+@external
+func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
+) -> (success : felt):
+    ERC20._mint(on_behalf_of, amount)
+    return (TRUE)
+end
+
 # @external
 # func burn{
 #         syscall_ptr : felt*,
@@ -165,6 +175,18 @@ end
 #     AToken.burn(from_, receiver_or_underlying, amount, index)
 #     return (TRUE)
 # end
+
+# TODO: remove this once AToken.burn works
+@external
+func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
+) -> (success : felt):
+    alloc_locals
+    let (local underlying) = AToken.UNDERLYING_ASSET_ADDRESS()
+    ERC20._burn(from_, amount)
+    IERC20.transfer(underlying, receiver_or_underlying, amount)
+    return (TRUE)
+end
 
 # @external
 # func mint_to_treasury{
