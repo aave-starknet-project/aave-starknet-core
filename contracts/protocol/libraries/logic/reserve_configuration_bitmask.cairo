@@ -67,9 +67,8 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
-        let (res) = bits_manipulation.actual_get_element_at(bitmap_value, LTV_BEGIN, LTV_SIZE)
+    }(bitmap : felt) -> (value : felt):
+        let (res) = bits_manipulation.actual_get_element_at(bitmap, LTV_BEGIN, LTV_SIZE)
         return (res)
     end
 
@@ -78,10 +77,9 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
+    }(bitmap : felt) -> (value : felt):
         let (res) = bits_manipulation.actual_get_element_at(
-            bitmap_value, RESERVE_ACTIVE_BEGIN, RESERVE_ACTIVE_SIZE
+            bitmap, RESERVE_ACTIVE_BEGIN, RESERVE_ACTIVE_SIZE
         )
         return (res)
     end
@@ -91,10 +89,9 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
+    }(bitmap : felt) -> (value : felt):
         let (res) = bits_manipulation.actual_get_element_at(
-            bitmap_value, RESERVE_FROZEN_BEGIN, RESERVE_FROZEN_SIZE
+            bitmap, RESERVE_FROZEN_BEGIN, RESERVE_FROZEN_SIZE
         )
         return (res)
     end
@@ -104,10 +101,9 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
+    }(bitmap : felt) -> (value : felt):
         let (res) = bits_manipulation.actual_get_element_at(
-            bitmap_value, BORROWING_ENABLED_BEGIN, BORROWING_ENABLED_SIZE
+            bitmap, BORROWING_ENABLED_BEGIN, BORROWING_ENABLED_SIZE
         )
         return (res)
     end
@@ -117,10 +113,9 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
+    }(bitmap : felt) -> (value : felt):
         let (res) = bits_manipulation.actual_get_element_at(
-            bitmap_value, STABLE_RATE_ENABLED_BEGIN, STABLE_RATE_ENABLED_SIZE
+            bitmap, STABLE_RATE_ENABLED_BEGIN, STABLE_RATE_ENABLED_SIZE
         )
         return (res)
     end
@@ -130,10 +125,9 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (value : felt):
-        let (bitmap_value) = bitmap.read()
+    }(bitmap : felt) -> (value : felt):
         let (res) = bits_manipulation.actual_get_element_at(
-            bitmap_value, ASSET_PAUSED_BEGIN, ASSET_PAUSED_SIZE
+            bitmap, ASSET_PAUSED_BEGIN, ASSET_PAUSED_SIZE
         )
         return (res)
     end
@@ -143,13 +137,12 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }(value : felt) -> ():
-        let (current_value) = bitmap.read()
+    }(bitmap : felt, value : felt) -> (new_value : felt):
+        let current_value = bitmap
         let (new_value) = bits_manipulation.actual_set_element_at(
             current_value, LTV_BEGIN, LTV_SIZE, value
         )
-        bitmap.write(new_value)
-        return ()
+        return (new_value)
     end
 
     func set_liquidation_threshold{
@@ -157,13 +150,11 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }(value : felt):
-        let (current_value) = bitmap.read()
+    }(bitmap : felt, value : felt) -> (new_value : felt):
         let (new_value) = bits_manipulation.actual_set_element_at(
-            current_value, LIQ_THRESHOLD_BEGIN, LIQ_THRESHOLD_SIZE, value
+            bitmap, LIQ_THRESHOLD_BEGIN, LIQ_THRESHOLD_SIZE, value
         )
-        bitmap.write(new_value)
-        return ()
+        return (new_value)
     end
 
     func set_liquidation_bonus{
@@ -171,12 +162,20 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }(value : felt):
-        let (current_value) = bitmap.read()
+    }(bitmap : felt, value : felt) -> (new_value : felt):
         let (new_value) = bits_manipulation.actual_set_element_at(
-            current_value, LIQ_BONUS_BEGIN, LIQ_BONUS_SIZE, value
+            bitmap, LIQ_BONUS_BEGIN, LIQ_BONUS_SIZE, value
         )
-        bitmap.write(new_value)
+        return (new_value)
+    end
+
+    func set_bitmap{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }(value : felt):
+        bitmap.write(value)
         return ()
     end
 
@@ -185,7 +184,7 @@ namespace ReserveConfigurationBitmask:
         pedersen_ptr : HashBuiltin*,
         bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr,
-    }() -> (
+    }(bitmap : felt) -> (
         reserve_active : felt,
         reserve_frozen : felt,
         borrowing_enabled : felt,
@@ -193,11 +192,11 @@ namespace ReserveConfigurationBitmask:
         asset_paused : felt,
     ):
         alloc_locals
-        let (local active) = get_reserve_active()
-        let (frozen) = get_reserve_frozen()
-        let (borrowing_enabled) = get_borrowing_enabled()
-        let (stable_rate_enabled) = get_stable_rate_enabled()
-        let (asset_paused) = get_asset_paused()
+        let (local active) = get_reserve_active(bitmap)
+        let (frozen) = get_reserve_frozen(bitmap)
+        let (borrowing_enabled) = get_borrowing_enabled(bitmap)
+        let (stable_rate_enabled) = get_stable_rate_enabled(bitmap)
+        let (asset_paused) = get_asset_paused(bitmap)
 
         return (active, frozen, borrowing_enabled, stable_rate_enabled, asset_paused)
     end
