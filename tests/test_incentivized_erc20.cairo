@@ -71,4 +71,3 @@ func test_incentivizedERC20_setters{syscall_ptr : felt*, range_check_ptr}():
 
     return ()
 end
-
