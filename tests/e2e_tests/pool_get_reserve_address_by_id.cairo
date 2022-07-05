@@ -27,7 +27,7 @@ namespace PoolGetReserveAddressById:
         return ()
     end
 
-    # 'User calls `getReservesList` with a wrong id (id > reservesCount)'
+    # 'User calls `get_reserve_address_by_id` with a wrong id (id > reserves_count)'
     @external
     func test_get_max_number_reserves{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
