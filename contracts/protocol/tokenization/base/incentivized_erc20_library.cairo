@@ -97,6 +97,71 @@ func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     return ()
 end
 
+
+
+namespace MintableIncentivizedERC20:
+
+    func _mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
+        alloc_locals
+
+        let (oldUserState) = _userState.read(address)
+        let (oldTotalSupply) = _totalSupply.read()
+
+        with_attr error_message("amount doesn't fit in 128 bits"):
+            assert_le_felt(amount, MAX_UINT128)
+        end
+
+        let amount_256 = Uint256(amount, 0)
+
+        # use SafeMath
+        let (newTotalSupply) = SafeUint256.add(oldTotalSupply, amount_256)
+        _totalSupply.write(newTotalSupply)
+
+        let oldAccountBalance = oldUserState.balance
+        let newAccountBalance = oldAccountBalance + amount
+        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+
+        _userState.write(address, newUserState)
+
+        # @Todo: Incentives controller logic here
+
+        return ()
+    end
+
+   
+    func _burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, amount : felt
+    ):
+        alloc_locals
+        let (oldUserState) = _userState.read(address)
+        let (oldTotalSupply) = _totalSupply.read()
+
+        with_attr error_message("amount doesn't fit in 128 bits"):
+            assert_le_felt(amount, MAX_UINT128)
+        end
+
+        let amount_256 = Uint256(amount, 0)
+
+        # use SafeMath
+        let (newTotalSupply) = SafeUint256.sub_le(oldTotalSupply, amount_256)
+        _totalSupply.write(newTotalSupply)
+
+        let oldAccountBalance = oldUserState.balance
+        let newAccountBalance = oldAccountBalance - amount
+        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+
+        _userState.write(address, newUserState)
+
+        # @Todo: Incentives controller logic here
+
+        return ()
+    end
+
+end
+
+
 namespace IncentivizedERC20:
     # modifiers
     func incentivized_erc20_only_pool{
@@ -303,66 +368,5 @@ namespace IncentivizedERC20:
         return (TRUE)
     end
 
-    # Function wa originally in MintableIncentivizedERC20 contract in Solidity
-    # but was combined with IncentivizedERC20 for ease of access to IncentivizedERC20's
-    # storage variables without exposing them through an external functions
-    func _mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        address : felt, amount : felt
-    ):
-        alloc_locals
 
-        let (oldUserState) = _userState.read(address)
-        let (oldTotalSupply) = _totalSupply.read()
-
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount, MAX_UINT128)
-        end
-
-        let amount_256 = Uint256(amount, 0)
-
-        # use SafeMath
-        let (newTotalSupply) = SafeUint256.add(oldTotalSupply, amount_256)
-        _totalSupply.write(newTotalSupply)
-
-        let oldAccountBalance = oldUserState.balance
-        let newAccountBalance = oldAccountBalance + amount
-        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
-
-        _userState.write(address, newUserState)
-
-        # @Todo: Incentives controller logic here
-
-        return ()
-    end
-
-    # Function wa originally in MintableIncentivizedERC20 contract in Solidity
-    # but was combined with IncentivizedERC20 for ease of access to IncentivizedERC20's
-    # storage variables without exposing them through an external functions
-    func _burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        address : felt, amount : felt
-    ):
-        alloc_locals
-        let (oldUserState) = _userState.read(address)
-        let (oldTotalSupply) = _totalSupply.read()
-
-        with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount, MAX_UINT128)
-        end
-
-        let amount_256 = Uint256(amount, 0)
-
-        # use SafeMath
-        let (newTotalSupply) = SafeUint256.sub_le(oldTotalSupply, amount_256)
-        _totalSupply.write(newTotalSupply)
-
-        let oldAccountBalance = oldUserState.balance
-        let newAccountBalance = oldAccountBalance - amount
-        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
-
-        _userState.write(address, newUserState)
-
-        # @Todo: Incentives controller logic here
-
-        return ()
-    end
 end
