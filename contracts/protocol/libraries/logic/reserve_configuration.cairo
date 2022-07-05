@@ -76,10 +76,22 @@ end
 namespace ReserveConfiguration:
     const MAX_RESERVES_COUNT = 128
 
-    func set_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        value : felt
-    ) -> ():
+    func set_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(value : felt):
         ltv.write(value)
+        return ()
+    end
+
+    func set_liquidation_threshold{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }(value : felt):
+        liquidation_threshold.write(value)
+        return ()
+    end
+
+    func set_liquidation_bonus{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        value : felt
+    ):
+        liquidation_bonus.write(value)
         return ()
     end
 
@@ -99,10 +111,10 @@ namespace ReserveConfiguration:
     ):
         let (active) = reserve_active.read()
         let (frozen) = reserve_frozen.read()
-        let (borrowing_enabled) = borrowing_enabled.read()
-        let (stable_rate_enabled) = stable_rate_enabled.read()
-        let (asset_paused) = asset_paused.read()
+        let (b_enabled) = borrowing_enabled.read()
+        let (s_rate_enabled) = stable_rate_enabled.read()
+        let (a_paused) = asset_paused.read()
 
-        return (active, frozen, borrowing_enabled, stable_rate_enabled, asset_paused)
+        return (active, frozen, b_enabled, s_rate_enabled, a_paused)
     end
 end

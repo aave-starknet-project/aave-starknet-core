@@ -62,6 +62,82 @@ namespace ReserveConfigurationBitmask:
         return (current_value)
     end
 
+    func get_ltv{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(bitmap_value, LTV_BEGIN, LTV_SIZE)
+        return (res)
+    end
+
+    func get_reserve_active{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(
+            bitmap_value, RESERVE_ACTIVE_BEGIN, RESERVE_ACTIVE_SIZE
+        )
+        return (res)
+    end
+
+    func get_reserve_frozen{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(
+            bitmap_value, RESERVE_FROZEN_BEGIN, RESERVE_FROZEN_SIZE
+        )
+        return (res)
+    end
+
+    func get_borrowing_enabled{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(
+            bitmap_value, BORROWING_ENABLED_BEGIN, BORROWING_ENABLED_SIZE
+        )
+        return (res)
+    end
+
+    func get_stable_rate_enabled{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(
+            bitmap_value, STABLE_RATE_ENABLED_BEGIN, STABLE_RATE_ENABLED_SIZE
+        )
+        return (res)
+    end
+
+    func get_asset_paused{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (value : felt):
+        let (bitmap_value) = bitmap.read()
+        let (res) = bits_manipulation.actual_get_element_at(
+            bitmap_value, ASSET_PAUSED_BEGIN, ASSET_PAUSED_SIZE
+        )
+        return (res)
+    end
+
     func set_ltv{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -76,17 +152,55 @@ namespace ReserveConfigurationBitmask:
         return ()
     end
 
-    func get_ltv(value : felt) -> ():
+    func set_liquidation_threshold{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }(value : felt):
+        let (current_value) = bitmap.read()
+        let (new_value) = bits_manipulation.actual_set_element_at(
+            current_value, LIQ_THRESHOLD_BEGIN, LIQ_THRESHOLD_SIZE, value
+        )
+        bitmap.write(new_value)
+        return ()
     end
 
-    # func get_flags{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-    #     reserve_active : felt,
-    #     reserve_frozen : felt,
-    #     borrowing_enabled : felt,
-    #     stable_rate_enabled : felt,
-    #     asset_paused : felt,
-    # ):
-    # end
+    func set_liquidation_bonus{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }(value : felt):
+        let (current_value) = bitmap.read()
+        let (new_value) = bits_manipulation.actual_set_element_at(
+            current_value, LIQ_BONUS_BEGIN, LIQ_BONUS_SIZE, value
+        )
+        bitmap.write(new_value)
+        return ()
+    end
+
+    func get_flags{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
+        range_check_ptr,
+    }() -> (
+        reserve_active : felt,
+        reserve_frozen : felt,
+        borrowing_enabled : felt,
+        stable_rate_enabled : felt,
+        asset_paused : felt,
+    ):
+        alloc_locals
+        let (local active) = get_reserve_active()
+        let (frozen) = get_reserve_frozen()
+        let (borrowing_enabled) = get_borrowing_enabled()
+        let (stable_rate_enabled) = get_stable_rate_enabled()
+        let (asset_paused) = get_asset_paused()
+
+        return (active, frozen, borrowing_enabled, stable_rate_enabled, asset_paused)
+    end
 end
 
 # total bits used: 4 + 8 + 20 + 16 + 8 + 8 = 64
