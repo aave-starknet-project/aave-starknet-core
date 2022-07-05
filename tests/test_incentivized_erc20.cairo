@@ -8,7 +8,7 @@ const PRANK_USER2 = 456
 @view
 func __setup__():
     # deploy pool contract first
-    %{ context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo").contract_address %}
+    %{ context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo", [0]).contract_address %}
     %{ context.name= 1 %}
     %{ context.symbol= 2 %}
     %{ context.decimals= 3 %}
