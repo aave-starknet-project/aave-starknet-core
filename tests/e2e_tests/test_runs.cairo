@@ -1,9 +1,10 @@
 %lang starknet
 from starkware.starknet.common.syscalls import get_contract_address
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from contracts.interfaces.i_pool import IPool
 # importing this will execute all test cases in that file.
 from tests.e2e_tests.pool_drop_spec import PoolDropSpec
-from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressById
+from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressByIdSpec
 from tests.e2e_tests.pool_supply_withdraw_spec import PoolSupplyWithdrawSpec
 
 @external
@@ -39,5 +40,80 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
 
     IPool.init_reserve(pool, dai, aDAI)
     IPool.init_reserve(pool, weth, aWETH)
+    return ()
+end
+
+@external
+func test_pool_drop_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_1()
+    return ()
+end
+
+@external
+func test_pool_drop_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_2()
+    return ()
+end
+
+# test_pool_drop_3
+@external
+func test_pool_drop_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_3()
+    return ()
+end
+
+@external
+func test_pool_drop_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_4()
+    return ()
+end
+
+@external
+func test_pool_drop_5{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_5()
+    return ()
+end
+
+@external
+func test_get_address_of_reserve_by_id{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
+    return ()
+end
+
+@external
+func test_get_max_number_reserves{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
+    return ()
+end
+
+@external
+func test_pool_supply_withdraw_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_1()
+    return ()
+end
+
+@external
+func test_pool_supply_withdraw_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_2()
+    return ()
+end
+
+@external
+func test_pool_supply_withdraw_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_3()
+    return ()
+end
+
+@external
+func test_pool_supply_withdraw_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_4()
     return ()
 end

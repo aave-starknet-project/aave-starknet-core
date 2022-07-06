@@ -8,7 +8,6 @@ from tests.contracts.IERC20_Mintable import IERC20_Mintable
 
 namespace PoolSupplyWithdrawSpec:
     # DAI Reserve a_token_address correctly initialized
-    @external
     func test_pool_supply_withdraw_spec_1{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
         %{ print(" PoolSupplyWithdrawSpec : DAI Reserve a_token_address correctly initialized") %}
@@ -26,7 +25,6 @@ namespace PoolSupplyWithdrawSpec:
     end
 
     # USER_1 supplies 100 test_token to the protocol
-    @external
     func test_pool_supply_withdraw_spec_2{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
         %{ print(" PoolSupplyWithdrawSpec : USER_1 supplies 100 test_token to the protocol") %}
@@ -44,7 +42,6 @@ namespace PoolSupplyWithdrawSpec:
     end
 
     # USER_1 tries to withdraw tokens from the pool but the amount is higher than his balance
-    @external
     func test_pool_supply_withdraw_spec_3{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
         %{ print(" PoolSupplyWithdrawSpec : USER_1 tries to withdraw tokens from the pool but the amount is higher than his balance") %}
@@ -58,10 +55,9 @@ namespace PoolSupplyWithdrawSpec:
     end
 
     # USER_1 withdraws 50 tokens out of the 100 he supplied
-    @external
     func test_pool_supply_withdraw_spec_4{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
-        %{ print(" PoolSupplyWithdrawSpec : # USER_1 withdraws 50 tokens out of the 100 he supplied") %}
+        %{ print(" PoolSupplyWithdrawSpec : USER_1 withdraws 50 tokens out of the 100 he supplied") %}
         let (local pool, local dai, local aDAI) = get_contract_addresses()
         _supply(pool, dai)
 

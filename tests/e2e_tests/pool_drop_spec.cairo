@@ -14,7 +14,6 @@ from tests.utils.constants import UNDEPLOYED_RESERVE, USER_1, USER_2
 
 namespace PoolDropSpec:
     # User 1 deposits DAI, User 2 borrow DAI stable and variable, should fail to drop DAI reserve
-    @external
     func test_pool_drop_spec_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         %{ print("PoolDropSpec : User 1 deposits DAI, User 2 borrow DAI stable and variable, should fail to drop DAI reserve") %}
@@ -40,10 +39,10 @@ namespace PoolDropSpec:
     # 'User 2 repays debts, drop DAI reserve should fail'
     func test_pool_drop_spec_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         %{ print("PoolDropSpec : User 2 repays debts, drop DAI reserve should fail") %}
+        return ()
     end
 
     # 'User 1 withdraw DAI, drop DAI reserve should succeed'
-    @external
     func test_pool_drop_spec_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         %{ print("PoolDropSpec : User 1 withdraw DAI, drop DAI reserve should succeed") %}
@@ -72,7 +71,6 @@ namespace PoolDropSpec:
     end
 
     # 'Drop an asset that is not a listed reserve should fail'
-    @external
     func test_pool_drop_spec_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         %{ print("PoolDropSpec : Drop an asset that is not a listed reserve should fail") %}
@@ -91,7 +89,6 @@ namespace PoolDropSpec:
     end
 
     # 'Dropping zero address should fail'
-    @external
     func test_pool_drop_spec_5{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         %{ print("PoolDropSpec : Dropping zero address should fail") %}
