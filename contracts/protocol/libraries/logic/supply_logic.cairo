@@ -49,8 +49,13 @@ namespace SupplyLogic:
 
         # TODO boolean to check if it is first supply
 
+        # TODO: liquidity_index should be Uint256
         IAToken.mint(
-            contract_address=reserve.a_token_address, to=params.on_behalf_of, amount=params.amount
+            contract_address=reserve.a_token_address,
+            caller=caller_address,
+            on_behalf_of=params.on_behalf_of,
+            amount=params.amount,
+            index=Uint256(reserve.liquidity_index, 0),
         )
 
         supply_event.emit(
@@ -93,9 +98,10 @@ namespace SupplyLogic:
 
         IAToken.burn(
             contract_address=reserve.a_token_address,
-            account=caller_address,
-            recipient=params.to,
+            from_=caller_address,
+            receiver_or_underlying=params.to,
             amount=amount_to_withdraw,
+            index=Uint256(reserve.liquidity_index, 0),
         )
 
         # TODO validate health_factor

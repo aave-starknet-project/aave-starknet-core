@@ -5,8 +5,8 @@ protostar_version = "0.2.3"
 libs_path = "lib"
 
 ["protostar.contracts"]
-main = [
-    "./contracts/main.cairo",
+a_token = [
+    "contracts/protocol/tokenization/a_token.cairo",
 ]
 pool = [
     "./contracts/protocol/pool/pool.cairo",

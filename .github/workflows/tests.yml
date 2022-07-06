@@ -24,6 +24,7 @@ jobs:
         shell: bash
         run: |
           export PATH="$PATH:/home/runner/.protostar/dist/protostar" && protostar install
+
       - name: Build
         shell: bash
         run: |
