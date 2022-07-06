@@ -50,8 +50,8 @@ namespace ValidationLogic:
 
         # Revert if withdrawing too much. Verify that amount<=balance
         with_attr error_message("User cannot withdraw more than the available balance"):
-            let (is_lt : felt) = uint256_le(amount, user_balance)
-            assert is_lt = TRUE
+            let (is_le : felt) = uint256_le(amount, user_balance)
+            assert is_le = TRUE
         end
 
         # TODO verify reserve is active and not paused
