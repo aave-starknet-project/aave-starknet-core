@@ -4,8 +4,11 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.starknet.common.syscalls import get_contract_address
+
 from contracts.interfaces.i_pool import IPool
 from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.math.wad_ray_math import RAY
+
 from tests.contracts.IERC20_Mintable import IERC20_Mintable
 from tests.utils.utils import Utils
 from tests.utils.constants import UNDEPLOYED_RESERVE, USER_1, USER_2
@@ -47,20 +50,27 @@ namespace PoolDropSpec:
         alloc_locals
         %{ print("PoolDropSpec : User 1 withdraw DAI, drop DAI reserve should succeed") %}
         local dai
+        local aDAI
         local weth
         local pool
         local deployer
         %{
             ids.dai = context.dai
+            ids.aDAI = context.aDAI
             ids.weth = context.weth
             ids.pool = context.pool
             ids.deployer = context.deployer
         %}
 
         deposit_funds_and_borrow(dai, weth, pool)
+
+        %{ stop_mock = mock_call(ids.pool, "get_reserve_normalized_income", [ids.RAY, 0]) %}
         IPool.withdraw(pool, dai, Uint256(Generics.UINT128_MAX, Generics.UINT128_MAX), deployer)
+        %{ stop_mock() %}
         let (reserves_count, reserves_list) = IPool.get_reserves_list(pool)
+        %{ stop_mock = mock_call(ids.aDAI, "totalSupply", [0,0]) %}
         IPool.drop_reserve(pool, dai)
+        %{ stop_mock() %}
         let (new_count, new_reserves) = IPool.get_reserves_list(pool)
         assert new_count = reserves_count - 1
         let (is_dai_in_array) = Utils.array_includes(new_count, new_reserves, dai)
