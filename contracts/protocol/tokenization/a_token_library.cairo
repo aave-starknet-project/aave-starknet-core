@@ -123,6 +123,14 @@ namespace AToken:
     #     return ()
     # end
 
+    # TODO: remove this once mint function above works
+    func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
+    ):
+        ERC20._mint(on_behalf_of, amount)
+        return ()
+    end
+
     # func burn{
     #         syscall_ptr : felt*,
     #         pedersen_ptr : HashBuiltin*,
@@ -262,17 +270,24 @@ namespace AToken:
         let (amount_over_index) = ray_div(Ray(amount), Ray(index))
         ERC20._transfer(from_, to, amount_over_index.ray)
 
-        # if validate == TRUE:
-        #     IPool.finalize_transfer(
-        #         pool,
-        #         underlying_asset,
-        #         from_,
-        #         to,
-        #         amount,
-        #         from_balance_before.ray,
-        #         to_balance_before.ray,
-        #     )
-        # end
+        if validate == TRUE:
+            IPool.finalize_transfer(
+                pool,
+                underlying_asset,
+                from_,
+                to,
+                amount,
+                from_balance_before.ray,
+                to_balance_before.ray,
+            )
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        else:
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        end
 
         BalanceTransfer.emit(from_, to, amount, index)
         return ()

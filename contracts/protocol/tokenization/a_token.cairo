@@ -147,22 +147,11 @@ func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return (TRUE)
 end
 
-# @external
-# func mint{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
-#     AToken.mint(caller, on_behalf_of, amount, index)
-#     return (TRUE)
-# end
-
-# TODO: remove this once AToken.mint works
 @external
 func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
 ) -> (success : felt):
-    ERC20._mint(on_behalf_of, amount)
+    AToken.mint(caller, on_behalf_of, amount, index)
     return (TRUE)
 end
 
