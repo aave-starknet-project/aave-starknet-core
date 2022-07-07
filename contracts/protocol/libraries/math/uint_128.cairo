@@ -1,5 +1,6 @@
 %lang starknet
 
+
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le_felt
@@ -19,4 +20,15 @@ namespace Uint128:
 
         return (res)
     end
+
+
+
+    func to_uint_256{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        amount : felt
+    ) -> (res : Uint256):
+        let res = Uint256(amount,0)
+        return (res)
+    end
+
+
 end
