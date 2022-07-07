@@ -41,6 +41,8 @@ namespace IPool:
         sender_balance : Uint256,
         recipient_balance : Uint256,
     ):
+    end
+
     func get_addresses_provider() -> (provider : felt):
     end
 end
