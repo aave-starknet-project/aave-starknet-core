@@ -88,43 +88,45 @@ namespace UserConfiguration:
         return (FALSE)
     end
 
-    # TODO: GOT ERROR  Cannot unpack not_zero + less_than_2. let (cmp_res) = not_zero + less_than_2
-    # func is_using_as_collateral_one{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    #     user_address : felt
-    # ) -> (res : felt):
+    func is_using_as_collateral_one{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }(user_address : felt) -> (res : felt):
+        alloc_locals
 
-    # let (col) = UserConfiguration_collateral_counter.read(user_address)
-    #     let (not_zero) = is_not_zero(col)
-    #     let (less_than_2) = is_le(col, 1)
-    #     let (cmp_res) = not_zero + less_than_2
+        let (col) = UserConfiguration_collateral_counter.read(user_address)
+        let (not_zero) = is_not_zero(col)
+        let (less_than_2) = is_le(col, 1)
+        let cmp_res = not_zero + less_than_2
 
-    # if cmp_res == 2:
-    #         return(TRUE)
-    #     else:
-    #         return(FALSE)
-    #     end
-    # end
+        if cmp_res == 2:
+            return (TRUE)
+        else:
+            return (FALSE)
+        end
+    end
 
-    # func is_using_as_collateral_any{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    #     user_address : felt
-    # ) -> (res : felt):
-    #     let (col) = UserConfiguration_collateral_counter.read(user_address)
-    #     let (not_zero) = is_not_zero(col)
+    func is_using_as_collateral_any{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }(user_address : felt) -> (res : felt):
+        let (col) = UserConfiguration_collateral_counter.read(user_address)
+        let (not_zero) = is_not_zero(col)
 
-    # if not_zero == TRUE:
-    #         return(TRUE)
-    #     else:
-    #         return(FALSE)
-    #     end
-    # end
+        if not_zero == TRUE:
+            return (TRUE)
+        else:
+            return (FALSE)
+        end
+    end
 
     func is_borrowing_one{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (res : felt):
+        alloc_locals
+
         let (bor) = UserConfiguration_borrowing_counter.read(user_address)
         let (not_zero) = is_not_zero(bor)
         let (less_than_2) = is_le(bor, 1)
-        let (cmp_res) = not_zero + less_than_2
+        let cmp_res = not_zero + less_than_2
 
         if cmp_res == 2:
             return (TRUE)
@@ -146,23 +148,23 @@ namespace UserConfiguration:
         end
     end
 
-    # TODO
-    # func is_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    #     user_address : felt
-    # ) -> (res : felt):
+    func is_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user_address : felt
+    ) -> (res : felt):
+        alloc_locals
 
-    # let (bor) = is_borrowing_one(user_address)
+        let (bor) = is_borrowing_any(user_address)
 
-    # let (col) = is_using_as_collateral_one(user_address)
+        let (col) = is_using_as_collateral_any(user_address)
 
-    # let (is_it_empty) = bor + col
+        let is_it_empty = bor + col
 
-    # if is_it_empty == 0:
-    #         return(TRUE)
-    #     else:
-    #         return(FALSE)
-    #     end
-    # end
+        if is_it_empty == 0:
+            return (TRUE)
+        else:
+            return (FALSE)
+        end
+    end
 end
 
 # @note using prefix UserConfiguration to prevent storage variable clashing
