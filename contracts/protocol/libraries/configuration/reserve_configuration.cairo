@@ -3,6 +3,8 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le
 
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+
 @storage_var
 func ltv(reserve_asset : felt) -> (value : felt):
 end
@@ -87,10 +89,8 @@ const MAX_VALID_EMODE_CATEGORY = 255
 const MAX_VALID_UNBACKED_MINT_CAP = 68719476735
 const MAX_VALID_DEBT_CEILING = 1099511627775
 
-const DEBT_CEILING_DECIMALS = 2
-const MAX_RESERVES_COUNT = 128
-
 namespace ReserveConfiguration:
+    const DEBT_CEILING_DECIMALS = 2
     const MAX_RESERVES_COUNT = 128
 
     # @notice Sets the Loan to Value of the reserve
@@ -179,12 +179,12 @@ namespace ReserveConfiguration:
     end
 
     # @notice Sets the active state of the reserve
-    # @param value The active state
+    # @param active The active state
     func set_active{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        reserve_asset : felt, value : felt
+        reserve_asset : felt, active : felt
     ):
-        # TODO after other branch merged, boolCompare.is_valid()
-        reserve_active.write(reserve_asset, value)
+        BoolCompare.is_valid(active)
+        reserve_active.write(reserve_asset, active)
         return ()
     end
 
@@ -198,12 +198,12 @@ namespace ReserveConfiguration:
     end
 
     # @notice Sets the frozen state of the reserve
-    # @param value The frozen state
+    # @param frozen The frozen state
     func set_frozen{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        reserve_asset : felt, value : felt
+        reserve_asset : felt, frozen : felt
     ):
-        # TODO after other branch merged, boolCompare.is_valid()
-        reserve_frozen.write(reserve_asset, value)
+        BoolCompare.is_valid(frozen)
+        reserve_frozen.write(reserve_asset, frozen)
         return ()
     end
 
@@ -219,10 +219,10 @@ namespace ReserveConfiguration:
     # @notice Sets the paused state of the reserve
     # @param value The paused state
     func set_paused{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        reserve_asset : felt, value : felt
+        reserve_asset : felt, paused : felt
     ):
-        # TODO after other branch merged, boolCompare.is_valid()
-        asset_paused.write(reserve_asset, value)
+        BoolCompare.is_valid(paused)
+        asset_paused.write(reserve_asset, paused)
         return ()
     end
 
@@ -244,7 +244,7 @@ namespace ReserveConfiguration:
     func set_borrowable_in_isolation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, borrowable : felt):
-        # TODO after other branch merged, boolCompare.is_valid()
+        BoolCompare.is_valid(borrowable)
         borrowable_in_isolation.write(reserve_asset, borrowable)
         return ()
     end
@@ -268,7 +268,7 @@ namespace ReserveConfiguration:
     func set_siloed_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, siloed : felt
     ):
-        # TODO after other branch merged, boolCompare.is_valid()
+        BoolCompare.is_valid(siloed)
         siloed_borrowing.write(reserve_asset, siloed)
         return ()
     end
@@ -288,7 +288,7 @@ namespace ReserveConfiguration:
     func set_borrowing_enabled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, enabled : felt
     ):
-        # TODO after other branch merged, boolCompare.is_valid()
+        BoolCompare.is_valid(enabled)
         borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
@@ -307,7 +307,7 @@ namespace ReserveConfiguration:
     func set_stable_rate_borrowing_enabled{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, enabled : felt):
-        # TODO after other branch merged, boolCompare.is_valid()
+        BoolCompare.is_valid(enabled)
         stable_rate_borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
