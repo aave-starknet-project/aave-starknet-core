@@ -4,6 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
+from contracts.protocol.libraries.types.data_types import DataTypes
 
 # @param pool The reference to the main Pool contract
 # @param name The name of the token
@@ -71,14 +72,17 @@ func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (remaining)
 end
 
+@view
+func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user : felt
+) -> (state : DataTypes.UserState):
+    let (state) = IncentivizedERC20.get_user_state(user)
+    return (state)
+end
+
 # setters
 
 @external
-<<<<<<< HEAD
-func set_incentives_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    IAaveIncentivesController : felt
-):
-=======
 func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
     IncentivizedERC20.set_name(name)
     return ()
@@ -103,7 +107,6 @@ func set_incentives_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     IAaveIncentivesController : felt
 ):
     IncentivizedERC20.incentivized_erc20_only_pool_admin()
->>>>>>> 50ee405 (remove test functions)
     IncentivizedERC20.set_incentives_controller(IAaveIncentivesController)
     return ()
 end
