@@ -11,18 +11,12 @@ from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 from contracts.protocol.libraries.helpers.uint_128 import Uint128
 
-# @dev UserState - additionalData is a flexible field.
-# ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
-# StableDebtTokens use this field to store the user's stable rate.
-struct UserState:
-    member balance : felt
-    member additionalData : felt
-end
+from contracts.protocol.libraries.types.data_types import DataTypes
 
 const MAX_UINT128 = 2 ** 128 - 1
 
 @storage_var
-func incentivized_erc20_user_state(address : felt) -> (state : UserState):
+func incentivized_erc20_user_state(address : felt) -> (state : DataTypes.UserState):
 end
 
 @storage_var
@@ -78,12 +72,14 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     end
 
     let new_sender_balance = old_sender_state.balance - amount
-    let new_sender_state = UserState(new_sender_balance, old_sender_state.additionalData)
+    let new_sender_state = DataTypes.UserState(new_sender_balance, old_sender_state.additionalData)
     incentivized_erc20_user_state.write(sender, new_sender_state)
 
     let (old_recipient_state) = incentivized_erc20_user_state.read(recipient)
     let new_recipient_balance = old_recipient_state.balance + amount
-    let new_recipient_state = UserState(new_recipient_balance, old_recipient_state.additionalData)
+    let new_recipient_state = DataTypes.UserState(
+        new_recipient_balance, old_recipient_state.additionalData
+    )
     incentivized_erc20_user_state.write(recipient, new_recipient_state)
 
     # @TODO: import incentives_controller & handle action
@@ -119,7 +115,7 @@ namespace MintableIncentivizedERC20:
 
         let old_account_balance = old_user_state.balance
         let new_account_balance = old_account_balance + amount
-        let new_user_state = UserState(new_account_balance, old_user_state.additionalData)
+        let new_user_state = DataTypes.UserState(new_account_balance, old_user_state.additionalData)
 
         incentivized_erc20_user_state.write(address, new_user_state)
 
@@ -147,7 +143,7 @@ namespace MintableIncentivizedERC20:
 
         let old_account_balance = old_user_state.balance
         let new_account_balance = old_account_balance - amount
-        let new_user_state = UserState(new_account_balance, old_user_state.additionalData)
+        let new_user_state = DataTypes.UserState(new_account_balance, old_user_state.additionalData)
 
         incentivized_erc20_user_state.write(address, new_user_state)
 
@@ -216,7 +212,7 @@ namespace IncentivizedERC20:
     func balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         account : felt
     ) -> (balance : felt):
-        let (state : UserState) = incentivized_erc20_user_state.read(account)
+        let (state : DataTypes.UserState) = incentivized_erc20_user_state.read(account)
         return (state.balance)
     end
 
@@ -227,7 +223,21 @@ namespace IncentivizedERC20:
         return (remaining)
     end
 
+    func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user : felt
+    ) -> (res : DataTypes.UserState):
+        let (state) = _userState.read(user)
+        return (state)
+    end
+
     # SETTERS
+
+    func set_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user : felt, state : DataTypes.UserState
+    ):
+        _userState.write(user, state)
+        return ()
+    end
 
     func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
         incentivized_erc20_name.write(name)
