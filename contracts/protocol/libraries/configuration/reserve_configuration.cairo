@@ -6,75 +6,75 @@ from starkware.cairo.common.math import assert_le
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 
 @storage_var
-func ltv(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_ltv(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func liquidation_threshold(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_liquidation_threshold(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func liquidation_bonus(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_liquidation_bonus(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func decimals(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_decimals(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func reserve_active(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_reserve_active(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func reserve_frozen(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_reserve_frozen(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func stable_rate_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_stable_rate_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func asset_paused(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_asset_paused(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func borrowable_in_isolation(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_borrowable_in_isolation(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func siloed_borrowing(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_siloed_borrowing(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func reserve_factor(reserve_asset : felt) -> (boolean : felt):
+func ReserveConfiguration_reserve_factor(reserve_asset : felt) -> (boolean : felt):
 end
 
 @storage_var
-func borrow_cap(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_borrow_cap(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func supply_cap(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_supply_cap(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func liquidation_protocol_fee(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_liquidation_protocol_fee(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func eMode_category(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_eMode_category(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func unbacked_mint_cap(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_unbacked_mint_cap(reserve_asset : felt) -> (value : felt):
 end
 
 @storage_var
-func debt_ceiling(reserve_asset : felt) -> (value : felt):
+func ReserveConfiguration_debt_ceiling(reserve_asset : felt) -> (value : felt):
 end
 
 const MAX_VALID_LTV = 65535
@@ -101,7 +101,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid ltv parameter for the reserve"):
             assert_le(value, MAX_VALID_LTV)
         end
-        ltv.write(reserve_asset, value)
+        ReserveConfiguration_ltv.write(reserve_asset, value)
         return ()
     end
 
@@ -110,7 +110,7 @@ namespace ReserveConfiguration:
     func get_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ltv.read(reserve_asset)
+        let (res) = ReserveConfiguration_ltv.read(reserve_asset)
         return (res)
     end
 
@@ -122,7 +122,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid liquidity threshold parameter for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_THRESHOLD)
         end
-        liquidation_threshold.write(reserve_asset, value)
+        ReserveConfiguration_liquidation_threshold.write(reserve_asset, value)
         return ()
     end
 
@@ -131,7 +131,7 @@ namespace ReserveConfiguration:
     func get_liquidation_threshold{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = liquidation_threshold.read(reserve_asset)
+        let (res) = ReserveConfiguration_liquidation_threshold.read(reserve_asset)
         return (res)
     end
 
@@ -143,7 +143,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid liquidity bonus parameter for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_BONUS)
         end
-        liquidation_bonus.write(reserve_asset, value)
+        ReserveConfiguration_liquidation_bonus.write(reserve_asset, value)
         return ()
     end
 
@@ -152,7 +152,7 @@ namespace ReserveConfiguration:
     func get_liquidation_bonus{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = liquidation_bonus.read(reserve_asset)
+        let (res) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
         return (res)
     end
 
@@ -165,7 +165,7 @@ namespace ReserveConfiguration:
                 "Invalid decimals parameter of the underlying asset of the reserve"):
             assert_le(value, MAX_VALID_DECIMALS)
         end
-        decimals.write(reserve_asset, value)
+        ReserveConfiguration_decimals.write(reserve_asset, value)
         return ()
     end
 
@@ -174,7 +174,7 @@ namespace ReserveConfiguration:
     func get_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = decimals.read(reserve_asset)
+        let (res) = ReserveConfiguration_decimals.read(reserve_asset)
         return (res)
     end
 
@@ -184,7 +184,7 @@ namespace ReserveConfiguration:
         reserve_asset : felt, active : felt
     ):
         BoolCompare.is_valid(active)
-        reserve_active.write(reserve_asset, active)
+        ReserveConfiguration_reserve_active.write(reserve_asset, active)
         return ()
     end
 
@@ -193,7 +193,7 @@ namespace ReserveConfiguration:
     func get_active{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = reserve_active.read(reserve_asset)
+        let (res) = ReserveConfiguration_reserve_active.read(reserve_asset)
         return (res)
     end
 
@@ -203,7 +203,7 @@ namespace ReserveConfiguration:
         reserve_asset : felt, frozen : felt
     ):
         BoolCompare.is_valid(frozen)
-        reserve_frozen.write(reserve_asset, frozen)
+        ReserveConfiguration_reserve_frozen.write(reserve_asset, frozen)
         return ()
     end
 
@@ -212,7 +212,7 @@ namespace ReserveConfiguration:
     func get_frozen{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = reserve_frozen.read(reserve_asset)
+        let (res) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
         return (res)
     end
 
@@ -222,7 +222,7 @@ namespace ReserveConfiguration:
         reserve_asset : felt, paused : felt
     ):
         BoolCompare.is_valid(paused)
-        asset_paused.write(reserve_asset, paused)
+        ReserveConfiguration_asset_paused.write(reserve_asset, paused)
         return ()
     end
 
@@ -231,7 +231,7 @@ namespace ReserveConfiguration:
     func get_paused{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = asset_paused.read(reserve_asset)
+        let (res) = ReserveConfiguration_asset_paused.read(reserve_asset)
         return (res)
     end
 
@@ -245,7 +245,7 @@ namespace ReserveConfiguration:
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, borrowable : felt):
         BoolCompare.is_valid(borrowable)
-        borrowable_in_isolation.write(reserve_asset, borrowable)
+        ReserveConfiguration_borrowable_in_isolation.write(reserve_asset, borrowable)
         return ()
     end
 
@@ -258,7 +258,7 @@ namespace ReserveConfiguration:
     func get_borrowable_in_isolation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = borrowable_in_isolation.read(reserve_asset)
+        let (res) = ReserveConfiguration_borrowable_in_isolation.read(reserve_asset)
         return (res)
     end
 
@@ -269,7 +269,7 @@ namespace ReserveConfiguration:
         reserve_asset : felt, siloed : felt
     ):
         BoolCompare.is_valid(siloed)
-        siloed_borrowing.write(reserve_asset, siloed)
+        ReserveConfiguration_siloed_borrowing.write(reserve_asset, siloed)
         return ()
     end
 
@@ -279,7 +279,7 @@ namespace ReserveConfiguration:
     func get_siloed_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = siloed_borrowing.read(reserve_asset)
+        let (res) = ReserveConfiguration_siloed_borrowing.read(reserve_asset)
         return (res)
     end
 
@@ -289,7 +289,7 @@ namespace ReserveConfiguration:
         reserve_asset : felt, enabled : felt
     ):
         BoolCompare.is_valid(enabled)
-        borrowing_enabled.write(reserve_asset, enabled)
+        ReserveConfiguration_borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
 
@@ -298,7 +298,7 @@ namespace ReserveConfiguration:
     func get_borrowing_enabled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = borrowing_enabled.read(reserve_asset)
+        let (res) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
         return (res)
     end
 
@@ -308,7 +308,7 @@ namespace ReserveConfiguration:
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, enabled : felt):
         BoolCompare.is_valid(enabled)
-        stable_rate_borrowing_enabled.write(reserve_asset, enabled)
+        ReserveConfiguration_stable_rate_borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
 
@@ -317,7 +317,7 @@ namespace ReserveConfiguration:
     func get_stable_rate_borrowing_enabled{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = stable_rate_borrowing_enabled.read(reserve_asset)
+        let (res) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
         return (res)
     end
 
@@ -329,7 +329,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid reserve factor parameter for the reserve"):
             assert_le(value, MAX_VALID_RESERVE_FACTOR)
         end
-        reserve_factor.write(reserve_asset, value)
+        ReserveConfiguration_reserve_factor.write(reserve_asset, value)
         return ()
     end
 
@@ -338,7 +338,7 @@ namespace ReserveConfiguration:
     func get_reserve_factor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = reserve_factor.read(reserve_asset)
+        let (res) = ReserveConfiguration_reserve_factor.read(reserve_asset)
         return (res)
     end
 
@@ -351,7 +351,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid borrow cap for the reserve"):
             assert_le(value, MAX_VALID_BORROW_CAP)
         end
-        borrow_cap.write(reserve_asset, value)
+        ReserveConfiguration_borrow_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -361,7 +361,7 @@ namespace ReserveConfiguration:
     func get_borrow_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = borrow_cap.read(reserve_asset)
+        let (res) = ReserveConfiguration_borrow_cap.read(reserve_asset)
         return (res)
     end
 
@@ -374,7 +374,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid supply cap for the reserve"):
             assert_le(value, MAX_VALID_SUPPLY_CAP)
         end
-        supply_cap.write(reserve_asset, value)
+        ReserveConfiguration_supply_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -384,7 +384,7 @@ namespace ReserveConfiguration:
     func get_supply_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = supply_cap.read(reserve_asset)
+        let (res) = ReserveConfiguration_supply_cap.read(reserve_asset)
         return (res)
     end
 
@@ -396,7 +396,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid debt ceiling for the reserve"):
             assert_le(ceiling, MAX_VALID_DEBT_CEILING)
         end
-        debt_ceiling.write(reserve_asset, ceiling)
+        ReserveConfiguration_debt_ceiling.write(reserve_asset, ceiling)
         return ()
     end
 
@@ -405,7 +405,7 @@ namespace ReserveConfiguration:
     func get_debt_ceiling{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = debt_ceiling.read(reserve_asset)
+        let (res) = ReserveConfiguration_debt_ceiling.read(reserve_asset)
         return (res)
     end
 
@@ -417,7 +417,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid liquidation protocol fee for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_PROTOCOL_FEE)
         end
-        liquidation_protocol_fee.write(reserve_asset, value)
+        ReserveConfiguration_liquidation_protocol_fee.write(reserve_asset, value)
         return ()
     end
 
@@ -426,7 +426,7 @@ namespace ReserveConfiguration:
     func get_liquidation_protocol_fee{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = liquidation_protocol_fee.read(reserve_asset)
+        let (res) = ReserveConfiguration_liquidation_protocol_fee.read(reserve_asset)
         return (res)
     end
 
@@ -438,7 +438,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid unbacked mint cap for the reserve"):
             assert_le(value, MAX_VALID_UNBACKED_MINT_CAP)
         end
-        unbacked_mint_cap.write(reserve_asset, value)
+        ReserveConfiguration_unbacked_mint_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -447,7 +447,7 @@ namespace ReserveConfiguration:
     func get_unbacked_mint_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = unbacked_mint_cap.read(reserve_asset)
+        let (res) = ReserveConfiguration_unbacked_mint_cap.read(reserve_asset)
         return (res)
     end
 
@@ -459,7 +459,7 @@ namespace ReserveConfiguration:
         with_attr error_message("Invalid eMode category for the reserve"):
             assert_le(category, MAX_VALID_EMODE_CATEGORY)
         end
-        eMode_category.write(reserve_asset, category)
+        ReserveConfiguration_eMode_category.write(reserve_asset, category)
         return ()
     end
 
@@ -468,7 +468,7 @@ namespace ReserveConfiguration:
     func get_eMode_category{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = eMode_category.read(reserve_asset)
+        let (res) = ReserveConfiguration_eMode_category.read(reserve_asset)
         return (res)
     end
 
@@ -487,11 +487,13 @@ namespace ReserveConfiguration:
         is_stable_rate_borrowing_enabled : felt,
         is_paused : felt,
     ):
-        let (is_active) = reserve_active.read(reserve_asset)
-        let (is_frozen) = reserve_frozen.read(reserve_asset)
-        let (is_borrowing_enabled) = borrowing_enabled.read(reserve_asset)
-        let (is_stable_rate_borrowing_enabled) = stable_rate_borrowing_enabled.read(reserve_asset)
-        let (is_paused) = asset_paused.read(reserve_asset)
+        let (is_active) = ReserveConfiguration_reserve_active.read(reserve_asset)
+        let (is_frozen) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
+        let (is_borrowing_enabled) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
+        let (
+            is_stable_rate_borrowing_enabled
+        ) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
+        let (is_paused) = ReserveConfiguration_asset_paused.read(reserve_asset)
 
         return (
             is_active, is_frozen, is_borrowing_enabled, is_stable_rate_borrowing_enabled, is_paused
@@ -515,12 +517,14 @@ namespace ReserveConfiguration:
         reserve_factor_value : felt,
         eMode_category_value : felt,
     ):
-        let (ltv_value) = ltv.read(reserve_asset)
-        let (liquidation_threshold_value) = liquidation_threshold.read(reserve_asset)
-        let (liquidation_bonus_value) = liquidation_bonus.read(reserve_asset)
-        let (decimals_value) = decimals.read(reserve_asset)
-        let (reserve_factor_value) = reserve_factor.read(reserve_asset)
-        let (eMode_category_value) = eMode_category.read(reserve_asset)
+        let (ltv_value) = ReserveConfiguration_ltv.read(reserve_asset)
+        let (liquidation_threshold_value) = ReserveConfiguration_liquidation_threshold.read(
+            reserve_asset
+        )
+        let (liquidation_bonus_value) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
+        let (decimals_value) = ReserveConfiguration_decimals.read(reserve_asset)
+        let (reserve_factor_value) = ReserveConfiguration_reserve_factor.read(reserve_asset)
+        let (eMode_category_value) = ReserveConfiguration_eMode_category.read(reserve_asset)
         return (
             ltv_value,
             liquidation_threshold_value,
@@ -537,8 +541,8 @@ namespace ReserveConfiguration:
     func get_caps{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (borrow_cap : felt, supply_cap : felt):
-        let (borrow_cap_value) = borrow_cap.read(reserve_asset)
-        let (supply_cap_value) = supply_cap.read(reserve_asset)
+        let (borrow_cap_value) = ReserveConfiguration_borrow_cap.read(reserve_asset)
+        let (supply_cap_value) = ReserveConfiguration_supply_cap.read(reserve_asset)
         return (borrow_cap_value, supply_cap_value)
     end
 end
