@@ -13,6 +13,14 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
+@external
+func transfer_ownership{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    new_owner : felt
+):
+    PoolAddressesProvider.transfer_ownership(new_owner)
+    return ()
+end
+
 @view
 func get_market_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     market_id : felt

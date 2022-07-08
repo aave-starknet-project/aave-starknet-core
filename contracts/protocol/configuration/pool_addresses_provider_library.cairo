@@ -80,6 +80,13 @@ namespace PoolAddressesProvider:
         return ()
     end
 
+    func transfer_ownership{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        new_owner : felt
+    ):
+        Ownable.transfer_ownership(new_owner)
+        return ()
+    end
+
     func get_market_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         market_id : felt
     ):
