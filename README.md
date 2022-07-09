@@ -22,7 +22,7 @@ To install dependencies:
  protostar build
 ```
 
-There's no need to run a devnet to run the tests:
+To run the tests:
 
 ```bash
  protostar test ./tests/
