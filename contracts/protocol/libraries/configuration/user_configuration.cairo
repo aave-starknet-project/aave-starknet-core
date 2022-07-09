@@ -17,18 +17,23 @@ from starkware.cairo.common.math import (
     assert_not_equal,
 )
 from contracts.protocol.libraries.helpers.helpers import is_zero
-
-# @note using prefix UserConfiguration to prevent storage variable clashing
+# @notice Stores which reserves user is borrowing
+# @dev using prefix UserConfiguration to prevent storage variable clashing
 @storage_var
 func UserConfiguration_borrowing(user_address : felt, reserve_id : felt) -> (res : felt):
 end
-
+# @notice Stores which reserves user is using as collateral
+# @dev using prefix UserConfiguration to prevent storage variable clashing
 @storage_var
 func UserConfiguration_using_as_collateral(user_address : felt, reserve_id : felt) -> (res : felt):
 end
 
 namespace UserConfiguration:
-    # @notice Sets if the user is borrowing the reserve identified by reserveIndex
+    # @notice Sets if the user is borrowing the reserve identified by reserve_index
+    # @dev uses ReserveIndex to store reserve indices in a packed list
+    # @param user_address The address of a user
+    # @param reserve_index The index of the reserve object
+    # @param borrowing TRUE if user is borrowing the reserve, FALSE otherwise
     func set_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt, borrowing : felt
     ):
@@ -56,7 +61,11 @@ namespace UserConfiguration:
 
         return ()
     end
-
+    # @notice Sets if the user is using as collateral the reserve identified by reserve_index
+    # @dev uses ReserveIndex to store reserve indices in a packed list
+    # @param user_address The address of a user
+    # @param reserve_index The index of the reserve object
+    # @param using_as_collateral TRUE if user is using the reserve as collateral, FALSE otherwise
     func set_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt, using_as_collateral : felt
     ):
@@ -88,21 +97,10 @@ namespace UserConfiguration:
 
         return ()
     end
-
-    func is_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt
-    ) -> (res : felt):
-        let (res) = UserConfiguration_borrowing.read(user_address, reserve_index)
-        return (res)
-    end
-
-    func is_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt
-    ) -> (res : felt):
-        let (res) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
-        return (res)
-    end
-
+    # @notice Returns if a user has been using the reserve for borrowing or as collateral
+    # @param user_address The address of a user
+    # @param reserve_index The index of the reserve object
+    # @return TRUE if the user has been using a reserve for borrowing or as collateral, FALSE otherwise
     func is_using_as_collateral_or_borrowing{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt, reserve_index : felt) -> (res : felt):
@@ -120,7 +118,29 @@ namespace UserConfiguration:
 
         return (FALSE)
     end
-
+    # @notice Validate a user has been using the reserve for borrowing
+    # @param user_address The address of a user
+    # @param reserve_index The index of the reserve object
+    # @return TRUE if the user has been using a reserve for borrowing, FALSE otherwise
+    func is_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user_address : felt, reserve_index : felt
+    ) -> (res : felt):
+        let (res) = UserConfiguration_borrowing.read(user_address, reserve_index)
+        return (res)
+    end
+    # @notice Validate a user has been using the reserve as collateral
+    # @param user_address The address of a user
+    # @param reserve_index The index of the reserve object
+    # @return TRUE if the user has been using a reserve as collateral, FALSE otherwise
+    func is_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user_address : felt, reserve_index : felt
+    ) -> (res : felt):
+        let (res) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
+        return (res)
+    end
+    # @notice Checks if a user has been supplying only one reserve as collateral
+    # @param user_address The address of a user
+    # @return TRUE if the user has been supplying as collateral one reserve, FALSE otherwise
     func is_using_as_collateral_one{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt) -> (res : felt):
@@ -131,7 +151,9 @@ namespace UserConfiguration:
         let (res) = ReserveIndex.is_only_one_element(USING_AS_COLLATERAL_TYPE, user_address)
         return (res)
     end
-
+    # @notice Checks if a user has been supplying any reserve as collateral
+    # @param user_address The address of a user
+    # @return TRUE if the user has been supplying as collateral any reserve, FALSE otherwise
     func is_using_as_collateral_any{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt) -> (res : felt):
@@ -146,7 +168,9 @@ namespace UserConfiguration:
             return (TRUE)
         end
     end
-
+    # @notice Checks if a user has been borrowing only one asset
+    # @param user_address The address of a user
+    # @return TRUE if the user has been borrowing only one asset, FALSE otherwise
     func is_borrowing_one{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (res : felt):
@@ -157,7 +181,9 @@ namespace UserConfiguration:
         let (res) = ReserveIndex.is_only_one_element(BORROWING_TYPE, user_address)
         return (res)
     end
-
+    # @notice Checks if a user has been borrowing from any reserve
+    # @param user_address The address of a user
+    # @return TRUE if the user has been borrowing any reserve, FALSE otherwise
     func is_borrowing_any{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (res : felt):
@@ -170,7 +196,9 @@ namespace UserConfiguration:
             return (TRUE)
         end
     end
-
+    # @notice Checks if a user has not been using any reserve for borrowing or supply
+    # @param user_address The address of a user
+    # @return TRUE if the user has not been borrowing or supplying any reserve, FALSE otherwise
     func is_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (res : felt):
@@ -188,8 +216,12 @@ namespace UserConfiguration:
             return (FALSE)
         end
     end
-
     # TODO: TESTING OF get_isolation_mode_state and get_siloed_borrowing_state
+    # @notice Returns the Isolation Mode state of the user
+    # @param user_address The address of a user
+    # @return TRUE if the user is in isolation mode, FALSE otherwise
+    # @return The address of the only asset used as collateral
+    # @return The debt ceiling of the reserve
     func get_isolation_mode_sate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (bool : felt, asset_address : felt, ceilling : felt):
@@ -211,7 +243,10 @@ namespace UserConfiguration:
 
         return (FALSE, 0, 0)
     end
-
+    # @notice Returns the siloed borrowing state for the user
+    # @param user_address The address of a user
+    # @return TRUE if the user has borrowed a siloed asset, FALSE otherwise
+    # @return The address of the only borrowed asset
     func get_siloed_borrowing_state{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt) -> (bool : felt, asset_address : felt):
@@ -231,13 +266,16 @@ namespace UserConfiguration:
 
         return (FALSE, 0)
     end
-
+    # @notice Returns the address of the first asset (lowest index) flagged given the corresponding type (borrowing/using as collateral)
+    # @param user_address The address of a user
+    # @param type The type of asset: BORROWING_TYPE or USING_AS_COLLATERAL_TYPE
+    # @return res Address of the first asset flagged (lowest index)
     func get_first_asset_by_type{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, type : felt
     ) -> (res : felt):
         alloc_locals
 
-        let (res) = ReserveIndex.get_smallest_reserve_index(type, user_address)
+        let (res) = ReserveIndex.get_lowest_reserve_index(type, user_address)
         return (res)
     end
 end

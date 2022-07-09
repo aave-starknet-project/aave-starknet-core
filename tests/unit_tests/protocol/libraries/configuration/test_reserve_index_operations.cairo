@@ -126,7 +126,7 @@ func test_set_reserve_index_borrowing{
 end
 
 @external
-func test_get_smallest_reserve_index{
+func test_get_lowest_reserve_index{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
     # 1
@@ -134,13 +134,13 @@ func test_get_smallest_reserve_index{
     ReserveIndex.add_reserve_index(1, USER_ADDRESS, 20)
     ReserveIndex.add_reserve_index(1, USER_ADDRESS, 30)
 
-    let (res) = ReserveIndex.get_smallest_reserve_index(1, USER_ADDRESS)
+    let (res) = ReserveIndex.get_lowest_reserve_index(1, USER_ADDRESS)
     assert res = 10
 
     # 2
     ReserveIndex.add_reserve_index(1, USER_ADDRESS, 5)
 
-    let (res) = ReserveIndex.get_smallest_reserve_index(1, USER_ADDRESS)
+    let (res) = ReserveIndex.get_lowest_reserve_index(1, USER_ADDRESS)
     assert res = 5
 
     return ()
