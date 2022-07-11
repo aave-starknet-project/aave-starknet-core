@@ -94,6 +94,7 @@ namespace ReserveConfiguration:
     const MAX_RESERVES_COUNT = 128
 
     # @notice Sets the Loan to Value of the reserve
+    # @param reserve_asset underlying asset of the reserve
     # @param value The new ltv
     func set_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
