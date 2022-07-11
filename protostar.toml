@@ -11,16 +11,8 @@ a_token = [
 pool = [
     "./contracts/protocol/pool/pool.cairo",
 ]
-
-
-incentivized_erc20_library = [
-    "./contracts/protocol/tokenization/base/incentivized_erc20_library.cairo",
-]
 scaled_balance_token = [
     "./contracts/protocol/tokenization/base/scaled_balance_token.cairo",
-]
-scaled_balance_token_library = [
-    "./contracts/protocol/tokenization/base/scaled_balance_token_library.cairo",
 ]
 
 ["protostar.shared_command_configs"]
