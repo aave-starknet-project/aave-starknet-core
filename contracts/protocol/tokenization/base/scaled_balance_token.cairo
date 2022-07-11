@@ -72,13 +72,51 @@ func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (remaining)
 end
 
+# @view
+# func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     user : felt
+# ) -> (state : DataTypes.UserState):
+#     let (state) = IncentivizedERC20.get_user_state(user)
+#     return (state)
+# end
+
+
 @view
-func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    user : felt
-) -> (state : DataTypes.UserState):
-    let (state) = IncentivizedERC20.get_user_state(user)
-    return (state)
+func scaled_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user:felt
+) ->(balance : felt):
+    let (balance) = IncentivizedERC20.balance_of(user)
+    return (balance)
 end
+
+
+@view
+func scaled_total_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+) ->(totalSupply: Uint256):
+    let (totalSupply)= IncentivizedERC20.total_supply()
+    return (totalSupply)
+end
+
+@view
+func get_scaled_user_balance_and_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user:felt
+) ->(balance : felt, totalSupply: Uint256):
+    let (balance) = IncentivizedERC20.balance_of(user)
+    let (totalSupply)= IncentivizedERC20.total_supply()
+    return (balance, totalSupply)
+end
+
+
+@view
+func get_previous_index{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user: felt
+) ->(index: felt):
+    let (state) = IncentivizedERC20.get_user_state(user)
+    return (state.additionalData)
+end
+
+
+
 
 # setters
 @external
