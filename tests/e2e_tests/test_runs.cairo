@@ -14,6 +14,7 @@ const DAI_STRING = 4473161
 const aDAI_STRING = 1631863113
 const WETH_STRING = 1464161352
 const aWETH_STRING = 418075989064
+
 @external
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     let (deployer) = get_contract_address()
@@ -40,12 +41,12 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
         # declare proxy_class_hash so that starknet knows about it. It's required to deploy proxies from PoolAddressesProvider
         declared_proxy = declare("./lib/cairo_contracts/src/openzeppelin/upgrades/Proxy.cairo")
         context.proxy_class_hash = declared_proxy.class_hash
-
-        # deploy OZ proxy contract, owner is deployer. Implementation hash is basic_proxy_impl upon deployment.
+        # deploy OZ proxy contract, admin is deployer. Implementation hash is basic_proxy_impl upon deployment.
         prepared_proxy = prepare(declared_proxy,{"implementation_hash":context.implementation_hash})
         context.proxy = deploy(prepared_proxy).contract_address
 
-        # deploy poolAddressesProvider, market_id = 1, prank get_caller_address so that it returns deployer
+        # deploy poolAddressesProvider, market_id = 1, prank get_caller_address so that it returns deployer and we can set deployer as the owner.
+        # We have proxy_class_hash as an argument because we store it to be able to deploy proxies from the pool_addresses_provider
         # We need a cheatcode to mock the deployer address, so we declare->prepare->mock_caller->deploy
         declared_pool_addresses_provider = declare("./contracts/protocol/configuration/pool_addresses_provider.cairo")
         prepared_pool_addresses_provider = prepare(declared_pool_addresses_provider, {"market_id":1,"owner":ids.deployer,"proxy_class_hash":context.proxy_class_hash})
@@ -68,9 +69,6 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{ ids.aDAI = context.aDAI %}
     %{ ids.aWETH = context.aWETH %}
     %{ ids.proxy = context.proxy %}
-
-    # Initializes a proxy with user 1 as admin
-    IProxy.initialize(proxy, USER_1)
 
     IPool.init_reserve(pool, dai, aDAI)
     IPool.init_reserve(pool, weth, aWETH)
@@ -157,5 +155,65 @@ func test_owner_adds_a_new_address_as_proxy{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
     PoolAddressesProviderSpec.test_owner_adds_a_new_address_as_proxy()
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_1{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_1(
+        )
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_2{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_2(
+        )
+    return ()
+end
+
+@external
+func test_unregister_a_proxy_address{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_unregister_a_proxy_address()
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_proxy_and_turns_it_into_a_no_proxy{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_adds_a_new_address_with_proxy_and_turns_it_into_a_no_proxy(
+        )
+    return ()
+end
+
+@external
+func test_unregister_a_no_proxy_address{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_unregister_a_no_proxy_address()
+    return ()
+end
+
+@external
+func test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it()
+    return ()
+end
+
+@external
+func test_owner_updates_the_implementation_of_a_proxy_which_is_already_initialized{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_updates_the_implementation_of_a_proxy_which_is_already_initialized(
+        )
     return ()
 end

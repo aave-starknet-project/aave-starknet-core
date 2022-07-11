@@ -22,13 +22,6 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
 
             return int.from_bytes(text.encode(), "big")
 
-        context.POOL = str_to_felt("POOL")
-        context.POOL_CONFIGURATOR = str_to_felt("POOL_CONFIGURATOR")
-        context.PRICE_ORACLE = str_to_felt("PRICE_ORACLE")
-        context.ACL_MANAGER = str_to_felt("ACL_MANAGER")
-        context.ACL_ADMIN = str_to_felt("ACL_ADMIN")
-        context.PRICE_ORACLE_SENTINEL = str_to_felt("PRICE_ORACLE_SENTINEL")
-        context.DATA_PROVIDER = str_to_felt("DATA_PROVIDER")
         context.RANDOM_NON_PROXIED = str_to_felt("RANDOM_NON_PROXIED")
         context.NEW_MARKET_ID = str_to_felt("NEW_MARKET_ID")
         context.address = ids.address

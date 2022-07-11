@@ -38,8 +38,9 @@ end
 func get_version{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     val : felt
 ):
-    return (1)
+    return (2)
 end
+
 @view
 func get_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     address : felt

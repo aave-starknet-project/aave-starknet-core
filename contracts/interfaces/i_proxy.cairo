@@ -10,4 +10,10 @@ namespace IProxy:
 
     func get_implementation() -> (implementation : felt):
     end
+
+    func get_admin() -> (admin : felt):
+    end
+
+    func set_admin(new_admin : felt) -> ():
+    end
 end

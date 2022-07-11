@@ -291,6 +291,7 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
         )
         PoolAddressesProvider_salt.write(salt + 1)
         IProxy.initialize(contract_address, proxy_admin)
+        PoolAddressesProvider_addresses.write(id, contract_address)
         ProxyCreated.emit(id, proxy_address, new_implementation)
         return ()
     else:
