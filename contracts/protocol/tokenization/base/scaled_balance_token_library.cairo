@@ -8,7 +8,7 @@ from contracts.interfaces.i_pool import IPool
 from contracts.protocol.pool.pool_storage import PoolStorage
 from starkware.cairo.common.math import assert_le_felt, assert_nn, assert_not_zero
 from openzeppelin.security.safemath import SafeUint256
-from contracts.protocol.libraries.helpers.uint_128 import Uint128
+from contracts.protocol.libraries.math.uint_128 import Uint128
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.math.wad_ray_math import Ray, ray_sub, ray_mul, ray_div
