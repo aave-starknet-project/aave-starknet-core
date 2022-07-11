@@ -9,7 +9,7 @@ from contracts.protocol.pool.pool_storage import PoolStorage
 from starkware.cairo.common.math import assert_le_felt, assert_nn, assert_not_zero
 from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.math.uint_128 import Uint128
-from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
+from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.math.wad_ray_math import Ray, ray_sub, ray_mul, ray_div
 # @event
@@ -35,6 +35,11 @@ namespace ScaledBalanceToken:
         let (amount_ray) = Ray(amount)
         let (index_ray) = Ray(index)
         let (amount_scaled) = ray_div(amount_ray, index_ray)
+
+        with_attr error_message("invalid mint amount"):
+            assert_not_zero(amount_scaled)
+        end
+
         let (scaled_balance) = IncentivizedERC20.balance_of(onBehalfOf)
         let (scaled_balance_ray) = Ray(scaled_balance)
         let (current_user_state) = IncentivizedERC20.get_user_state(onBehalfOf)
@@ -47,11 +52,8 @@ namespace ScaledBalanceToken:
             onBehalfOf, DataTypes.UserState(current_user_state.balance, index.low)
         )
 
-        with_attr error_message("invalid mint amount"):
-            assert_not_zero(amount_scaled)
-        end
 
-        IncentivizedERC20._mint(onBehalfOf, amount_scaled.ray.low)
+        MintableIncentivizedERC20._mint(onBehalfOf, amount_scaled.ray.low)
         # TODO: emit transfer and mint events below
 
         if scaled_balance == 0:
@@ -74,6 +76,11 @@ namespace ScaledBalanceToken:
         let (amount_ray) = Ray(amount)
         let (index_ray) = Ray(index)
         let (amount_scaled) = ray_div(amount_ray, index_ray)
+
+        with_attr error_message("invalid mint amount"):
+            assert_not_zero(amount_scaled)
+        end
+        
         let (scaled_balance) = IncentivizedERC20.balance_of(user)
         let (current_user_state) = IncentivizedERC20.get_user_state(user)
         let (scaled_balance_ray) = Ray(scaled_balance)
@@ -86,11 +93,8 @@ namespace ScaledBalanceToken:
             user, DataTypes.UserState(current_user_state.balance, index.low)
         )
 
-        with_attr error_message("invalid mint amount"):
-            assert_not_zero(amount_scaled)
-        end
 
-        IncentivizedERC20._burn(user, amount_scaled.ray.low)
+        MintableIncentivizedERC20._burn(user, amount_scaled.ray.low)
         # emit transfer and mint events below
         let (amount_is_lt_balance_increase) = uint256_lt(amount, balance_increase.ray)
         if amount_is_lt_balance_increase == 1:
