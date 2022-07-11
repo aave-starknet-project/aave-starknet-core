@@ -81,32 +81,10 @@ func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 end
 
 # setters
-
-@external
-func set_name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name : felt):
-    IncentivizedERC20.set_name(name)
-    return ()
-end
-
-@external
-func set_symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(symbol : felt):
-    IncentivizedERC20.set_symbol(symbol)
-    return ()
-end
-
-@external
-func set_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    decimals : felt
-):
-    IncentivizedERC20.set_decimals(decimals)
-    return ()
-end
-
 @external
 func set_incentives_controller{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     IAaveIncentivesController : felt
 ):
-    IncentivizedERC20.incentivized_erc20_only_pool_admin()
     IncentivizedERC20.set_incentives_controller(IAaveIncentivesController)
     return ()
 end
