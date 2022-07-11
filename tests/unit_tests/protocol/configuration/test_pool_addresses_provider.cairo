@@ -135,7 +135,7 @@ func test_only_owner_set_address_as_proxy{
 }():
     PoolAddressesProvider.transfer_ownership(USER_1)
     %{ expect_revert(error_message="Ownable: caller is not the owner") %}
-    PoolAddressesProvider.set_address_as_proxy('RANDOM_ID', MOCKED_CONTRACT_ADDRESS)
+    PoolAddressesProvider.set_address_as_proxy('RANDOM_ID', MOCKED_IMPLEMENTATION_HASH)
     return ()
 end
 

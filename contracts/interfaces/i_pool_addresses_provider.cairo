@@ -1,17 +1,23 @@
 %lang starknet
 
 @contract_interface
-namespace IAddressesProvider:
+namespace IPoolAddressesProvider:
+    func transfer_ownership(new_owner : felt):
+    end
+
     func get_market_id() -> (market_id : felt):
     end
 
     func set_market_id(market_id : felt):
     end
 
-    func get_address(identifier : felt) -> (address : felt):
+    func get_address(id : felt) -> (address : felt):
     end
 
-    func set_address(identifier : felt, new_address : felt):
+    func set_address(id : felt, new_address : felt):
+    end
+
+    func set_address_as_proxy(id : felt, new_implementation : felt):
     end
 
     func get_pool() -> (pool : felt):

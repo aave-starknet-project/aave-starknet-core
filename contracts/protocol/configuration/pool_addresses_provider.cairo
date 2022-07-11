@@ -6,10 +6,9 @@ from contracts.protocol.configuration.pool_addresses_provider_library import Poo
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    market_id : felt
+    market_id : felt, owner : felt, proxy_class_hash : felt
 ):
-    let (owner) = get_caller_address()
-    PoolAddressesProvider.initializer(market_id, owner)
+    PoolAddressesProvider.initializer(market_id, owner, proxy_class_hash)
     return ()
 end
 
@@ -38,24 +37,32 @@ func set_market_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @view
-func get_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    identifier : felt
-) -> (address : felt):
-    let (registered_address) = PoolAddressesProvider.get_address(identifier)
+func get_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id : felt) -> (
+    address : felt
+):
+    let (registered_address) = PoolAddressesProvider.get_address(id)
     return (registered_address)
 end
 
 @external
 func set_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    identifier : felt, new_address : felt
+    id : felt, new_address : felt
 ):
-    PoolAddressesProvider.set_address(identifier, new_address)
+    PoolAddressesProvider.set_address(id, new_address)
+    return ()
+end
+
+@external
+func set_address_as_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id : felt, implementation : felt
+):
+    PoolAddressesProvider.set_address_as_proxy(id, implementation)
     return ()
 end
 
 # Commented because it's impossible to deploy proxies from a contract
 # func set_proxy_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     identifier : felt, new_implementation : felt
+#     id : felt, new_implementation : felt
 # ):
 # return ()
 # end
@@ -102,7 +109,7 @@ end
 func set_price_oracle{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     new_address : felt
 ):
-    PoolAddressesProvider.set_pool_impl(new_address)
+    PoolAddressesProvider.set_price_oracle(new_address)
     return ()
 end
 
