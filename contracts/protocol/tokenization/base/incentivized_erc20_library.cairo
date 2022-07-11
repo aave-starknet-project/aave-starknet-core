@@ -225,7 +225,7 @@ namespace IncentivizedERC20:
     func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user : felt
     ) -> (res : DataTypes.UserState):
-        let (state) = _userState.read(user)
+        let (state) = incentivized_erc20_user_state.read(user)
         return (state)
     end
 
@@ -234,7 +234,7 @@ namespace IncentivizedERC20:
     func set_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user : felt, state : DataTypes.UserState
     ):
-        _userState.write(user, state)
+        incentivized_erc20_user_state.write(user, state)
         return ()
     end
 
