@@ -11,6 +11,7 @@ from tests.interfaces.i_basic_proxy_impl import IBasicProxyImpl
 const convertible_address_id = 'CONVERTIBLE_ADDRESS'
 const convertible_2_address_id = 'CONVERTIBLE_2_ADDRESS'
 const pool_id = 'POOL'
+const pool_configurator_id = 'POOL_CONFIGURATOR'
 const new_registered_contract_id = 'NEW_REGISTERED_CONTRACT'
 
 namespace PoolAddressesProviderSpec:
@@ -60,7 +61,7 @@ namespace PoolAddressesProviderSpec:
 
         add_non_proxy_address(convertible_address_id)
         unregister_address(convertible_address_id)  # Unregister address as non proxy
-        add_proxy_address(convertible_address_id)  # Add address as proxy
+        add_proxy_address(convertible_address_id, implementation_hash)  # Add address as proxy
         let (proxy_address) = IPoolAddressesProvider.get_address(
             pool_addresses_provider, convertible_address_id
         )
@@ -77,7 +78,7 @@ namespace PoolAddressesProviderSpec:
         let (pool_addresses_provider, implementation_hash) = before_each()
         IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
 
-        add_proxy_address(convertible_address_id)
+        add_proxy_address(convertible_address_id, implementation_hash)
         unregister_address(convertible_address_id)
         let (proxy_address) = IPoolAddressesProvider.get_address(
             pool_addresses_provider, convertible_address_id
@@ -98,7 +99,7 @@ namespace PoolAddressesProviderSpec:
             pool_addresses_provider, convertible_2_address_id
         )
         assert current_address = 0
-        add_proxy_address(convertible_2_address_id)  # Add address as proxy
+        add_proxy_address(convertible_2_address_id, implementation_hash)  # Add address as proxy
         let (proxy_address) = IPoolAddressesProvider.get_address(
             pool_addresses_provider, convertible_2_address_id
         )
@@ -190,7 +191,7 @@ namespace PoolAddressesProviderSpec:
         alloc_locals
         let (pool_addresses_provider, implementation_hash) = before_each()
         IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
-        add_proxy_address(pool_id)  # Deploy proxy for pool
+        add_proxy_address(pool_id, implementation_hash)  # Deploy proxy for pool
         let (proxy_address) = IPoolAddressesProvider.get_address(pool_addresses_provider, pool_id)
         let (pool_implementation) = IProxy.get_implementation(proxy_address)
         %{
@@ -200,15 +201,55 @@ namespace PoolAddressesProviderSpec:
         # Update the pool proxy
         IPoolAddressesProvider.set_pool_impl(pool_addresses_provider, implementation_hash)
         let (new_pool_impl) = IProxy.get_implementation(proxy_address)
+        let (pool_proxy_address) = IPoolAddressesProvider.get_pool(pool_addresses_provider)
+        assert pool_proxy_address = proxy_address
 
         # pool implementation should not change
         assert pool_implementation = new_pool_impl
         %{ stop_prank_provider() %}
         return ()
     end
+
+    # Owner updates the PoolConfigurator
+    func test_owner_updates_the_pool_configurator{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }():
+        alloc_locals
+        let (pool_addresses_provider, implementation_hash) = before_each()
+        IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
+
+        # TODO replace with poolConfigurator's address once implemented
+        add_proxy_address(pool_configurator_id, implementation_hash)  # Deploy proxy for pool_configurator
+        let (proxy_address) = IPoolAddressesProvider.get_address(
+            pool_addresses_provider, pool_configurator_id
+        )
+        let (pool_configurator_implementation) = IProxy.get_implementation(proxy_address)
+        local new_implementation
+        %{
+            ids.new_implementation = declare("./tests/contracts/basic_proxy_impl_v2.cairo").class_hash
+            expect_events({"name": "PoolConfiguratorUpdated","data":[ids.pool_configurator_implementation,ids.new_implementation]}) 
+            stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
+        %}
+
+        # Update the PoolConfigurator proxy
+        IPoolAddressesProvider.set_pool_configurator_impl(
+            pool_addresses_provider, new_implementation
+        )
+        let (new_pool_configurator_impl) = IProxy.get_implementation(proxy_address)
+        let (pool_configurator_proxy_address) = IPoolAddressesProvider.get_pool_configurator(
+            pool_addresses_provider
+        )
+        # proxy address should stay the same
+        assert pool_configurator_proxy_address = proxy_address
+
+        # pool implementation should change
+        assert new_pool_configurator_impl = new_implementation
+        %{ stop_prank_provider() %}
+        return ()
+    end
 end
 
-# Before each test_case, pool_addresses_owner is USER_1.
+# Before each test_case get the address of the PoolAddressesProvider and the hash of basic_proxy_impl
 func before_each{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     pool_addresses_provider : felt, implementation_hash : felt
 ):
@@ -257,7 +298,6 @@ func unregister_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     %{
         ids.pool_addresses_provider = context.pool_addresses_provider
         expect_events({"name": "AddressSet","data":[ids.id, ids.MOCK_CONTRACT_ADDRESS,0]})
-        # expect_events({"name": "AddressSet","data":{"id":ids.id,"old_address":ids.MOCK_CONTRACT_ADDRESS,"new_address":0}})
         stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
     %}
     IPoolAddressesProvider.set_address(pool_addresses_provider, id, 0)
@@ -266,29 +306,21 @@ func unregister_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
 end
 
 func add_proxy_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id : felt
+    id : felt, implementation_hash : felt
 ):
     alloc_locals
-    let (pool_addresses_provider, implementation_hash) = before_each()
-
     local pool_addresses_provider
-    local mock_implementation_hash
-    %{
-        ids.pool_addresses_provider = context.pool_addresses_provider
-        ids.mock_implementation_hash = context.implementation_hash
-    %}
+    %{ ids.pool_addresses_provider = context.pool_addresses_provider %}
     %{
         expect_events({"name": "ProxyCreated"})
         expect_events({"name": "AddressSetAsProxy"})
         stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
     %}
-    IPoolAddressesProvider.set_address_as_proxy(
-        pool_addresses_provider, id, mock_implementation_hash
-    )
+    IPoolAddressesProvider.set_address_as_proxy(pool_addresses_provider, id, implementation_hash)
 
     let (proxy_address) = IPoolAddressesProvider.get_address(pool_addresses_provider, id)
-    let (implementation_hash) = IProxy.get_implementation(proxy_address)
-    assert implementation_hash = mock_implementation_hash
+    let (proxy_implementation_hash) = IProxy.get_implementation(proxy_address)
+    assert proxy_implementation_hash = implementation_hash
     %{ stop_prank_provider() %}
     return ()
 end

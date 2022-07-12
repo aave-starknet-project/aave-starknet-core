@@ -2,13 +2,11 @@
 from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from contracts.interfaces.i_pool import IPool
-from contracts.interfaces.i_proxy import IProxy
 # importing this will execute all test cases in that file.
 from tests.e2e_tests.pool_drop_spec import PoolDropSpec
 from tests.e2e_tests.pool_get_reserve_address_by_id import PoolGetReserveAddressByIdSpec
 from tests.e2e_tests.pool_supply_withdraw_spec import PoolSupplyWithdrawSpec
 from tests.e2e_tests.pool_addresses_provider_spec import PoolAddressesProviderSpec
-from tests.utils.constants import USER_1
 
 const DAI_STRING = 4473161
 const aDAI_STRING = 1631863113
@@ -215,5 +213,13 @@ func test_owner_updates_the_implementation_of_a_proxy_which_is_already_initializ
 }():
     PoolAddressesProviderSpec.test_owner_updates_the_implementation_of_a_proxy_which_is_already_initialized(
         )
+    return ()
+end
+
+@external
+func test_owner_updates_the_pool_configurator{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolAddressesProviderSpec.test_owner_updates_the_pool_configurator()
     return ()
 end

@@ -1,6 +1,5 @@
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.syscalls import get_caller_address
 
 from contracts.protocol.configuration.pool_addresses_provider_library import PoolAddressesProvider
 
@@ -86,7 +85,7 @@ end
 func set_pool_configurator_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     new_implementation : felt
 ):
-    PoolAddressesProvider.set_pool_impl(new_implementation)
+    PoolAddressesProvider.set_pool_configurator_impl(new_implementation)
     return ()
 end
 

@@ -102,8 +102,8 @@ end
 
 # @dev Emitted when a new proxy is created.
 # @param id The identifier of the proxy
-# @param proxyAddress The address of the created proxy contract
-# @param implementationAddress The address of the implementation contract
+# @param proxy_address The address of the created proxy contract
+# @param implementation_hash The address of the implementation contract
 @event
 func ProxyCreated(id, proxy_address, implementation_hash):
 end
