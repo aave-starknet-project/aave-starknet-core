@@ -29,6 +29,10 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     return ()
 end
 
+#
+# Function guards tests
+#
+
 # Test the only_owner accessibility of the PoolAddressesProvider
 @external
 func test_only_owner_set_market_id{
@@ -131,6 +135,10 @@ func test_only_owner_set_address_as_proxy{
     PoolAddressesProvider.set_address_as_proxy('RANDOM_ID', MOCKED_IMPLEMENTATION_HASH)
     return ()
 end
+
+#
+# Getters / Setters tests
+#
 
 # Owner adds a new address with no proxy
 @external

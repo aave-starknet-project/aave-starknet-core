@@ -60,13 +60,6 @@ func set_address_as_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     return ()
 end
 
-# Commented because it's impossible to deploy proxies from a contract
-# func set_proxy_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     id : felt, new_implementation : felt
-# ):
-# return ()
-# end
-
 @view
 func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (pool : felt):
     let (res) = PoolAddressesProvider.get_pool()

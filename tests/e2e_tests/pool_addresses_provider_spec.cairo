@@ -35,7 +35,7 @@ namespace PoolAddressesProviderSpec:
         return ()
     end
 
-    # Owner adds a new address with no proxy and turns it into a proxy
+    # Owner adds a new address with no proxy and turns it into a proxy - stops after expect_revert
     func test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_1{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
@@ -43,6 +43,7 @@ namespace PoolAddressesProviderSpec:
         let (pool_addresses_provider, implementation_hash) = before_each()
         IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
 
+        # add address as non proxy
         add_non_proxy_address(convertible_address_id)
         %{ expect_revert() %}
         IProxy.get_implementation(MOCK_CONTRACT_ADDRESS)
@@ -58,8 +59,8 @@ namespace PoolAddressesProviderSpec:
         IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
 
         add_non_proxy_address(convertible_address_id)
-        unregister_address(convertible_address_id)
-        add_proxy_address(convertible_address_id)
+        unregister_address(convertible_address_id)  # Unregister address as non proxy
+        add_proxy_address(convertible_address_id)  # Add address as proxy
         let (proxy_address) = IPoolAddressesProvider.get_address(
             pool_addresses_provider, convertible_address_id
         )
@@ -97,14 +98,14 @@ namespace PoolAddressesProviderSpec:
             pool_addresses_provider, convertible_2_address_id
         )
         assert current_address = 0
-        add_proxy_address(convertible_2_address_id)
+        add_proxy_address(convertible_2_address_id)  # Add address as proxy
         let (proxy_address) = IPoolAddressesProvider.get_address(
             pool_addresses_provider, convertible_2_address_id
         )
         let (proxy_implementation) = IProxy.get_implementation(proxy_address)
         assert proxy_implementation = implementation_hash
-        unregister_address(convertible_2_address_id)
-        add_non_proxy_address(convertible_2_address_id)
+        unregister_address(convertible_2_address_id)  # Unregister address as proxy
+        add_non_proxy_address(convertible_2_address_id)  # Add address as non proxy
         %{ expect_revert() %}
         IProxy.get_implementation(MOCK_CONTRACT_ADDRESS)
         return ()
@@ -134,6 +135,7 @@ namespace PoolAddressesProviderSpec:
     end
 
     # Owner registers an existing contract (with proxy) and upgrade it
+    # TODO test this with a proxified periphery contract instead of the basic_proxy_impl
     func test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
@@ -153,7 +155,7 @@ namespace PoolAddressesProviderSpec:
         assert proxy_admin = USER_2
         assert version = 1
 
-        # Register contract in PoolAddressesProvider
+        # Register basic_proxy_impl contract in PoolAddressesProvider
         %{ stop_prank_proxy= start_prank(ids.USER_2,target_contract_address=ids.new_proxy) %}
         IProxy.set_admin(new_proxy, pool_addresses_provider)
         %{ stop_prank_proxy() %}
@@ -165,10 +167,13 @@ namespace PoolAddressesProviderSpec:
         )
         assert expected_address = new_proxy
 
-        # Upgrade proxy implementation to v2
+        #
+        # Upgrade proxy implementation to basic_proxy_impl_v2
+        #
         local new_implementation
-        # declare implementation of basic_proxy_impl v2 (sets value_1 to 1 in intializer)
+        # declare implementation of basic_proxy_impl_v2
         %{ ids.new_implementation = declare("./tests/contracts/basic_proxy_impl_v2.cairo").class_hash %}
+        # Replaces proxy implementation (currently basic_proxy_impl) with basic_proxy_impl_v2
         IPoolAddressesProvider.set_address_as_proxy(
             pool_addresses_provider, new_registered_contract_id, new_implementation
         )
@@ -185,14 +190,14 @@ namespace PoolAddressesProviderSpec:
         alloc_locals
         let (pool_addresses_provider, implementation_hash) = before_each()
         IPoolAddressesProvider.transfer_ownership(pool_addresses_provider, USER_1)
-
-        add_proxy_address(pool_id)
+        add_proxy_address(pool_id)  # Deploy proxy for pool
         let (proxy_address) = IPoolAddressesProvider.get_address(pool_addresses_provider, pool_id)
         let (pool_implementation) = IProxy.get_implementation(proxy_address)
         %{
             expect_events({"name": "PoolUpdated","data":[ids.pool_implementation,ids.pool_implementation]}) 
             stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
         %}
+        # Update the pool proxy
         IPoolAddressesProvider.set_pool_impl(pool_addresses_provider, implementation_hash)
         let (new_pool_impl) = IProxy.get_implementation(proxy_address)
 
@@ -231,7 +236,6 @@ func add_non_proxy_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
         stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider) 
 
         expect_events({"name": "AddressSet","data":[ids.id, 0,ids.MOCK_CONTRACT_ADDRESS]})
-        # expect_events({"name": "AddressSet","data":{"id":ids.id,"old_address":0,"new_address":ids.MOCK_CONTRACT_ADDRESS}})
     %}
 
     let (old_non_proxied_address) = IPoolAddressesProvider.get_address(pool_addresses_provider, id)
