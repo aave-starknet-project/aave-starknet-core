@@ -1,7 +1,7 @@
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le_felt
-from contracts.protocol.libraries.helpers.constants import Generics
+from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 
 namespace Uint128:
     # Takes Uint256 as input and returns a felt that fits in 128 bits
@@ -12,7 +12,7 @@ namespace Uint128:
         let res = amount.low
 
         with_attr error_message("value doesn't fit in 128 bits"):
-            assert_le_felt(res, Generics.UINT128_MAX)
+            assert_le_felt(res, UINT128_MAX)
         end
 
         return (res)

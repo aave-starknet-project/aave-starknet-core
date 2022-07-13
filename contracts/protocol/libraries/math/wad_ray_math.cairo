@@ -8,7 +8,7 @@ from starkware.cairo.common.uint256 import (
     uint256_le,
 )
 
-from contracts.protocol.libraries.helpers.constants import Generics
+from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 
 struct Wad:
     member wad : Uint256
@@ -55,7 +55,7 @@ func half_wad_ray_ratio() -> (ratio : Uint256):
 end
 
 func uint256_max() -> (max : Uint256):
-    return (Uint256(Generics.UINT128_MAX, Generics.UINT128_MAX))
+    return (Uint256(UINT128_MAX, UINT128_MAX))
 end
 
 func wad_mul{range_check_ptr}(a : Wad, b : Wad) -> (res : Wad):

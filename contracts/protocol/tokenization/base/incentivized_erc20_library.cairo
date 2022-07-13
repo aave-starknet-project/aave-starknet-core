@@ -7,7 +7,7 @@ from contracts.interfaces.i_pool import IPool
 from starkware.cairo.common.math import assert_le_felt, assert_nn
 from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.math.uint_128 import Uint128
-from contracts.protocol.libraries.helpers.constants import Generics
+from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
@@ -104,7 +104,7 @@ namespace MintableIncentivizedERC20:
         let (old_total_supply) = incentivized_erc20_total_supply.read()
 
         with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount, Generics.UINT128_MAX)
+            assert_le_felt(amount, UINT128_MAX)
         end
 
         let amount_256 = Uint128.to_uint_256(amount)
@@ -132,7 +132,7 @@ namespace MintableIncentivizedERC20:
         let (old_total_supply) = incentivized_erc20_total_supply.read()
 
         with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount, Generics.UINT128_MAX)
+            assert_le_felt(amount, UINT128_MAX)
         end
 
         let amount_256 = Uint128.to_uint_256(amount)
@@ -285,7 +285,7 @@ namespace IncentivizedERC20:
         let new_allowance = allowance - amount_128
 
         with_attr error_message("result does not fit in 128 bits"):
-            assert_le_felt(new_allowance, Generics.UINT128_MAX)
+            assert_le_felt(new_allowance, UINT128_MAX)
         end
 
         _approve(sender, caller_address, new_allowance)
@@ -318,7 +318,7 @@ namespace IncentivizedERC20:
         let new_allowance = old_allowance + amount_128
 
         with_attr error_message("result doesn't fit in 128 bits"):
-            assert_le_felt(new_allowance, Generics.UINT128_MAX)
+            assert_le_felt(new_allowance, UINT128_MAX)
         end
 
         _approve(caller_address, spender, new_allowance)
@@ -342,7 +342,7 @@ namespace IncentivizedERC20:
         end
 
         with_attr error_message("result doesn't fit in 128 bits"):
-            assert_le_felt(new_allowance, Generics.UINT128_MAX)
+            assert_le_felt(new_allowance, UINT128_MAX)
         end
 
         _approve(caller_address, spender, new_allowance)
