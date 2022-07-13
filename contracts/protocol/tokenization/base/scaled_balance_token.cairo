@@ -72,14 +72,6 @@ func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (remaining)
 end
 
-# @view
-# func get_user_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     user : felt
-# ) -> (state : DataTypes.UserState):
-#     let (state) = IncentivizedERC20.get_user_state(user)
-#     return (state)
-# end
-
 
 @view
 func scaled_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

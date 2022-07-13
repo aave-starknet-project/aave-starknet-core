@@ -6,7 +6,8 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from openzeppelin.token.erc20.library import ERC20
-
+from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
+from contracts.protocol.tokenization.base.scaled_balance_token_library import ScaledBalanceTokenBase
 from contracts.protocol.tokenization.a_token_library import AToken
 
 #
@@ -41,29 +42,29 @@ end
 
 @view
 func name{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (name : felt):
-    let (name) = ERC20.name()
+    let (name) = IncentivizedERC20.name()
     return (name)
 end
 
 @view
 func symbol{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (symbol : felt):
-    let (symbol) = ERC20.symbol()
+    let (symbol) = IncentivizedERC20.symbol()
     return (symbol)
 end
 
-# @view
-# func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-#     totalSupply : Uint256
-# ):
-#     let (totalSupply : Uint256) = AToken.total_supply()
-#     return (totalSupply)
-# end
+@view
+func totalSupply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    totalSupply : Uint256
+):
+    let (totalSupply : Uint256) = IncentivizedERC20.total_supply()
+    return (totalSupply)
+end
 
 @view
 func decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     decimals : felt
 ):
-    let (decimals) = ERC20.decimals()
+    let (decimals) = IncentivizedERC20.decimals()
     return (decimals)
 end
 
@@ -71,7 +72,7 @@ end
 func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     account : felt
 ) -> (balance : Uint256):
-    let (balance : Uint256) = AToken.balance_of(account)
+    let (balance : Uint256) = IncentivizedERC20.balance_of(account)
     return (balance)
 end
 
@@ -79,7 +80,7 @@ end
 func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt
 ) -> (remaining : Uint256):
-    let (remaining : Uint256) = ERC20.allowance(owner, spender)
+    let (remaining : Uint256) = IncentivizedERC20.allowance(owner, spender)
     return (remaining)
 end
 
@@ -97,6 +98,8 @@ func UNDERLYING_ASSET_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     return (res)
 end
 
+
+#@Todo: IncentivizedERC20 getter for pool?
 @view
 func POOL{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
     let (res) = AToken.POOL()
@@ -111,7 +114,7 @@ end
 func transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     recipient : felt, amount : Uint256
 ) -> (success : felt):
-    ERC20.transfer(recipient, amount)
+    IncentivizedERC20.transfer(recipient, amount)
     return (TRUE)
 end
 
@@ -119,7 +122,7 @@ end
 func transferFrom{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     sender : felt, recipient : felt, amount : Uint256
 ) -> (success : felt):
-    ERC20.transfer_from(sender, recipient, amount)
+    IncentivizedERC20.transfer_from(sender, recipient, amount)
     return (TRUE)
 end
 
@@ -127,7 +130,7 @@ end
 func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     spender : felt, amount : Uint256
 ) -> (success : felt):
-    ERC20.approve(spender, amount)
+    IncentivizedERC20.approve(spender, amount)
     return (TRUE)
 end
 
@@ -135,7 +138,7 @@ end
 func increaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     spender : felt, added_value : Uint256
 ) -> (success : felt):
-    ERC20.increase_allowance(spender, added_value)
+    IncentivizedERC20.increase_allowance(spender, added_value)
     return (TRUE)
 end
 
@@ -143,7 +146,7 @@ end
 func decreaseAllowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     spender : felt, subtracted_value : Uint256
 ) -> (success : felt):
-    ERC20.decrease_allowance(spender, subtracted_value)
+    IncentivizedERC20.decrease_allowance(spender, subtracted_value)
     return (TRUE)
 end
 
@@ -151,41 +154,45 @@ end
 func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
 ) -> (success : felt):
-    AToken.mint(caller, on_behalf_of, amount, index)
+    ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
     return (TRUE)
 end
 
-# @external
-# func burn{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
-#     AToken.burn(from_, receiver_or_underlying, amount, index)
-#     return (TRUE)
-# end
+@external
+func burn{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
+    ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index)
+    return (TRUE)
+end
+
+
 
 # TODO: remove this once AToken.burn works
-@external
-func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
-) -> (success : felt):
-    alloc_locals
-    let (local underlying) = AToken.UNDERLYING_ASSET_ADDRESS()
-    ERC20._burn(from_, amount)
-    IERC20.transfer(underlying, receiver_or_underlying, amount)
-    return (TRUE)
-end
-
 # @external
-# func mint_to_treasury{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(amount : Uint256, index : Uint256) -> (success: felt):
-#     AToken.mint_to_treasury(amount, index)
+# func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
+# ) -> (success : felt):
+#     alloc_locals
+#     let (local underlying) = AToken.UNDERLYING_ASSET_ADDRESS()
+#     ERC20._burn(from_, amount)
+#     IERC20.transfer(underlying, receiver_or_underlying, amount)
 #     return (TRUE)
 # end
+
+
+
+@external
+func mint_to_treasury{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(amount : Uint256, index : Uint256) -> (success: felt):
+    AToken.mint_to_treasury(amount, index)
+    return (TRUE)
+end
 
 @external
 func transfer_on_liquidation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

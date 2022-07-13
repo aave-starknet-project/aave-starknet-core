@@ -105,7 +105,7 @@ namespace MintableIncentivizedERC20:
             assert_le_felt(amount, Generics.UINT128_MAX)
         end
 
-        let amount_256 = Uint128.to_uint_256(amount)
+        let (amount_256) = Uint128.to_uint_256(amount)
 
         # use SafeMath
         let (new_total_supply) = SafeUint256.add(old_total_supply, amount_256)
@@ -133,7 +133,7 @@ namespace MintableIncentivizedERC20:
             assert_le_felt(amount, Generics.UINT128_MAX)
         end
 
-        let amount_256 = Uint128.to_uint_256(amount)
+        let (amount_256) = Uint128.to_uint_256(amount)
 
         # use SafeMath
         let (new_total_supply) = SafeUint256.sub_le(old_total_supply, amount_256)
@@ -163,9 +163,8 @@ namespace IncentivizedERC20:
         return ()
     end
 
-    func incentivized_erc20_only_pool_admin{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }():
+    func assert_only_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ):
         # let (caller_address) = get_caller_address()
 
         # @TODO: get pool admin from IACLManager
@@ -227,6 +226,13 @@ namespace IncentivizedERC20:
     ) -> (res : DataTypes.UserState):
         let (state) = incentivized_erc20_user_state.read(user)
         return (state)
+    end
+
+    func get_pool{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }()->(pool : felt):
+        let (pool)= incentivized_erc20_pool.read()
+        return (pool)
     end
 
     # SETTERS

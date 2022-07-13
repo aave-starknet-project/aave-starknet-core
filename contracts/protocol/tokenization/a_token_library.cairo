@@ -4,16 +4,17 @@ from starkware.starknet.common.syscalls import get_caller_address, get_contract_
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.math import assert_not_equal
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import Uint256, uint256_eq
 
 from openzeppelin.token.erc20.library import ERC20
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
+from contracts.interfaces.i_incentivized_erc20 import IIncentivizedERC20
 
 from contracts.interfaces.i_pool import IPool
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.math.wad_ray_math import ray_mul, ray_div, Ray
-# from contracts.protocol.tokenization.base.incentivized_erc20 import IncentivizedERC20
-# from contracts.protocol.tokenization.base.scaled_balance_token_base import ScaledBalanceTokenBase
+from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
+from contracts.protocol.tokenization.base.scaled_balance_token_library import ScaledBalanceTokenBase
 
 #
 # Events
@@ -51,19 +52,16 @@ end
 func _underlying_asset() -> (res : felt):
 end
 
-# should be defined in IncentivizedERC20
-@storage_var
-func _pool() -> (res : felt):
-end
+#@Todo: Could introduce a getter in pool to get this variable to AToken?
+# @storage_var
+# func _pool() -> (res : felt):
+# end
 
-# should be defined in IncentivizedERC20
-@storage_var
-func _incentives_controller() -> (res : felt):
-end
 
 namespace AToken:
     # Authorization
 
+    #@Todo: modifiers to be imported from IncentivizedERC20
     func assert_only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         let (caller_address) = get_caller_address()
@@ -91,15 +89,17 @@ namespace AToken:
         a_token_name : felt,
         a_token_symbol : felt,
     ):
-        # IncentivizedERC20.initializer(...)
+        IncentivizedERC20.initialize(pool,a_token_name, a_token_symbol, a_token_decimals)
         # assert pool = IncentivizedERC20.POOL()
 
-        ERC20.initializer(a_token_name, a_token_symbol, a_token_decimals)
+        # ERC20.initializer(a_token_name, a_token_symbol, a_token_decimals)
 
         _treasury.write(treasury)
         _underlying_asset.write(underlying_asset)
-        _incentives_controller.write(incentives_controller)
-        _pool.write(pool)
+
+        #@Todo: these two are set in IncentivizedERC20 initializer
+        # _incentives_controller.write(incentives_controller)
+        # _pool.write(pool)
 
         Initialized.emit(
             underlying_asset,
@@ -113,45 +113,52 @@ namespace AToken:
         return ()
     end
 
-    # func mint{
-    #         syscall_ptr : felt*,
-    #         pedersen_ptr : HashBuiltin*,
-    #         range_check_ptr
-    #     }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
-    #     assert_only_pool()
-    #     ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index);
-    #     return ()
-    # end
-
-    # TODO: remove this once mint function above works
-    func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
-    ):
-        ERC20._mint(on_behalf_of, amount)
+    func mint{
+            syscall_ptr : felt*,
+            pedersen_ptr : HashBuiltin*,
+            range_check_ptr
+        }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
+        assert_only_pool()
+        ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
         return ()
     end
 
-    # func burn{
-    #         syscall_ptr : felt*,
-    #         pedersen_ptr : HashBuiltin*,
-    #         range_check_ptr
-    #     }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
-    #     assert_only_pool()
-    #     ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index);
-    #     let (contract_address) = get_contract_address()
-    #     if (receiver_or_underlying != contract_address):
-    #         IERC20.transfer(_underlying_asset.read(), receiver_or_underlying, amount)
-    #     end
+    # TODO: remove this once mint function above works
+    # func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    #     caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
+    # ):
+    #     ERC20._mint(on_behalf_of, amount)
     #     return ()
     # end
 
-    # func mint_to_treasury(amount : Uint256, index : Uint256) {
-    #     assert_only_pool()
-    #     if (amount == 0):
-    #         return ()
-    #     end
-    #     ScaledBalanceTokenBase._mint_scaled(_POOL.read(), _treasury, amount, index)
-    # end
+    func burn{
+            syscall_ptr : felt*,
+            pedersen_ptr : HashBuiltin*,
+            range_check_ptr
+        }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
+        assert_only_pool()
+        ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index)
+        let (contract_address) = get_contract_address()
+        if receiver_or_underlying != contract_address:
+            IncentivizedERC20.transfer(_underlying_asset.read(), receiver_or_underlying, amount)
+        end
+        return ()
+    end
+
+    func mint_to_treasury{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    amount : Uint256, index : Uint256):
+        assert_only_pool()
+
+        let (is_equal)= uint256_eq(amount,Uint256(0,0))
+
+        if is_equal == TRUE:
+            return ()
+        end
+
+        let pool= POOL()
+        ScaledBalanceTokenBase._mint_scaled(pool, _treasury, amount, index)
+        return()
+    end
 
     func transfer_on_liquidation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_ : felt, to : felt, value : Uint256
@@ -167,7 +174,7 @@ namespace AToken:
         user : felt
     ) -> (balance : Uint256):
         alloc_locals
-        let (balance_scaled) = ERC20.balance_of(user)
+        let (balance_scaled) = IncentivizedERC20.balance_of(user)
         let (pool) = POOL()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
         let (liquidity_index) = IPool.get_reserve_normalized_income(pool, underlying)
@@ -175,18 +182,19 @@ namespace AToken:
         return (balance.ray)
     end
 
-    # func total_supply{
-    #     syscall_ptr : felt*,
-    #     pedersen_ptr : HashBuiltin*,
-    #     range_check_ptr
-    # }() -> (supply : felt):
-    #     let (current_supply_scaled) = IncentivizedERC20.total_supply()
-    #     if current_supply_scaled == 0:
-    #         return (supply=0)
-    #     end
-    #     let (supply) = ray_mul(current_supply_scaled, IPool.get_reserve_normalized_income(_pool.read(), _underlying_asset.read()))
-    #     return (supply)
-    # end
+    func total_supply{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (supply : felt):
+        let (current_supply_scaled) = IncentivizedERC20.total_supply()
+        let pool= POOL()
+        if current_supply_scaled == 0:
+            return (supply=0)
+        end
+        let (supply) = ray_mul(current_supply_scaled, IPool.get_reserve_normalized_income(pool, _underlying_asset.read()))
+        return (supply)
+    end
 
     func transfer_underlying_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         target : felt, amount : Uint256
@@ -194,12 +202,13 @@ namespace AToken:
         alloc_locals
         assert_only_pool()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
-        IERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
+        IncentivizedERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
         return ()
     end
 
     # func handle_repayment{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    #     assert_only_pool()
+    # assert_only_pool()
+
     #     return ()
     # end
 
@@ -210,12 +219,12 @@ namespace AToken:
         token : felt, to : felt, amount : Uint256
     ):
         alloc_locals
-        assert_only_pool_admin()
+        IncentivizedERC20.assert_only_pool_admin()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
         with_attr error_message("Token {token} should be different from underlying {underlying}."):
             assert_not_equal(token, underlying)
         end
-        IERC20.transfer(contract_address=token, recipient=to, amount=amount)
+        IncentivizedERC20.transfer(contract_address=token, recipient=to, amount=amount)
         return ()
     end
 
@@ -236,7 +245,7 @@ namespace AToken:
     end
 
     func POOL{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
-        let (res) = _pool.read()
+        let (res) = IncentivizedERC20.get_pool()
         return (res)
     end
 
@@ -251,6 +260,8 @@ namespace AToken:
 
     # Internals
 
+
+    #@Todo:change contracts
     func _transfer_base{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_ : felt, to : felt, amount : Uint256, validate : felt
     ):
