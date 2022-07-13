@@ -107,7 +107,7 @@ namespace MintableIncentivizedERC20:
             assert_le_felt(amount, UINT128_MAX)
         end
 
-        let amount_256 = Uint128.to_uint_256(amount)
+        let (amount_256) = Uint128.to_uint_256(amount)
 
         # use SafeMath
         let (new_total_supply) = SafeUint256.add(old_total_supply, amount_256)
@@ -135,7 +135,7 @@ namespace MintableIncentivizedERC20:
             assert_le_felt(amount, UINT128_MAX)
         end
 
-        let amount_256 = Uint128.to_uint_256(amount)
+        let (amount_256) = Uint128.to_uint_256(amount)
 
         # use SafeMath
         let (new_total_supply) = SafeUint256.sub_le(old_total_supply, amount_256)
@@ -228,6 +228,13 @@ namespace IncentivizedERC20:
     ) -> (res : DataTypes.UserState):
         let (state) = incentivized_erc20_user_state.read(user)
         return (state)
+    end
+
+    func get_pool{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }()->(pool : felt):
+        let (pool)= incentivized_erc20_pool.read()
+        return (pool)
     end
 
     # SETTERS
