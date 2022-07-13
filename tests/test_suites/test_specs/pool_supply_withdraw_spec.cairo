@@ -7,11 +7,11 @@ from contracts.protocol.libraries.math.wad_ray_math import RAY
 from tests.utils.constants import USER_1
 from tests.contracts.IERC20_Mintable import IERC20_Mintable
 
-namespace PoolSupplyWithdrawSpec:
+# @notice this test spec is not in Aave's codebase but we keep it until we can adapt their pool tests
+namespace TestPoolSupplyWithdrawDeployed:
     # DAI Reserve a_token_address correctly initialized
     func test_pool_supply_withdraw_spec_1{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
-        %{ print(" PoolSupplyWithdrawSpec : DAI Reserve a_token_address correctly initialized") %}
         local pool
         local dai
         local aDAI
@@ -46,7 +46,6 @@ namespace PoolSupplyWithdrawSpec:
     # USER_1 tries to withdraw tokens from the pool but the amount is higher than his balance
     func test_pool_supply_withdraw_spec_3{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
-        %{ print(" PoolSupplyWithdrawSpec : USER_1 tries to withdraw tokens from the pool but the amount is higher than his balance") %}
         let (local pool, local test_token, local a_token) = get_contract_addresses()
         # Prank pool so that inside the contract, caller() is USER_1
         %{
@@ -65,7 +64,6 @@ namespace PoolSupplyWithdrawSpec:
     # USER_1 withdraws 50 tokens out of the 100 he supplied
     func test_pool_supply_withdraw_spec_4{syscall_ptr : felt*, range_check_ptr}():
         alloc_locals
-        %{ print(" PoolSupplyWithdrawSpec : USER_1 withdraws 50 tokens out of the 100 he supplied") %}
         let (local pool, local dai, local aDAI) = get_contract_addresses()
         _supply(pool, dai)
 

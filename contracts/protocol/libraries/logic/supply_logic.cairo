@@ -71,7 +71,7 @@ namespace SupplyLogic:
     # @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
     # @param params The additional parameters needed to execute the withdraw function
     # @return The actual amount withdrawn
-    func _execute_withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func execute_withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteWithdrawParams
     ) -> (amount_to_withdraw : Uint256):
         alloc_locals

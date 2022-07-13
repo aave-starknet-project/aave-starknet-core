@@ -12,7 +12,6 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.helpers.helpers import is_zero
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.pool.pool_storage import PoolStorage
-from contracts.interfaces.i_a_token import IAToken
 
 namespace ValidationLogic:
     # @notice Validates a supply action.
