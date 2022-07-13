@@ -11,7 +11,7 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import Generics
 
 @event
 func withdraw_event(reserve : felt, user : felt, to : felt, amount : Uint256):

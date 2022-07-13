@@ -7,7 +7,7 @@ from contracts.interfaces.i_pool import IPool
 from starkware.cairo.common.math import assert_le_felt, assert_nn
 from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.math.uint_128 import Uint128
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import Generics
 
 # @dev UserState - additionalData is a flexible field.
 # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.

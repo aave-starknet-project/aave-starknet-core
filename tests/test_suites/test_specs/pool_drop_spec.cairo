@@ -5,10 +5,10 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_contract_address
 
 from contracts.interfaces.i_pool import IPool
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import Generics
 from contracts.protocol.libraries.math.wad_ray_math import RAY
 
-from tests.contracts.IERC20_Mintable import IERC20_Mintable
+from tests.interfaces.IERC20_Mintable import IERC20_Mintable
 from tests.utils.utils import Utils
 from tests.utils.constants import UNDEPLOYED_RESERVE, USER_1
 

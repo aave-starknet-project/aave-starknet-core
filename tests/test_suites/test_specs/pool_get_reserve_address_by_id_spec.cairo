@@ -9,7 +9,6 @@ namespace TestPoolGetReserveAddressByIdDeployed:
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
         alloc_locals
-        %{ print("PoolGetReserveAddressByIdSpec : User gets address of reserve by id") %}
         local dai
         local pool
         %{
@@ -31,7 +30,6 @@ namespace TestPoolGetReserveAddressByIdDeployed:
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
         alloc_locals
-        %{ print("PoolGetReserveAddressByIdSpec : User calls `get_reserve_address_by_id` with a wrong id (id > reserves_count)") %}
         local pool
         %{ ids.pool = context.pool %}
 

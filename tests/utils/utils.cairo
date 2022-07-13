@@ -1,4 +1,5 @@
 %lang starknet
+
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE, FALSE

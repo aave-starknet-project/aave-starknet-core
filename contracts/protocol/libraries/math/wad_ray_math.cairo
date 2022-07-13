@@ -8,7 +8,7 @@ from starkware.cairo.common.uint256 import (
     uint256_le,
 )
 
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import Generics
 
 struct Wad:
     member wad : Uint256

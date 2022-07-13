@@ -1,9 +1,7 @@
-%lang starknet
-
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le_felt
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import Generics
 
 namespace Uint128:
     # Takes Uint256 as input and returns a felt that fits in 128 bits

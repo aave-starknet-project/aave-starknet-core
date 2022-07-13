@@ -1,14 +1,18 @@
 %lang starknet
 from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+
 from contracts.interfaces.i_pool import IPool
-# importing this will execute all test cases in that file.
+
 from tests.test_suites.test_specs.pool_drop_spec import TestPoolDropDeployed
 from tests.test_suites.test_specs.pool_get_reserve_address_by_id_spec import (
     TestPoolGetReserveAddressByIdDeployed,
 )
 from tests.test_suites.test_specs.pool_supply_withdraw_spec import TestPoolSupplyWithdrawDeployed
 
+# @notice setup hook for the test execution. It deploys the contracts
+# saves the Starknet state at the end of this function. All test cases will be executed
+# from this saved state.
 @external
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     let (deployer) = get_contract_address()
@@ -53,6 +57,9 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     return ()
 end
 
+#
+# Test cases imported from test specifications
+#
 @external
 func test_user_1_deposits_DAI_user_2_borrow_DAI_stable_and_variable_should_fail_to_drop_DAI_reserve{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr

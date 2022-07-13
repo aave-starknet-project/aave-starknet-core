@@ -5,7 +5,7 @@ from contracts.interfaces.i_pool import IPool
 from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.libraries.math.wad_ray_math import RAY
 from tests.utils.constants import USER_1
-from tests.contracts.IERC20_Mintable import IERC20_Mintable
+from tests.interfaces.IERC20_Mintable import IERC20_Mintable
 
 # @notice this test spec is not in Aave's codebase but we keep it until we can adapt their pool tests
 namespace TestPoolSupplyWithdrawDeployed:
