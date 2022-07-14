@@ -19,8 +19,15 @@ pool_addresses_provider = [
     "./contracts/protocol/configuration/pool_addresses_provider.cairo",
 ]
 
+aave_oracle = [
+    "./contracts/misc/aave_oracle.cairo",
+]
+
 ["protostar.shared_command_configs"]
 cairo_path = ["./lib/cairo_contracts/src"]
 
 [profile.devnet.protostar.deploy]
 gateway-url = "http://127.0.0.1:5050/"
+
+[profile.testnet.protostar.deploy]
+network="alpha-goerli"
