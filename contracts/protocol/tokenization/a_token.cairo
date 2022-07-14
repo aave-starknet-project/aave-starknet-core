@@ -170,10 +170,7 @@ end
 func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
 ) -> (success : felt):
-    alloc_locals
-    let (local underlying) = AToken.UNDERLYING_ASSET_ADDRESS()
-    ERC20._burn(from_, amount)
-    IERC20.transfer(underlying, receiver_or_underlying, amount)
+    AToken.burn(from_, receiver_or_underlying, amount, index)
     return (TRUE)
 end
 
