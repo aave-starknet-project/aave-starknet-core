@@ -9,7 +9,9 @@ from tests.test_suites.test_specs.pool_get_reserve_address_by_id_spec import (
     TestPoolGetReserveAddressByIdDeployed,
 )
 from tests.test_suites.test_specs.pool_supply_withdraw_spec import TestPoolSupplyWithdrawDeployed
-
+from tests.test_suites.test_specs.pool_addresses_provider_spec import (
+    TestPoolAddressesProviderDeployed,
+)
 # @notice setup hook for the test execution. It deploys the contracts
 # saves the Starknet state at the end of this function. All test cases will be executed
 # from this saved state.
@@ -39,6 +41,27 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
          #deploy aWETH/aWETH, owner is pool, supply is 0
         context.aWETH = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", {"pool":context.pool,"treasury":1631863113,"underlying_asset":context.weth,"incentives_controller":43232, "a_token_decimals":18,"a_token_name":str_to_felt("aWETH"),"a_token_symbol":str_to_felt("aWETH")}).contract_address
 
+
+        #declare class implementation of basic_proxy_impl
+        # TODO delete this once pool is a proxy-compatible contract, then we'll use pool
+        context.implementation_hash = declare("./tests/contracts/basic_proxy_impl.cairo").class_hash
+
+        # declare proxy_class_hash so that starknet knows about it. It's required to deploy proxies from PoolAddressesProvider
+        declared_proxy = declare("./lib/cairo_contracts/src/openzeppelin/upgrades/Proxy.cairo")
+        context.proxy_class_hash = declared_proxy.class_hash
+        # deploy OZ proxy contract, admin is deployer. Implementation hash is basic_proxy_impl upon deployment.
+        prepared_proxy = prepare(declared_proxy,{"implementation_hash":context.implementation_hash})
+        context.proxy = deploy(prepared_proxy).contract_address
+
+        # deploy poolAddressesProvider, market_id = 1, prank get_caller_address so that it returns deployer and we can set deployer as the owner.
+        # We have proxy_class_hash as an argument because we store it to be able to deploy proxies from the pool_addresses_provider
+        # We need a cheatcode to mock the deployer address, so we declare->prepare->mock_caller->deploy
+        declared_pool_addresses_provider = declare("./contracts/protocol/configuration/pool_addresses_provider.cairo")
+        prepared_pool_addresses_provider = prepare(declared_pool_addresses_provider, {"market_id":1,"owner":ids.deployer,"proxy_class_hash":context.proxy_class_hash})
+        stop_prank = start_prank(0, target_contract_address=prepared_pool_addresses_provider.contract_address)
+        context.pool_addresses_provider = deploy(prepared_pool_addresses_provider).contract_address
+        stop_prank()
+
         context.deployer = ids.deployer
     %}
     tempvar pool
@@ -46,11 +69,13 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     tempvar weth
     tempvar aDAI
     tempvar aWETH
+    tempvar proxy
     %{ ids.pool = context.pool %}
     %{ ids.dai = context.dai %}
     %{ ids.weth= context.weth %}
     %{ ids.aDAI = context.aDAI %}
     %{ ids.aWETH = context.aWETH %}
+    %{ ids.proxy = context.proxy %}
 
     IPool.init_reserve(pool, dai, aDAI)
     IPool.init_reserve(pool, weth, aWETH)
@@ -145,5 +170,82 @@ end
 func test_pool_supply_withdraw_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ):
     TestPoolSupplyWithdrawDeployed.test_pool_supply_withdraw_spec_4()
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_as_proxy{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_adds_a_new_address_as_proxy()
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_1{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_1(
+        )
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_2{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_adds_a_new_address_with_no_proxy_and_turns_it_into_a_proxy_2(
+        )
+    return ()
+end
+
+@external
+func test_unregister_a_proxy_address{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_unregister_a_proxy_address()
+    return ()
+end
+
+@external
+func test_owner_adds_a_new_address_with_proxy_and_turns_it_into_a_no_proxy{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_adds_a_new_address_with_proxy_and_turns_it_into_a_no_proxy(
+        )
+    return ()
+end
+
+@external
+func test_unregister_a_no_proxy_address{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_unregister_a_no_proxy_address()
+    return ()
+end
+
+@external
+func test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it(
+        )
+    return ()
+end
+
+@external
+func test_owner_updates_the_implementation_of_a_proxy_which_is_already_initialized{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_updates_the_implementation_of_a_proxy_which_is_already_initialized(
+        )
+    return ()
+end
+
+@external
+func test_owner_updates_the_pool_configurator{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    TestPoolAddressesProviderDeployed.test_owner_updates_the_pool_configurator()
     return ()
 end
