@@ -28,11 +28,6 @@ end
 func PoolAddressesProvider_addresses(id : felt) -> (registered_address : felt):
 end
 
-# @notice Salt required to deploy contracts
-@storage_var
-func PoolAddressesProvider_salt() -> (salt : felt):
-end
-
 # @notice Stores the class_hash of a proxy contract.
 # @dev Proxy class_hash needs to be set before deploying proxies from PoolAddressesProvider.
 # @dev The class hash must have been declared before deploying this contract.
@@ -195,15 +190,16 @@ namespace PoolAddressesProvider:
     # @dev IMPORTANT Use this function carefully, only for ids that don't have an explicit
     # setter function, in order to avoid unexpected consequences
     # @param id The id
+    # @param salt random number required to deploy a proxy
     # @param new_implementation The hash of the new implementation
     func set_address_as_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        id : felt, new_implementation : felt
+        id : felt, new_implementation : felt, salt : felt
     ):
         alloc_locals
         Ownable.assert_only_owner()
         let (proxy_address) = PoolAddressesProvider_addresses.read(id)
         let (old_implementation) = get_proxy_implementation(id)
-        update_impl(id, new_implementation)
+        update_impl(id, new_implementation, salt)
         AddressSetAsProxy.emit(id, proxy_address, old_implementation, new_implementation)
         return ()
     end
@@ -234,13 +230,14 @@ namespace PoolAddressesProvider:
     # @notice Updates the implementation of the Pool, or creates a proxy
     # setting the new `pool` implementation when the function is called for the first time.
     # @param new_pool_impl The new Pool implementation
+    # @param salt random number required to deploy a proxy
     func set_pool_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        new_pool_impl : felt
+        new_pool_impl : felt, salt : felt
     ):
         alloc_locals
         Ownable.assert_only_owner()
         let (old_implementation) = get_proxy_implementation(POOL)
-        update_impl(POOL, new_pool_impl)
+        update_impl(POOL, new_pool_impl, salt)
         PoolUpdated.emit(old_implementation, new_pool_impl)
         return ()
     end
@@ -256,13 +253,14 @@ namespace PoolAddressesProvider:
     # @notice Updates the implementation of the PoolConfigurator, or creates a proxy
     # setting the new `PoolConfigurator` implementation when the function is called for the first time.
     # @param new_pool_configurator_impl The new PoolConfigurator implementation
+    # @param salt random number required to deploy a proxy
     func set_pool_configurator_impl{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(new_pool_configurator_impl : felt):
+    }(new_pool_configurator_impl : felt, salt : felt):
         alloc_locals
         Ownable.assert_only_owner()
         let (old_implementation) = get_proxy_implementation(POOL_CONFIGURATOR)
-        update_impl(POOL_CONFIGURATOR, new_pool_configurator_impl)
+        update_impl(POOL_CONFIGURATOR, new_pool_configurator_impl, salt)
         PoolConfiguratorUpdated.emit(old_implementation, new_pool_configurator_impl)
         return ()
     end
@@ -377,7 +375,6 @@ end
 func _set_market_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     new_market_id : felt
 ):
-    Ownable.assert_only_owner()
     let (old_market_id) = PoolAddressesProvider_market_id.read()
     PoolAddressesProvider_market_id.write(new_market_id)
     MarketIdSet.emit(old_market_id, new_market_id)
@@ -391,14 +388,13 @@ end
 #   via IProxy.upgrade()
 # @param id The id of the proxy to be updated
 # @param new_implementation The hash of the new implementation class
+# @param salt random number required to deploy a proxy
 func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id : felt, new_implementation : felt
+    id : felt, new_implementation : felt, salt : felt
 ):
-    Ownable.assert_only_owner()
     let (proxy_address) = PoolAddressesProvider.get_address(id)
     if proxy_address == 0:
         let (proxy_admin) = get_contract_address()
-        let (salt) = PoolAddressesProvider_salt.read()
         let (proxy_class_hash) = PoolAddressesProvider_proxy_class_hash.read()
         let (contract_address) = deploy(
             class_hash=proxy_class_hash,
@@ -406,7 +402,6 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
             constructor_calldata_size=1,
             constructor_calldata=cast(new (new_implementation), felt*),
         )
-        PoolAddressesProvider_salt.write(salt + 1)
         IProxy.initialize(contract_address, proxy_admin)
         PoolAddressesProvider_addresses.write(id, contract_address)
         ProxyCreated.emit(id, proxy_address, new_implementation)

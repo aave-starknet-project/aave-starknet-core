@@ -9,7 +9,9 @@ from tests.test_suites.test_specs.pool_get_reserve_address_by_id_spec import (
     TestPoolGetReserveAddressByIdDeployed,
 )
 from tests.test_suites.test_specs.pool_supply_withdraw_spec import TestPoolSupplyWithdrawDeployed
-from tests.test_suites.test_specs.pool_addresses_provider_spec import TestPoolAddressesProviderDeployed
+from tests.test_suites.test_specs.pool_addresses_provider_spec import (
+    TestPoolAddressesProviderDeployed,
+)
 # @notice setup hook for the test execution. It deploys the contracts
 # saves the Starknet state at the end of this function. All test cases will be executed
 # from this saved state.
@@ -226,7 +228,8 @@ end
 func test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
-    TestPoolAddressesProviderDeployed.test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it()
+    TestPoolAddressesProviderDeployed.test_owner_registers_an_existing_contract_with_proxy_and_upgrade_it(
+        )
     return ()
 end
 

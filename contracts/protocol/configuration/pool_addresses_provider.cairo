@@ -53,9 +53,9 @@ end
 
 @external
 func set_address_as_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id : felt, implementation : felt
+    id : felt, implementation : felt, salt : felt
 ):
-    PoolAddressesProvider.set_address_as_proxy(id, implementation)
+    PoolAddressesProvider.set_address_as_proxy(id, implementation, salt)
     return ()
 end
 
@@ -67,9 +67,9 @@ end
 
 @external
 func set_pool_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    new_implementation : felt
+    new_implementation : felt, salt : felt
 ):
-    PoolAddressesProvider.set_pool_impl(new_implementation)
+    PoolAddressesProvider.set_pool_impl(new_implementation, salt)
     return ()
 end
 
@@ -83,9 +83,9 @@ end
 
 @external
 func set_pool_configurator_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    new_implementation : felt
+    new_implementation : felt, salt : felt
 ):
-    PoolAddressesProvider.set_pool_configurator_impl(new_implementation)
+    PoolAddressesProvider.set_pool_configurator_impl(new_implementation, salt)
     return ()
 end
 

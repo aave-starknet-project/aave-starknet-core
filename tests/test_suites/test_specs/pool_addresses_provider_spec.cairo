@@ -16,7 +16,6 @@ const pool_configurator_id = 'POOL_CONFIGURATOR'
 const new_registered_contract_id = 'NEW_REGISTERED_CONTRACT'
 
 namespace TestPoolAddressesProvider:
-
     const MOCKED_PROXY_ADDRESS = 8930645
     const MOCKED_IMPLEMENTATION_HASH = 192083
     const MOCKED_CONTRACT_ADDRESS = 349678
@@ -43,7 +42,7 @@ namespace TestPoolAddressesProvider:
     }():
         PoolAddressesProvider.transfer_ownership(USER_1)
         %{ expect_revert(error_message="Ownable: caller is not the owner") %}
-        PoolAddressesProvider.set_pool_impl(MOCKED_IMPLEMENTATION_HASH)
+        PoolAddressesProvider.set_pool_impl(MOCKED_IMPLEMENTATION_HASH, 1234)
         return ()
     end
 
@@ -52,7 +51,7 @@ namespace TestPoolAddressesProvider:
     }():
         PoolAddressesProvider.transfer_ownership(USER_1)
         %{ expect_revert(error_message="Ownable: caller is not the owner") %}
-        PoolAddressesProvider.set_pool_configurator_impl(MOCKED_IMPLEMENTATION_HASH)
+        PoolAddressesProvider.set_pool_configurator_impl(MOCKED_IMPLEMENTATION_HASH, 1234)
         return ()
     end
 
@@ -115,7 +114,7 @@ namespace TestPoolAddressesProvider:
     }():
         PoolAddressesProvider.transfer_ownership(USER_1)
         %{ expect_revert(error_message="Ownable: caller is not the owner") %}
-        PoolAddressesProvider.set_address_as_proxy('RANDOM_ID', MOCKED_IMPLEMENTATION_HASH)
+        PoolAddressesProvider.set_address_as_proxy('RANDOM_ID', MOCKED_IMPLEMENTATION_HASH, 1234)
         return ()
     end
 
@@ -238,7 +237,7 @@ namespace TestPoolAddressesProviderDeployed:
             expect_events({"name": "AddressSetAsProxy"})
         %}
         IPoolAddressesProvider.set_address_as_proxy(
-            pool_addresses_provider, 'RANDOM_PROXIED', implementation_hash
+            pool_addresses_provider, 'RANDOM_PROXIED', implementation_hash, 5678
         )
         %{ stop_prank_provider() %}
         return ()
@@ -384,7 +383,7 @@ namespace TestPoolAddressesProviderDeployed:
         %{ ids.new_implementation = declare("./tests/contracts/basic_proxy_impl_v2.cairo").class_hash %}
         # Replaces proxy implementation (currently basic_proxy_impl) with basic_proxy_impl_v2
         IPoolAddressesProvider.set_address_as_proxy(
-            pool_addresses_provider, new_registered_contract_id, new_implementation
+            pool_addresses_provider, new_registered_contract_id, new_implementation, 1357
         )
         let (version) = IBasicProxyImpl.get_version(new_proxy)
         assert version = 2
@@ -407,7 +406,7 @@ namespace TestPoolAddressesProviderDeployed:
             stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
         %}
         # Update the pool proxy
-        IPoolAddressesProvider.set_pool_impl(pool_addresses_provider, implementation_hash)
+        IPoolAddressesProvider.set_pool_impl(pool_addresses_provider, implementation_hash, 1234)
         let (new_pool_impl) = IProxy.get_implementation(proxy_address)
         let (pool_proxy_address) = IPoolAddressesProvider.get_pool(pool_addresses_provider)
         assert pool_proxy_address = proxy_address
@@ -441,7 +440,7 @@ namespace TestPoolAddressesProviderDeployed:
 
         # Update the PoolConfigurator proxy
         IPoolAddressesProvider.set_pool_configurator_impl(
-            pool_addresses_provider, new_implementation
+            pool_addresses_provider, new_implementation, 1234
         )
         let (new_pool_configurator_impl) = IProxy.get_implementation(proxy_address)
         let (pool_configurator_proxy_address) = IPoolAddressesProvider.get_pool_configurator(
@@ -524,7 +523,9 @@ func add_proxy_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         expect_events({"name": "AddressSetAsProxy"})
         stop_prank_provider = start_prank(ids.USER_1,target_contract_address=ids.pool_addresses_provider)
     %}
-    IPoolAddressesProvider.set_address_as_proxy(pool_addresses_provider, id, implementation_hash)
+    IPoolAddressesProvider.set_address_as_proxy(
+        pool_addresses_provider, id, implementation_hash, 2468
+    )
 
     let (proxy_address) = IPoolAddressesProvider.get_address(pool_addresses_provider, id)
     let (proxy_implementation_hash) = IProxy.get_implementation(proxy_address)

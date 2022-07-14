@@ -17,19 +17,19 @@ namespace IPoolAddressesProvider:
     func set_address(id : felt, new_address : felt):
     end
 
-    func set_address_as_proxy(id : felt, new_implementation : felt):
+    func set_address_as_proxy(id : felt, new_implementation : felt, salt : felt):
     end
 
     func get_pool() -> (pool : felt):
     end
 
-    func set_pool_impl(new_implementation : felt):
+    func set_pool_impl(new_implementation : felt, salt : felt):
     end
 
     func get_pool_configurator() -> (pool_configurator : felt):
     end
 
-    func set_pool_configurator_impl(new_implementation : felt):
+    func set_pool_configurator_impl(new_implementation : felt, salt : felt):
     end
 
     func get_price_oracle() -> (price_oracle : felt):
