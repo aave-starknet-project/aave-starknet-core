@@ -12,10 +12,21 @@ namespace IPool:
     func withdraw(asset : felt, amount : Uint256, to : felt):
     end
 
-    func init_reserve(asset : felt, a_token_address : felt):
+    func init_reserve(
+        asset : felt,
+        a_token_address : felt,
+        stable_debt_token_address : felt,
+        variable_debt_token_address : felt,
+    ):
     end
 
     func drop_reserve(asset : felt):
+    end
+
+    func set_configuration(asset : felt, configuration : DataTypes.ReserveConfigurationMap):
+    end
+
+    func get_configuration(asset : felt) -> (reserve_config : DataTypes.ReserveConfigurationMap):
     end
 
     func get_reserve_data(asset : felt) -> (reserve_data : DataTypes.ReserveData):

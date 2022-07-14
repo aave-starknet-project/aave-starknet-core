@@ -24,7 +24,10 @@ namespace PoolLogic:
         let (initial_reserve) = PoolStorage.reserves_read(params.asset)
 
         let (local reserve : DataTypes.ReserveData) = ReserveLogic.init(
-            initial_reserve, params.a_token_address
+            initial_reserve,
+            params.a_token_address,
+            params.stable_debt_token_address,
+            params.variable_debt_token_address,
         )
         # TODO initialize reserves with debtTokens interestRateStrategy
 
@@ -67,7 +70,10 @@ namespace PoolLogic:
         ValidationLogic.validate_drop_reserve(reserve, asset)
 
         PoolStorage.reserves_list_write(reserve.id, 0)
-        PoolStorage.reserves_write(asset, DataTypes.ReserveData(0, 0, 0))
+        PoolStorage.reserves_write(
+            asset,
+            DataTypes.ReserveData(0, 0, 0, 0, 0, DataTypes.ReserveConfigurationMap(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+        )
         return ()
     end
 end

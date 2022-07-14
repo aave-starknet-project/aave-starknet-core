@@ -79,8 +79,8 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{ ids.aWETH = context.aWETH %}
     %{ ids.proxy = context.proxy %}
 
-    IPool.init_reserve(pool, dai, aDAI)
-    IPool.init_reserve(pool, weth, aWETH)
+    IPool.init_reserve(pool, dai, aDAI, 0, 0)
+    IPool.init_reserve(pool, weth, aWETH, 0, 0)
     return ()
 end
 
