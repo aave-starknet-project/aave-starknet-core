@@ -137,8 +137,16 @@ namespace AToken:
         IncentivizedERC20.assert_only_pool()
         ScaledBalanceTokenBase._burn_scaled(from_, receiver_of_underlying, amount, index)
         
+        local syscall_ptr : felt* = syscall_ptr
         if receiver_of_underlying != contract_address:
             IIncentivizedERC20.transfer(underlying, receiver_of_underlying, amount)
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        else:
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
         end
         return ()
     end
