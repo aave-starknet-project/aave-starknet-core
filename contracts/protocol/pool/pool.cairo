@@ -108,7 +108,7 @@ func withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     asset : felt, amount : Uint256, to : felt
 ):
     let (reserves_count) = PoolStorage.reserves_count_read()
-    SupplyLogic._execute_withdraw(
+    SupplyLogic.execute_withdraw(
         user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
         params=DataTypes.ExecuteWithdrawParams(
         asset=asset,
@@ -162,6 +162,13 @@ end
 func drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(asset : felt):
     PoolLogic.execute_drop_reserve(asset)
     return ()
+end
+
+@view
+func get_addresses_provider{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ) -> (provider : felt):
+    let (provider) = PoolStorage.addresses_provider_read()
+    return (provider)
 end
 
 @view

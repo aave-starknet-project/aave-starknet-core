@@ -1,5 +1,6 @@
 build
 *.sarif
+.DS_Store
 lib
 
 # IDE files
