@@ -1,6 +1,6 @@
 %lang starknet
 
-from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.bool import FALSE
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
@@ -24,9 +24,10 @@ const INCENTIVES_CONTROLLER = 55
 @view
 func __setup__{syscall_ptr : felt*, range_check_ptr}():
     %{
-        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo", [0]).contract_address
-        context.token = deploy_contract("./lib/cairo_contracts/src/openzeppelin/token/erc20/ERC20.cairo", [ids.NAME, ids.SYMBOL, ids.DECIMALS, 1000, 0, ids.PRANK_USER_1]).contract_address
-        context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [ids.POOL, ids.TREASURY, ids.UNDERLYING_ASSET, ids.INCENTIVES_CONTROLLER, ids.DECIMALS, ids.NAME+1, ids.SYMBOL+1]).contract_address
+        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo", {"provider":0}).contract_address
+        context.token = deploy_contract("./lib/cairo_contracts/src/openzeppelin/token/erc20/ERC20.cairo", {"name":ids.NAME,"symbol": ids.SYMBOL,"decimals": ids.DECIMALS,"initial_supply":{"low": 1000,"high": 0}, "recipient":ids.PRANK_USER_1}).contract_address
+
+        context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", {"pool":ids.POOL,"treasury":ids.TREASURY,"underlying_asset":ids.UNDERLYING_ASSET,"incentives_controller":ids.INCENTIVES_CONTROLLER, "a_token_decimals":ids.DECIMALS,"a_token_name":ids.NAME+1,"a_token_symbol":ids.SYMBOL+1}).contract_address
     %}
     return ()
 end

@@ -12,7 +12,6 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.helpers.helpers import is_zero
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.pool.pool_storage import PoolStorage
-from contracts.interfaces.i_a_token import IAToken
 
 namespace ValidationLogic:
     # @notice Validates a supply action.
@@ -20,7 +19,6 @@ namespace ValidationLogic:
     # @param amount The amount to be supplied
     func validate_supply{range_check_ptr}(reserve : DataTypes.ReserveData, amount : Uint256):
         uint256_check(amount)
-
         with_attr error_message("Amount must be greater than 0"):
             let (is_zero) = uint256_eq(amount, Uint256(0, 0))
             assert is_zero = FALSE
@@ -72,15 +70,14 @@ namespace ValidationLogic:
             let (is_id_not_zero) = is_not_zero(reserve.id)
             let (reserve_list_first) = PoolStorage.reserves_list_read(0)
             let (is_first_asset) = is_zero(reserve_list_first - asset)
-
             let (asset_listed) = BoolCompare.either(is_id_not_zero, is_first_asset)
             assert asset_listed = TRUE
         end
 
         # TODO verify that stable/var debt are zero
 
+        let (a_token_supply) = IERC20.totalSupply(contract_address=reserve.a_token_address)
         with_attr error_message("AToken supply is not zero"):
-            let (a_token_supply) = IERC20.totalSupply(contract_address=reserve.a_token_address)
             assert a_token_supply = Uint256(0, 0)
         end
         return ()

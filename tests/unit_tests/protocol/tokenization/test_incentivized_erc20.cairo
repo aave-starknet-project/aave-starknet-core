@@ -1,5 +1,4 @@
 %lang starknet
-from starkware.cairo.common.uint256 import Uint256
 from contracts.interfaces.i_incentivized_erc20 import IIncentivizedERC20
 
 const PRANK_USER1 = 123
@@ -8,13 +7,13 @@ const PRANK_USER2 = 456
 @view
 func __setup__():
     # deploy pool contract first
-    %{ context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo",[0]).contract_address %}
+    %{ context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo",{"provider":0}).contract_address %}
     %{ context.name= 1 %}
     %{ context.symbol= 2 %}
     %{ context.decimals= 3 %}
     %{
         context.incentivized_erc_20=deploy_contract("./contracts/protocol/tokenization/base/incentivized_erc20.cairo", 
-           [context.pool, context.name, context.symbol, context.decimals]).contract_address
+           {"pool":context.pool,"name": context.name, "symbol":context.symbol, "decimals":context.decimals}).contract_address
     %}
 
     return ()

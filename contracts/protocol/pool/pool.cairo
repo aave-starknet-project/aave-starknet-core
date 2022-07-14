@@ -108,7 +108,7 @@ func withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     asset : felt, amount : Uint256, to : felt
 ):
     let (reserves_count) = PoolStorage.reserves_count_read()
-    SupplyLogic._execute_withdraw(
+    SupplyLogic.execute_withdraw(
         user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
         params=DataTypes.ExecuteWithdrawParams(
         asset=asset,

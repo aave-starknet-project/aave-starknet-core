@@ -1,4 +1,3 @@
-%lang starknet
 from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.alloc import alloc

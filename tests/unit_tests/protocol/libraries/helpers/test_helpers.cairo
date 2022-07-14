@@ -21,7 +21,7 @@ func test_is_zero():
 end
 
 @view
-func test_modify_struct{range_check_ptr}():
+func test_update_struct{range_check_ptr}():
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     local my_struct : MyStruct = MyStruct(1, 2, 3)
@@ -36,7 +36,7 @@ func test_modify_struct{range_check_ptr}():
 end
 
 @view
-func test_modify_struct_out_of_range{range_check_ptr}():
+func test_update_struct_out_of_range{range_check_ptr}():
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     local my_struct : MyStruct = MyStruct(1, 2, 3)

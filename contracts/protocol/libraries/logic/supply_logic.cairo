@@ -11,7 +11,7 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_a_token import IAToken
 from contracts.protocol.pool.pool_storage import PoolStorage
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
-from contracts.protocol.libraries.helpers.values import Generics
+from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 
 @event
 func withdraw_event(reserve : felt, user : felt, to : felt, amount : Uint256):
@@ -71,7 +71,7 @@ namespace SupplyLogic:
     # @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
     # @param params The additional parameters needed to execute the withdraw function
     # @return The actual amount withdrawn
-    func _execute_withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func execute_withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_config : DataTypes.UserConfigurationMap, params : DataTypes.ExecuteWithdrawParams
     ) -> (amount_to_withdraw : Uint256):
         alloc_locals
@@ -82,7 +82,7 @@ namespace SupplyLogic:
         # TODO integration with scaled_balance_of and liquidity_index
         let (local user_balance) = IAToken.balanceOf(reserve.a_token_address, caller_address)
 
-        tempvar uint256_max : Uint256 = Uint256(Generics.UINT128_MAX, Generics.UINT128_MAX)
+        tempvar uint256_max : Uint256 = Uint256(UINT128_MAX, UINT128_MAX)
         let (is_amount_max) = uint256_eq(params.amount, uint256_max)
         local amount_to_withdraw : Uint256
 

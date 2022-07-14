@@ -1,16 +1,14 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.syscalls import get_contract_address
 from contracts.interfaces.i_pool import IPool
 
-namespace PoolGetReserveAddressByIdSpec:
+namespace TestPoolGetReserveAddressByIdDeployed:
     # 'User gets address of reserve by id'
     func test_get_address_of_reserve_by_id{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
         alloc_locals
-        %{ print("PoolGetReserveAddressByIdSpec : User gets address of reserve by id") %}
         local dai
         local pool
         %{
@@ -32,7 +30,6 @@ namespace PoolGetReserveAddressByIdSpec:
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }():
         alloc_locals
-        %{ print("PoolGetReserveAddressByIdSpec : User calls `get_reserve_address_by_id` with a wrong id (id > reserves_count)") %}
         local pool
         %{ ids.pool = context.pool %}
 
