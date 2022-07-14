@@ -15,6 +15,7 @@ from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.math.wad_ray_math import ray_mul, ray_div, Ray
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
 from contracts.protocol.tokenization.base.scaled_balance_token_library import ScaledBalanceTokenBase
+from contracts.protocol.libraries.math.uint_128 import Uint128
 
 #
 # Events
@@ -90,16 +91,15 @@ namespace AToken:
         a_token_symbol : felt,
     ):
         IncentivizedERC20.initialize(pool,a_token_name, a_token_symbol, a_token_decimals)
-        # assert pool = IncentivizedERC20.POOL()
 
-        # ERC20.initializer(a_token_name, a_token_symbol, a_token_decimals)
+
+        with_attr error_message("Pool addresses do not match"):
+            let (original_pool) = IncentivizedERC20.get_pool()
+            assert pool = original_pool
+        end
 
         _treasury.write(treasury)
         _underlying_asset.write(underlying_asset)
-
-        #@Todo: these two are set in IncentivizedERC20 initializer
-        # _incentives_controller.write(incentives_controller)
-        # _pool.write(pool)
 
         Initialized.emit(
             underlying_asset,
@@ -118,36 +118,36 @@ namespace AToken:
             pedersen_ptr : HashBuiltin*,
             range_check_ptr
         }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
-        assert_only_pool()
-        ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
-        return ()
+        alloc_locals
+        IncentivizedERC20.assert_only_pool()
+        let (success)=ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
+        return (success)
     end
 
-    # TODO: remove this once mint function above works
-    # func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    #     caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
-    # ):
-    #     ERC20._mint(on_behalf_of, amount)
-    #     return ()
-    # end
 
     func burn{
             syscall_ptr : felt*,
             pedersen_ptr : HashBuiltin*,
             range_check_ptr
-        }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
-        assert_only_pool()
-        ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index)
+        }(from_ : felt, receiver_of_underlying : felt, amount : Uint256, index : Uint256):
+        alloc_locals
         let (contract_address) = get_contract_address()
-        if receiver_or_underlying != contract_address:
-            IncentivizedERC20.transfer(_underlying_asset.read(), receiver_or_underlying, amount)
+        let (underlying)=_underlying_asset.read()
+
+        IncentivizedERC20.assert_only_pool()
+        ScaledBalanceTokenBase._burn_scaled(from_, receiver_of_underlying, amount, index)
+        
+        if receiver_of_underlying != contract_address:
+            IIncentivizedERC20.transfer(underlying, receiver_of_underlying, amount)
         end
         return ()
     end
 
     func mint_to_treasury{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     amount : Uint256, index : Uint256):
-        assert_only_pool()
+        alloc_locals
+
+        IncentivizedERC20.assert_only_pool()
 
         let (is_equal)= uint256_eq(amount,Uint256(0,0))
 
@@ -155,8 +155,9 @@ namespace AToken:
             return ()
         end
 
-        let pool= POOL()
-        ScaledBalanceTokenBase._mint_scaled(pool, _treasury, amount, index)
+        let (pool)= POOL()
+        let (treasury)= _treasury.read()
+        ScaledBalanceTokenBase._mint_scaled(pool, treasury, amount, index)
         return()
     end
 
@@ -164,7 +165,7 @@ namespace AToken:
         from_ : felt, to : felt, value : Uint256
     ):
         alloc_locals
-        assert_only_pool()
+        IncentivizedERC20.assert_only_pool()
         _transfer_base(from_, to, value, FALSE)
         Transfer.emit(from_, to, value)
         return ()
@@ -200,14 +201,16 @@ namespace AToken:
         target : felt, amount : Uint256
     ):
         alloc_locals
-        assert_only_pool()
+        IncentivizedERC20.assert_only_pool()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
-        IncentivizedERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
+        IIncentivizedERC20.transfer(contract_address=underlying, recipient=target, amount=amount)
         return ()
     end
 
     # func handle_repayment{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    # assert_only_pool()
+    # alloc_locals
+
+    # IncentivizedERC20.assert_only_pool()
 
     #     return ()
     # end
@@ -224,7 +227,7 @@ namespace AToken:
         with_attr error_message("Token {token} should be different from underlying {underlying}."):
             assert_not_equal(token, underlying)
         end
-        IncentivizedERC20.transfer(contract_address=token, recipient=to, amount=amount)
+        IIncentivizedERC20.transfer(contract_address=token, recipient=to, amount=amount)
         return ()
     end
 
@@ -261,7 +264,7 @@ namespace AToken:
     # Internals
 
 
-    #@Todo:change contracts
+    
     func _transfer_base{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_ : felt, to : felt, amount : Uint256, validate : felt
     ):
@@ -273,13 +276,22 @@ namespace AToken:
         let (underlying_asset) = UNDERLYING_ASSET_ADDRESS()
         let (index) = IPool.get_reserve_normalized_income(pool, underlying_asset)
 
-        let (from_scaledbalance_before) = ERC20.balance_of(from_)
-        let (from_balance_before) = ray_mul(Ray(from_scaledbalance_before), Ray(index))
-        let (to_scaledbalance_before) = ERC20.balance_of(to)
-        let (to_balance_before) = ray_mul(Ray(to_scaledbalance_before), Ray(index))
+        let (from_scaledbalance_before) = IncentivizedERC20.balance_of(from_)
+        let (from_scaledbalance_before_256) = Uint128.to_uint_256(from_scaledbalance_before)
+        let (from_balance_before) = ray_mul(Ray(from_scaledbalance_before_256), Ray(index))
+
+        let (to_scaledbalance_before) = IncentivizedERC20.balance_of(to)
+        let (to_scaledbalance_before_256) = Uint128.to_uint_256(to_scaledbalance_before)
+        let (to_balance_before) = ray_mul(Ray(to_scaledbalance_before_256), Ray(index))
 
         let (amount_over_index) = ray_div(Ray(amount), Ray(index))
-        ERC20._transfer(from_, to, amount_over_index.ray)
+
+
+        # IncentivizedERC20._transfer(from_, to, amount_over_index.ray)
+
+        #calls the external function accepting Uint256 instead
+        #@Todo: will the 'from_ still be the same?
+        IncentivizedERC20.transfer(to, amount_over_index.ray)
 
         if validate == TRUE:
             IPool.finalize_transfer(

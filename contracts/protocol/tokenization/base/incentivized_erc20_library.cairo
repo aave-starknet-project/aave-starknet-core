@@ -59,34 +59,6 @@ end
 
 # Internal functions- not to be imported
 
-# @dev the amount should be passed as uint128
-func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    sender : felt, recipient : felt, amount : felt
-) -> ():
-    alloc_locals
-
-    let (old_sender_state) = incentivized_erc20_user_state.read(sender)
-
-    with_attr error_message("Not enough balance"):
-        assert_le_felt(amount, old_sender_state.balance)
-    end
-
-    let new_sender_balance = old_sender_state.balance - amount
-    let new_sender_state = DataTypes.UserState(new_sender_balance, old_sender_state.additionalData)
-    incentivized_erc20_user_state.write(sender, new_sender_state)
-
-    let (old_recipient_state) = incentivized_erc20_user_state.read(recipient)
-    let new_recipient_balance = old_recipient_state.balance + amount
-    let new_recipient_state = DataTypes.UserState(
-        new_recipient_balance, old_recipient_state.additionalData
-    )
-    incentivized_erc20_user_state.write(recipient, new_recipient_state)
-
-    # @TODO: import incentives_controller & handle action
-
-    return ()
-end
-
 func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     incentivized_erc20_owner : felt, spender : felt, amount : felt
 ) -> ():
@@ -230,10 +202,10 @@ namespace IncentivizedERC20:
         return (state)
     end
 
-    func get_pool{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }()->(pool : felt):
-        let (pool)= incentivized_erc20_pool.read()
+    func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        pool : felt
+    ):
+        let (pool) = incentivized_erc20_pool.read()
         return (pool)
     end
 
@@ -434,6 +406,35 @@ namespace IncentivizedERC20:
         _userState.write(address, newUserState)
 
         # @Todo: Incentives controller logic here
+
+        return ()
+    end
+    # @dev the amount should be passed as uint128
+    func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        sender : felt, recipient : felt, amount : felt
+    ) -> ():
+        alloc_locals
+
+        let (old_sender_state) = incentivized_erc20_user_state.read(sender)
+
+        with_attr error_message("Not enough balance"):
+            assert_le_felt(amount, old_sender_state.balance)
+        end
+
+        let new_sender_balance = old_sender_state.balance - amount
+        let new_sender_state = DataTypes.UserState(
+            new_sender_balance, old_sender_state.additionalData
+        )
+        incentivized_erc20_user_state.write(sender, new_sender_state)
+
+        let (old_recipient_state) = incentivized_erc20_user_state.read(recipient)
+        let new_recipient_balance = old_recipient_state.balance + amount
+        let new_recipient_state = DataTypes.UserState(
+            new_recipient_balance, old_recipient_state.additionalData
+        )
+        incentivized_erc20_user_state.write(recipient, new_recipient_state)
+
+        # @TODO: import incentives_controller & handle action
 
         return ()
     end

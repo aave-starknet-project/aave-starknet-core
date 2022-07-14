@@ -68,21 +68,43 @@ func decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     return (decimals)
 end
 
+# @view
+# func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     account : felt
+# ) -> (balance : Uint256):
+#     let (balance) = IncentivizedERC20.balance_of(account)
+#     return (balance)
+# end
+
+
+# @view
+# func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     owner : felt, spender : felt
+# ) -> (remaining : Uint256):
+#     let (remaining : Uint256) = IncentivizedERC20.allowance(owner, spender)
+#     return (remaining)
+# end
+
+
+#Return felt
 @view
 func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     account : felt
-) -> (balance : Uint256):
-    let (balance : Uint256) = IncentivizedERC20.balance_of(account)
+) -> (balance : felt):
+    let (balance) = IncentivizedERC20.balance_of(account)
     return (balance)
 end
 
+#Return felt
 @view
 func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt
-) -> (remaining : Uint256):
-    let (remaining : Uint256) = IncentivizedERC20.allowance(owner, spender)
+) -> (remaining : felt):
+    let (remaining) = IncentivizedERC20.allowance(owner, spender)
     return (remaining)
 end
+
+
 
 @view
 func RESERVE_TREASURY_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -90,6 +112,9 @@ func RESERVE_TREASURY_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     let (res) = AToken.RESERVE_TREASURY_ADDRESS()
     return (res)
 end
+
+
+
 
 @view
 func UNDERLYING_ASSET_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -99,7 +124,6 @@ func UNDERLYING_ASSET_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
 end
 
 
-#@Todo: IncentivizedERC20 getter for pool?
 @view
 func POOL{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
     let (res) = AToken.POOL()
@@ -154,7 +178,7 @@ end
 func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
 ) -> (success : felt):
-    ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
+    AToken.mint(caller, on_behalf_of, amount, index)
     return (TRUE)
 end
 
@@ -164,7 +188,7 @@ func burn{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
-    ScaledBalanceTokenBase._burn_scaled(from_, receiver_or_underlying, amount, index)
+    AToken.burn(from_, receiver_or_underlying, amount, index)
     return (TRUE)
 end
 
