@@ -35,6 +35,20 @@ func ADDRESSES_PROVIDER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return AaveOracle.ADDRESSES_PROVIDER()
 end
 
+@view
+func BASE_CURRENCY{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    base_currency : felt
+):
+    return AaveOracle.BASE_CURRENCY()
+end
+
+@view
+func BASE_CURRENCY_UNIT{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    base_currency_unit : felt
+):
+    return AaveOracle.BASE_CURRENCY_UNIT()
+end
+
 @external
 func set_assets_tickers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     assets_len : felt, assets : felt*, tickers_len : felt, tickers : felt*

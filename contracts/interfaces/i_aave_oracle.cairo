@@ -8,10 +8,10 @@ namespace IAaveOracle:
     func ADDRESSES_PROVIDER() -> (provider : felt):
     end
 
-    func BASE_CURRENCY() -> (provider : felt):
+    func BASE_CURRENCY() -> (base_currency : felt):
     end
 
-    func BASE_CURRENCY_UNIT() -> (provider : felt):
+    func BASE_CURRENCY_UNIT() -> (base_currency_unit : felt):
     end
 
     func set_assets_tickers(assets_len : felt, assets : felt*, tickers_len : felt, tickers : felt*):
