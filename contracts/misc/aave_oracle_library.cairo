@@ -110,6 +110,23 @@ namespace AaveOracle:
         return (pool_addresses_provider)
     end
 
+    # @notice Returns the base currency
+    # @return the base currency
+    func BASE_CURRENCY{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        provider : felt
+    ):
+        let (base_currency) = AaveOracle_base_currency.read()
+        return (base_currency)
+    end
+
+    # @notice Returns the base_currency_unit
+    # @return The address of the base_currency_unit
+    func BASE_CURRENCY_UNIT{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (provider : felt):
+        let (base_currency_unit) = AaveOracle_base_currency_unit.read()
+        return (base_currency_unit)
+    end
+
     # @notice Sets or replaces price tickers of assets
     # @param assets The addresses of the assets
     # @param tickers The addresses of the price tickers
@@ -146,10 +163,9 @@ namespace AaveOracle:
         end
 
         if ticker == 0:
-            # TODO rely on fallback oracle
-            with_attr error_message("No price ticker for asset"):
-                assert 1 = 0
-            end
+            # with_attr error_message("No price ticker for asset"):
+            #     # assert 1 = 0
+            # end
             return (0)
         else:
             return _read_price_from_oracle(ticker)
@@ -180,7 +196,8 @@ namespace AaveOracle:
 
     # @notice Returns the address of the fallback oracle
     # @return The address of the fallback oracle
-    func get_fallback_oracle{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}()->(fallback_oracle : felt):
+    func get_fallback_oracle{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (fallback_oracle : felt):
         let (fallback_oracle) = AaveOracle_fallback_oracle.read()
         return (fallback_oracle)
     end
