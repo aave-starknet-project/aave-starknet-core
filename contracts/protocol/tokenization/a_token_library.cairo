@@ -68,7 +68,7 @@ namespace AToken:
         alloc_locals
         let (caller_address) = get_caller_address()
         let (pool) = POOL()
-        with_attr error_message("wrong caller"):
+        with_attr error_message("Caller address should be {pool}"):
             assert caller_address = pool
         end
         return ()
@@ -147,10 +147,8 @@ namespace AToken:
     # end
 
     func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    from_ : felt, 
-    receiver_or_underlying : felt, 
-    amount : Uint256, 
-    index : Uint256) -> (success: felt):
+        from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
+    ) -> (success : felt):
         alloc_locals
         assert_only_pool()
         let (local underlying) = UNDERLYING_ASSET_ADDRESS()

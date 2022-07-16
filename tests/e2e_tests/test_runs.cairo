@@ -48,86 +48,86 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
     return ()
 end
 
-# @external
-# func test_pool_drop_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     PoolDropSpec.test_pool_drop_spec_1()
-#     return ()
-# end
+@external
+func test_pool_drop_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_1()
+    return ()
+end
 
-# @external
-# func test_pool_drop_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     PoolDropSpec.test_pool_drop_spec_2()
-#     return ()
-# end
+@external
+func test_pool_drop_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_2()
+    return ()
+end
 
-# # test_pool_drop_3
-# @external
-# func test_pool_drop_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     PoolDropSpec.test_pool_drop_spec_3()
-#     return ()
-# end
+# test_pool_drop_3
+@external
+func test_pool_drop_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_3()
+    return ()
+end
 
-# @external
-# func test_pool_drop_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     PoolDropSpec.test_pool_drop_spec_4()
-#     return ()
-# end
+@external
+func test_pool_drop_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_4()
+    return ()
+end
 
-# @external
-# func test_pool_drop_5{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     PoolDropSpec.test_pool_drop_spec_5()
-#     return ()
-# end
+@external
+func test_pool_drop_5{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    PoolDropSpec.test_pool_drop_spec_5()
+    return ()
+end
 
-# @external
-# func test_get_address_of_reserve_by_id{
-#     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-# }():
-#     PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
-#     return ()
-# end
+@external
+func test_get_address_of_reserve_by_id{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
+    return ()
+end
 
-# @external
-# func test_get_max_number_reserves{
-#     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-# }():
-#     PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
-#     return ()
-# end
+@external
+func test_get_max_number_reserves{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    PoolGetReserveAddressByIdSpec.test_get_address_of_reserve_by_id()
+    return ()
+end
 
-# @external
-# func test_pool_supply_withdraw_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     ):
-#     PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_1()
-#     return ()
-# end
+@external
+func test_pool_supply_withdraw_1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_1()
+    return ()
+end
 
-# @external
-# func test_pool_supply_withdraw_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     ):
-#     PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_2()
-#     return ()
-# end
+@external
+func test_pool_supply_withdraw_2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_2()
+    return ()
+end
 
-# @external
-# func test_pool_supply_withdraw_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     ):
-#     PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_3()
-#     return ()
-# end
+@external
+func test_pool_supply_withdraw_3{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_3()
+    return ()
+end
 
-# @external
-# func test_pool_supply_withdraw_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     ):
-#     PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_4()
-#     return ()
-# end
+@external
+func test_pool_supply_withdraw_4{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    PoolSupplyWithdrawSpec.test_pool_supply_withdraw_spec_4()
+    return ()
+end
 
-# @external
-# func test_mint_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     ATokenModifier.test_mint_wrong_pool()
-#     return ()
-# end
+@external
+func test_mint_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    ATokenModifier.test_mint_wrong_pool()
+    return ()
+end
 
 @external
 func test_burn_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
@@ -136,14 +136,17 @@ func test_burn_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
 end
 
 @external
-func test_transfer_on_liquidation_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_transfer_on_liquidation_wrong_pool{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
     ATokenModifier.test_transfer_on_liquidation_wrong_pool()
     return ()
 end
 
 @external
-func test_transfer_underlying_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_transfer_underlying_wrong_pool{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
     ATokenModifier.test_transfer_underlying_wrong_pool()
     return ()
 end
-
