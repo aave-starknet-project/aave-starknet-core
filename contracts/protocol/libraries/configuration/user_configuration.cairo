@@ -15,6 +15,7 @@ from starkware.cairo.common.math import (
     assert_not_zero,
     assert_in_range,
     assert_not_equal,
+    assert_le,
 )
 from contracts.protocol.libraries.helpers.helpers import is_zero
 # @notice Stores which reserves user is borrowing
@@ -29,6 +30,7 @@ func UserConfiguration_using_as_collateral(user_address : felt, reserve_id : fel
 end
 
 namespace UserConfiguration:
+    const MAX_RESERVES_COUNT = 128
     # @notice Sets if the user is borrowing the reserve identified by reserve_index
     # @dev uses ReserveIndex to store reserve indices in a packed list
     # @param user_address The address of a user
@@ -37,24 +39,14 @@ namespace UserConfiguration:
     func set_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt, borrowing : felt
     ):
-        alloc_locals
-
-        assert_not_zero(reserve_index)
         assert_lt(borrowing, 2)  # only TURE=1/FALSE=0 values
-
-        let (current_borrowing) = UserConfiguration_borrowing.read(user_address, reserve_index)
+        assert_le(reserve_index, MAX_RESERVES_COUNT)
+        assert_not_zero(user_address)
 
         if borrowing == TRUE:
-            with_attr error_message("Reserve asset already flaged as borrowing"):
-                assert_not_equal(current_borrowing, TRUE)
-            end
-
             ReserveIndex.add_reserve_index(BORROWING_TYPE, user_address, reserve_index)
         else:
-            with_attr error_message("Reserve asset is not flaged as borrowing"):
-                assert_not_equal(current_borrowing, FALSE)
-            end
-            ReserveIndex.remove_reserve_index(BORROWING_TYPE, user_address, reserve_index)
+            ReserveIndex.remove_reserve_index(BORROWING_TYPE, 0, user_address, reserve_index)
         end
 
         UserConfiguration_borrowing.write(user_address, reserve_index, borrowing)
@@ -69,26 +61,16 @@ namespace UserConfiguration:
     func set_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt, using_as_collateral : felt
     ):
-        alloc_locals
-
-        assert_not_zero(reserve_index)
         assert_lt(using_as_collateral, 2)  # only TURE=1/FALSE=0 values
-
-        let (current_using_as_collateral) = UserConfiguration_using_as_collateral.read(
-            user_address, reserve_index
-        )
+        assert_le(reserve_index, MAX_RESERVES_COUNT)
+        assert_not_zero(user_address)
 
         if using_as_collateral == TRUE:
-            with_attr error_message("Reserve asset already flaged: 'using as collateral'"):
-                assert_not_equal(current_using_as_collateral, TRUE)
-            end
-
             ReserveIndex.add_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
         else:
-            with_attr error_message("Reserve asset is not flaged as borrowing"):
-                assert_not_equal(current_using_as_collateral, FALSE)
-            end
-            ReserveIndex.remove_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
+            ReserveIndex.remove_reserve_index(
+                USING_AS_COLLATERAL_TYPE, 0, user_address, reserve_index
+            )
         end
 
         UserConfiguration_using_as_collateral.write(
@@ -104,14 +86,21 @@ namespace UserConfiguration:
     func is_using_as_collateral_or_borrowing{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt, reserve_index : felt) -> (res : felt):
+        assert_not_zero(user_address)
+        assert_le(reserve_index, MAX_RESERVES_COUNT)
+
         let (res_col) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
+
         let (is_not_zero_col) = is_not_zero(res_col)
+
         if is_not_zero_col == TRUE:
             return (TRUE)
         end
 
         let (res_bor) = UserConfiguration_borrowing.read(user_address, reserve_index)
+
         let (is_not_zero_bor) = is_not_zero(res_bor)
+
         if is_not_zero_bor == TRUE:
             return (TRUE)
         end
@@ -125,7 +114,11 @@ namespace UserConfiguration:
     func is_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt
     ) -> (res : felt):
+        assert_not_zero(user_address)
+        assert_le(reserve_index, MAX_RESERVES_COUNT)
+
         let (res) = UserConfiguration_borrowing.read(user_address, reserve_index)
+
         return (res)
     end
     # @notice Validate a user has been using the reserve as collateral
@@ -135,7 +128,11 @@ namespace UserConfiguration:
     func is_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt
     ) -> (res : felt):
+        assert_not_zero(user_address)
+        assert_le(reserve_index, MAX_RESERVES_COUNT)
+
         let (res) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
+
         return (res)
     end
     # @notice Checks if a user has been supplying only one reserve as collateral
@@ -144,11 +141,10 @@ namespace UserConfiguration:
     func is_using_as_collateral_one{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt) -> (res : felt):
-        alloc_locals
-
         assert_not_zero(user_address)
 
         let (res) = ReserveIndex.is_only_one_element(USING_AS_COLLATERAL_TYPE, user_address)
+
         return (res)
     end
     # @notice Checks if a user has been supplying any reserve as collateral
@@ -162,7 +158,7 @@ namespace UserConfiguration:
         let (is_collateral_list_empty) = ReserveIndex.is_list_empty(
             USING_AS_COLLATERAL_TYPE, user_address
         )
-        if is_collateral_list_empty == 1:
+        if is_collateral_list_empty == TRUE:
             return (FALSE)
         else:
             return (TRUE)
@@ -190,7 +186,8 @@ namespace UserConfiguration:
         assert_not_zero(user_address)
 
         let (is_borrowing_list_empty) = ReserveIndex.is_list_empty(BORROWING_TYPE, user_address)
-        if is_borrowing_list_empty == 1:
+
+        if is_borrowing_list_empty == TRUE:
             return (FALSE)
         else:
             return (TRUE)
@@ -202,14 +199,16 @@ namespace UserConfiguration:
     func is_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (res : felt):
-        alloc_locals
+        assert_not_zero(user_address)
 
         let (is_borrowing_list_empty) = ReserveIndex.is_list_empty(BORROWING_TYPE, user_address)
+
         let (is_using_collateral_list_empty) = ReserveIndex.is_list_empty(
             USING_AS_COLLATERAL_TYPE, user_address
         )
 
         let bool_res = is_borrowing_list_empty + is_using_collateral_list_empty
+
         if bool_res == 2:
             return (TRUE)
         else:
@@ -225,9 +224,10 @@ namespace UserConfiguration:
     func get_isolation_mode_sate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt
     ) -> (bool : felt, asset_address : felt, ceilling : felt):
-        alloc_locals
+        assert_not_zero(user_address)
 
         let (is_one) = is_using_as_collateral_one(user_address)
+
         if is_one == FALSE:
             return (FALSE, 0, 0)
         end
@@ -250,12 +250,15 @@ namespace UserConfiguration:
     func get_siloed_borrowing_state{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(user_address : felt) -> (bool : felt, asset_address : felt):
+        assert_not_zero(user_address)
+
         let (is_one) = is_borrowing_one(user_address)
+
         if is_one == FALSE:
             return (FALSE, 0)
         end
 
-        let (asset_index) = get_first_asset_by_type(USING_AS_COLLATERAL_TYPE, user_address)
+        let (asset_index) = get_first_asset_by_type(BORROWING_TYPE, user_address)
         let (asset_address) = PoolStorage.reserves_list_read(asset_index)
         let (siloed_borrowing) = ReserveConfiguration.get_siloed_borrowing(asset_address)
         let (is_siloed_borrowing_not_zero) = is_not_zero(siloed_borrowing)
@@ -273,9 +276,10 @@ namespace UserConfiguration:
     func get_first_asset_by_type{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, type : felt
     ) -> (res : felt):
-        alloc_locals
+        assert_not_zero(user_address)
 
         let (res) = ReserveIndex.get_lowest_reserve_index(type, user_address)
+
         return (res)
     end
 end
