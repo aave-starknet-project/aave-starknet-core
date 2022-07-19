@@ -7,8 +7,6 @@ from contracts.protocol.libraries.configuration.reserve_index_operations import 
     BORROWING_TYPE,
     USING_AS_COLLATERAL_TYPE,
 )
-from contracts.protocol.libraries.configuration.reserve_configuration import ReserveConfiguration
-from contracts.protocol.pool.pool_storage import PoolStorage
 
 const TEST_ADDRESS = 4812950810879290
 const TEST_ADDRESS2 = 5832954280734189

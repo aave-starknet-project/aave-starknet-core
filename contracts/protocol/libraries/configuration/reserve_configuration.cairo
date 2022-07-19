@@ -4,78 +4,84 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le
 
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+from contracts.protocol.pool.pool_storage import PoolStorage
+from contracts.protocol.libraries.helpers.helpers import update_struct
+from contracts.protocol.libraries.types.data_types import DataTypes
 
-@storage_var
-func ReserveConfiguration_ltv(reserve_asset : felt) -> (value : felt):
-end
+from starkware.cairo.common.registers import get_fp_and_pc
+from starkware.cairo.common.alloc import alloc
 
-@storage_var
-func ReserveConfiguration_liquidation_threshold(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_ltv(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_liquidation_bonus(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_liquidation_threshold(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_decimals(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_liquidation_bonus(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_reserve_active(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_decimals(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_reserve_frozen(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_reserve_active(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_reserve_frozen(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_stable_rate_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_asset_paused(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_stable_rate_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_borrowable_in_isolation(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_asset_paused(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_siloed_borrowing(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_borrowable_in_isolation(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_reserve_factor(reserve_asset : felt) -> (boolean : felt):
-end
+# @storage_var
+# func ReserveConfiguration_siloed_borrowing(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_borrow_cap(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_reserve_factor(reserve_asset : felt) -> (boolean : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_supply_cap(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_borrow_cap(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_liquidation_protocol_fee(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_supply_cap(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_eMode_category(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_liquidation_protocol_fee(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_unbacked_mint_cap(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_eMode_category(reserve_asset : felt) -> (value : felt):
+# end
 
-@storage_var
-func ReserveConfiguration_debt_ceiling(reserve_asset : felt) -> (value : felt):
-end
+# @storage_var
+# func ReserveConfiguration_unbacked_mint_cap(reserve_asset : felt) -> (value : felt):
+# end
+
+# @storage_var
+# func ReserveConfiguration_debt_ceiling(reserve_asset : felt) -> (value : felt):
+# end
 
 const MAX_VALID_LTV = 65535
 const MAX_VALID_LIQUIDATION_THRESHOLD = 65535
@@ -99,10 +105,26 @@ namespace ReserveConfiguration:
     func set_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid ltv parameter for the reserve"):
             assert_le(value, MAX_VALID_LTV)
         end
-        ReserveConfiguration_ltv.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.ltv,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_ltv.write(reserve_asset, value)
         return ()
     end
 
@@ -111,7 +133,10 @@ namespace ReserveConfiguration:
     func get_ltv{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_ltv.read(reserve_asset)
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.ltv
+
         return (res)
     end
 
@@ -120,10 +145,25 @@ namespace ReserveConfiguration:
     func set_liquidation_threshold{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, value : felt):
+        alloc_locals
+
         with_attr error_message("Invalid liquidity threshold parameter for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_THRESHOLD)
         end
-        ReserveConfiguration_liquidation_threshold.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.liquidation_threshold,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
         return ()
     end
 
@@ -132,7 +172,10 @@ namespace ReserveConfiguration:
     func get_liquidation_threshold{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = ReserveConfiguration_liquidation_threshold.read(reserve_asset)
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.liquidation_threshold
+
         return (res)
     end
 
@@ -141,10 +184,26 @@ namespace ReserveConfiguration:
     func set_liquidation_bonus{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid liquidity bonus parameter for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_BONUS)
         end
-        ReserveConfiguration_liquidation_bonus.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.liquidation_bonus,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_liquidation_bonus.write(reserve_asset, value)
         return ()
     end
 
@@ -153,7 +212,12 @@ namespace ReserveConfiguration:
     func get_liquidation_bonus{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
+        # let (res) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.liquidation_bonus
+
         return (res)
     end
 
@@ -162,11 +226,26 @@ namespace ReserveConfiguration:
     func set_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message(
                 "Invalid decimals parameter of the underlying asset of the reserve"):
             assert_le(value, MAX_VALID_DECIMALS)
         end
-        ReserveConfiguration_decimals.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.decimals,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+        # ReserveConfiguration_decimals.write(reserve_asset, value)
         return ()
     end
 
@@ -175,7 +254,12 @@ namespace ReserveConfiguration:
     func get_decimals{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_decimals.read(reserve_asset)
+        # let (res) = ReserveConfiguration_decimals.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.decimals
+
         return (res)
     end
 
@@ -184,8 +268,24 @@ namespace ReserveConfiguration:
     func set_active{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, active : felt
     ):
+        alloc_locals
+
         BoolCompare.is_valid(active)
-        ReserveConfiguration_reserve_active.write(reserve_asset, active)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &active,
+            DataTypes.ReserveConfigurationMap.reserve_active,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_reserve_active.write(reserve_asset, active)
         return ()
     end
 
@@ -194,7 +294,12 @@ namespace ReserveConfiguration:
     func get_active{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_reserve_active.read(reserve_asset)
+        # let (res) = ReserveConfiguration_reserve_active.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.reserve_active
+
         return (res)
     end
 
@@ -203,8 +308,24 @@ namespace ReserveConfiguration:
     func set_frozen{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, frozen : felt
     ):
+        alloc_locals
+
         BoolCompare.is_valid(frozen)
-        ReserveConfiguration_reserve_frozen.write(reserve_asset, frozen)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &frozen,
+            DataTypes.ReserveConfigurationMap.reserve_frozen,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_reserve_frozen.write(reserve_asset, frozen)
         return ()
     end
 
@@ -213,7 +334,12 @@ namespace ReserveConfiguration:
     func get_frozen{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
+        # let (res) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.reserve_frozen
+
         return (res)
     end
 
@@ -222,8 +348,24 @@ namespace ReserveConfiguration:
     func set_paused{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, paused : felt
     ):
+        alloc_locals
+
         BoolCompare.is_valid(paused)
-        ReserveConfiguration_asset_paused.write(reserve_asset, paused)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &paused,
+            DataTypes.ReserveConfigurationMap.asset_paused,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_asset_paused.write(reserve_asset, paused)
         return ()
     end
 
@@ -232,7 +374,12 @@ namespace ReserveConfiguration:
     func get_paused{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_asset_paused.read(reserve_asset)
+        # let (res) = ReserveConfiguration_asset_paused.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.asset_paused
+
         return (res)
     end
 
@@ -245,8 +392,24 @@ namespace ReserveConfiguration:
     func set_borrowable_in_isolation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, borrowable : felt):
+        alloc_locals
+
         BoolCompare.is_valid(borrowable)
-        ReserveConfiguration_borrowable_in_isolation.write(reserve_asset, borrowable)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &borrowable,
+            DataTypes.ReserveConfigurationMap.borrowable_in_isolation,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_borrowable_in_isolation.write(reserve_asset, borrowable)
         return ()
     end
 
@@ -259,7 +422,12 @@ namespace ReserveConfiguration:
     func get_borrowable_in_isolation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = ReserveConfiguration_borrowable_in_isolation.read(reserve_asset)
+        # let (res) = ReserveConfiguration_borrowable_in_isolation.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.borrowable_in_isolation
+
         return (res)
     end
 
@@ -269,8 +437,24 @@ namespace ReserveConfiguration:
     func set_siloed_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, siloed : felt
     ):
+        alloc_locals
+
         BoolCompare.is_valid(siloed)
-        ReserveConfiguration_siloed_borrowing.write(reserve_asset, siloed)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &siloed,
+            DataTypes.ReserveConfigurationMap.siloed_borrowing,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_siloed_borrowing.write(reserve_asset, siloed)
         return ()
     end
 
@@ -280,7 +464,12 @@ namespace ReserveConfiguration:
     func get_siloed_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_siloed_borrowing.read(reserve_asset)
+        # let (res) = ReserveConfiguration_siloed_borrowing.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.siloed_borrowing
+
         return (res)
     end
 
@@ -289,8 +478,24 @@ namespace ReserveConfiguration:
     func set_borrowing_enabled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, enabled : felt
     ):
+        alloc_locals
+
         BoolCompare.is_valid(enabled)
-        ReserveConfiguration_borrowing_enabled.write(reserve_asset, enabled)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &enabled,
+            DataTypes.ReserveConfigurationMap.borrowing_enabled,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
 
@@ -299,7 +504,12 @@ namespace ReserveConfiguration:
     func get_borrowing_enabled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
+        # let (res) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.borrowing_enabled
+
         return (res)
     end
 
@@ -308,8 +518,24 @@ namespace ReserveConfiguration:
     func set_stable_rate_borrowing_enabled{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, enabled : felt):
+        alloc_locals
+
         BoolCompare.is_valid(enabled)
-        ReserveConfiguration_stable_rate_borrowing_enabled.write(reserve_asset, enabled)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &enabled,
+            DataTypes.ReserveConfigurationMap.stable_rate_borrowing_enabled,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_stable_rate_borrowing_enabled.write(reserve_asset, enabled)
         return ()
     end
 
@@ -318,7 +544,12 @@ namespace ReserveConfiguration:
     func get_stable_rate_borrowing_enabled{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
+        # let (res) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.stable_rate_borrowing_enabled
+
         return (res)
     end
 
@@ -327,10 +558,26 @@ namespace ReserveConfiguration:
     func set_reserve_factor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid reserve factor parameter for the reserve"):
             assert_le(value, MAX_VALID_RESERVE_FACTOR)
         end
-        ReserveConfiguration_reserve_factor.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.reserve_factor,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_reserve_factor.write(reserve_asset, value)
         return ()
     end
 
@@ -339,7 +586,12 @@ namespace ReserveConfiguration:
     func get_reserve_factor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_reserve_factor.read(reserve_asset)
+        # let (res) = ReserveConfiguration_reserve_factor.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.reserve_factor
+
         return (res)
     end
 
@@ -349,10 +601,26 @@ namespace ReserveConfiguration:
     func set_borrow_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid borrow cap for the reserve"):
             assert_le(value, MAX_VALID_BORROW_CAP)
         end
-        ReserveConfiguration_borrow_cap.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.borrow_cap,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_borrow_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -362,7 +630,12 @@ namespace ReserveConfiguration:
     func get_borrow_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_borrow_cap.read(reserve_asset)
+        # let (res) = ReserveConfiguration_borrow_cap.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.borrow_cap
+
         return (res)
     end
 
@@ -372,10 +645,26 @@ namespace ReserveConfiguration:
     func set_supply_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid supply cap for the reserve"):
             assert_le(value, MAX_VALID_SUPPLY_CAP)
         end
-        ReserveConfiguration_supply_cap.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.supply_cap,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_supply_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -385,7 +674,12 @@ namespace ReserveConfiguration:
     func get_supply_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_supply_cap.read(reserve_asset)
+        # let (res) = ReserveConfiguration_supply_cap.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.supply_cap
+
         return (res)
     end
 
@@ -394,10 +688,26 @@ namespace ReserveConfiguration:
     func set_debt_ceiling{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, ceiling : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid debt ceiling for the reserve"):
             assert_le(ceiling, MAX_VALID_DEBT_CEILING)
         end
-        ReserveConfiguration_debt_ceiling.write(reserve_asset, ceiling)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &ceiling,
+            DataTypes.ReserveConfigurationMap.debt_ceiling,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_debt_ceiling.write(reserve_asset, ceiling)
         return ()
     end
 
@@ -406,7 +716,12 @@ namespace ReserveConfiguration:
     func get_debt_ceiling{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_debt_ceiling.read(reserve_asset)
+        # let (res) = ReserveConfiguration_debt_ceiling.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.debt_ceiling
+
         return (res)
     end
 
@@ -415,10 +730,26 @@ namespace ReserveConfiguration:
     func set_liquidation_protocol_fee{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt, value : felt):
+        alloc_locals
+
         with_attr error_message("Invalid liquidation protocol fee for the reserve"):
             assert_le(value, MAX_VALID_LIQUIDATION_PROTOCOL_FEE)
         end
-        ReserveConfiguration_liquidation_protocol_fee.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.liquidation_protocol_fee,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_liquidation_protocol_fee.write(reserve_asset, value)
         return ()
     end
 
@@ -427,7 +758,12 @@ namespace ReserveConfiguration:
     func get_liquidation_protocol_fee{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        let (res) = ReserveConfiguration_liquidation_protocol_fee.read(reserve_asset)
+        # let (res) = ReserveConfiguration_liquidation_protocol_fee.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.liquidation_protocol_fee
+
         return (res)
     end
 
@@ -436,10 +772,26 @@ namespace ReserveConfiguration:
     func set_unbacked_mint_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, value : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid unbacked mint cap for the reserve"):
             assert_le(value, MAX_VALID_UNBACKED_MINT_CAP)
         end
-        ReserveConfiguration_unbacked_mint_cap.write(reserve_asset, value)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &value,
+            DataTypes.ReserveConfigurationMap.unbacked_mint_cap,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_unbacked_mint_cap.write(reserve_asset, value)
         return ()
     end
 
@@ -448,7 +800,12 @@ namespace ReserveConfiguration:
     func get_unbacked_mint_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_unbacked_mint_cap.read(reserve_asset)
+        # let (res) = ReserveConfiguration_unbacked_mint_cap.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.unbacked_mint_cap
+
         return (res)
     end
 
@@ -457,10 +814,26 @@ namespace ReserveConfiguration:
     func set_eMode_category{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt, category : felt
     ):
+        alloc_locals
+
         with_attr error_message("Invalid eMode category for the reserve"):
             assert_le(category, MAX_VALID_EMODE_CATEGORY)
         end
-        ReserveConfiguration_eMode_category.write(reserve_asset, category)
+
+        let (__fp__, _) = get_fp_and_pc()
+
+        let (local current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let (local updated_reserves_config : DataTypes.ReserveConfigurationMap*) = update_struct(
+            &current_reserves_config,
+            DataTypes.ReserveConfigurationMap.SIZE,
+            &category,
+            DataTypes.ReserveConfigurationMap.eMode_category,
+        )
+
+        PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
+
+        # ReserveConfiguration_eMode_category.write(reserve_asset, category)
         return ()
     end
 
@@ -469,7 +842,12 @@ namespace ReserveConfiguration:
     func get_eMode_category{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        let (res) = ReserveConfiguration_eMode_category.read(reserve_asset)
+        # let (res) = ReserveConfiguration_eMode_category.read(reserve_asset)
+
+        let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let res = current_reserves_config.eMode_category
+
         return (res)
     end
 
@@ -488,13 +866,13 @@ namespace ReserveConfiguration:
         is_stable_rate_borrowing_enabled : felt,
         is_paused : felt,
     ):
-        let (is_active) = ReserveConfiguration_reserve_active.read(reserve_asset)
-        let (is_frozen) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
-        let (is_borrowing_enabled) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
-        let (
-            is_stable_rate_borrowing_enabled
-        ) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
-        let (is_paused) = ReserveConfiguration_asset_paused.read(reserve_asset)
+        let (reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let is_active = reserves_config.reserve_active
+        let is_frozen = reserves_config.reserve_frozen
+        let is_borrowing_enabled = reserves_config.borrowing_enabled
+        let is_stable_rate_borrowing_enabled = reserves_config.stable_rate_borrowing_enabled
+        let is_paused = reserves_config.asset_paused
 
         return (
             is_active, is_frozen, is_borrowing_enabled, is_stable_rate_borrowing_enabled, is_paused
@@ -518,14 +896,14 @@ namespace ReserveConfiguration:
         reserve_factor_value : felt,
         eMode_category_value : felt,
     ):
-        let (ltv_value) = ReserveConfiguration_ltv.read(reserve_asset)
-        let (liquidation_threshold_value) = ReserveConfiguration_liquidation_threshold.read(
-            reserve_asset
-        )
-        let (liquidation_bonus_value) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
-        let (decimals_value) = ReserveConfiguration_decimals.read(reserve_asset)
-        let (reserve_factor_value) = ReserveConfiguration_reserve_factor.read(reserve_asset)
-        let (eMode_category_value) = ReserveConfiguration_eMode_category.read(reserve_asset)
+        let (reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let ltv_value = reserves_config.ltv
+        let liquidation_threshold_value = reserves_config.liquidation_threshold
+        let liquidation_bonus_value = reserves_config.liquidation_bonus
+        let decimals_value = reserves_config.decimals
+        let reserve_factor_value = reserves_config.reserve_factor
+        let eMode_category_value = reserves_config.eMode_category
         return (
             ltv_value,
             liquidation_threshold_value,
@@ -542,8 +920,10 @@ namespace ReserveConfiguration:
     func get_caps{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (borrow_cap : felt, supply_cap : felt):
-        let (borrow_cap_value) = ReserveConfiguration_borrow_cap.read(reserve_asset)
-        let (supply_cap_value) = ReserveConfiguration_supply_cap.read(reserve_asset)
+        let (reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
+
+        let borrow_cap_value = reserves_config.borrow_cap
+        let supply_cap_value = reserves_config.supply_cap
         return (borrow_cap_value, supply_cap_value)
     end
 end

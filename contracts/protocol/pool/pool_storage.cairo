@@ -16,9 +16,15 @@ end
 func reserves(asset : felt) -> (reserve_data : DataTypes.ReserveData):
 end
 
+@storage_var
+func reserves_config(asset : felt) -> (res_config : DataTypes.ReserveConfigurationMap):
+end
+
 # Map of users address and their configuration data (user_address=> userConfiguration)
 @storage_var
-func users_config(user_address : felt) -> (user_config : DataTypes.UserConfigurationMap):
+func users_config(user_address : felt, reserve_index : felt) -> (
+    user_config : DataTypes.UserConfigurationMap
+):
 end
 
 # List of reserves as a map (reserve_id => address).
@@ -82,10 +88,17 @@ namespace PoolStorage:
         return (reserve)
     end
 
+    func reserves_config_read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt
+    ) -> (res_config : DataTypes.ReserveConfigurationMap):
+        let (res) = reserves_config.read(address)
+        return (res)
+    end
+
     func users_config_read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt
+        user_address : felt, reserve_index : felt
     ) -> (user_config : DataTypes.UserConfigurationMap):
-        let (user_config) = users_config.read(user_address)
+        let (user_config) = users_config.read(user_address, reserve_index)
         return (user_config)
     end
 
@@ -162,10 +175,17 @@ namespace PoolStorage:
         return ()
     end
 
-    func users_config_write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, user_config : DataTypes.UserConfigurationMap
+    func reserves_config_write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt, res_config : DataTypes.ReserveConfigurationMap
     ):
-        users_config.write(user_address, user_config)
+        reserves_config.write(address, res_config)
+        return ()
+    end
+
+    func users_config_write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user_address : felt, reserve_index : felt, user_config : DataTypes.UserConfigurationMap
+    ):
+        users_config.write(user_address, reserve_index, user_config)
         return ()
     end
 

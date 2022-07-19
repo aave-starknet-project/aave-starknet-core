@@ -9,6 +9,7 @@ from contracts.protocol.libraries.configuration.reserve_index_operations import 
     USING_AS_COLLATERAL_TYPE,
 )
 from contracts.protocol.pool.pool_storage import PoolStorage
+from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.configuration.reserve_configuration import ReserveConfiguration
 from starkware.cairo.common.math import (
     assert_lt,
@@ -20,14 +21,14 @@ from starkware.cairo.common.math import (
 from contracts.protocol.libraries.helpers.helpers import is_zero
 # @notice Stores which reserves user is borrowing
 # @dev using prefix UserConfiguration to prevent storage variable clashing
-@storage_var
-func UserConfiguration_borrowing(user_address : felt, reserve_id : felt) -> (res : felt):
-end
+# @storage_var
+# func UserConfiguration_borrowing(user_address : felt, reserve_id : felt) -> (res : felt):
+# end
 # @notice Stores which reserves user is using as collateral
 # @dev using prefix UserConfiguration to prevent storage variable clashing
-@storage_var
-func UserConfiguration_using_as_collateral(user_address : felt, reserve_id : felt) -> (res : felt):
-end
+# @storage_var
+# func UserConfiguration_using_as_collateral(user_address : felt, reserve_id : felt) -> (res : felt):
+# end
 
 namespace UserConfiguration:
     const MAX_RESERVES_COUNT = 128
@@ -39,17 +40,26 @@ namespace UserConfiguration:
     func set_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user_address : felt, reserve_index : felt, borrowing : felt
     ):
+        alloc_locals
+
         assert_lt(borrowing, 2)  # only TURE=1/FALSE=0 values
         assert_le(reserve_index, MAX_RESERVES_COUNT)
         assert_not_zero(user_address)
+
+        let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+
+        let new_user_config = DataTypes.UserConfigurationMap(
+            borrowing=borrowing, using_as_collateral=current_user_config.using_as_collateral
+        )
+
+        PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
 
         if borrowing == TRUE:
             ReserveIndex.add_reserve_index(BORROWING_TYPE, user_address, reserve_index)
         else:
             ReserveIndex.remove_reserve_index(BORROWING_TYPE, 0, user_address, reserve_index)
         end
-
-        UserConfiguration_borrowing.write(user_address, reserve_index, borrowing)
+        # UserConfiguration_borrowing.write(user_address, reserve_index, borrowing)
 
         return ()
     end
@@ -65,6 +75,14 @@ namespace UserConfiguration:
         assert_le(reserve_index, MAX_RESERVES_COUNT)
         assert_not_zero(user_address)
 
+        let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+
+        let new_user_config = DataTypes.UserConfigurationMap(
+            borrowing=current_user_config.borrowing, using_as_collateral=using_as_collateral
+        )
+
+        PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
+
         if using_as_collateral == TRUE:
             ReserveIndex.add_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
         else:
@@ -73,9 +91,9 @@ namespace UserConfiguration:
             )
         end
 
-        UserConfiguration_using_as_collateral.write(
-            user_address, reserve_index, using_as_collateral
-        )
+        # UserConfiguration_using_as_collateral.write(
+        #     user_address, reserve_index, using_as_collateral
+        # )
 
         return ()
     end
@@ -89,7 +107,8 @@ namespace UserConfiguration:
         assert_not_zero(user_address)
         assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (res_col) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
+        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        let res_col = user_config.using_as_collateral
 
         let (is_not_zero_col) = is_not_zero(res_col)
 
@@ -97,7 +116,7 @@ namespace UserConfiguration:
             return (TRUE)
         end
 
-        let (res_bor) = UserConfiguration_borrowing.read(user_address, reserve_index)
+        let res_bor = user_config.borrowing
 
         let (is_not_zero_bor) = is_not_zero(res_bor)
 
@@ -117,7 +136,9 @@ namespace UserConfiguration:
         assert_not_zero(user_address)
         assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (res) = UserConfiguration_borrowing.read(user_address, reserve_index)
+        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+
+        let res = user_config.borrowing
 
         return (res)
     end
@@ -131,7 +152,9 @@ namespace UserConfiguration:
         assert_not_zero(user_address)
         assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (res) = UserConfiguration_using_as_collateral.read(user_address, reserve_index)
+        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+
+        let res = user_config.using_as_collateral
 
         return (res)
     end
@@ -249,7 +272,7 @@ namespace UserConfiguration:
     # @return The address of the only borrowed asset
     func get_siloed_borrowing_state{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(user_address : felt) -> (bool : felt, asset_address : felt):
+    }(user_address : felt, reserves_list : felt*) -> (bool : felt, asset_address : felt):
         assert_not_zero(user_address)
 
         let (is_one) = is_borrowing_one(user_address)
@@ -259,7 +282,7 @@ namespace UserConfiguration:
         end
 
         let (asset_index) = get_first_asset_by_type(BORROWING_TYPE, user_address)
-        let (asset_address) = PoolStorage.reserves_list_read(asset_index)
+        let asset_address = [reserves_list + asset_index]
         let (siloed_borrowing) = ReserveConfiguration.get_siloed_borrowing(asset_address)
         let (is_siloed_borrowing_not_zero) = is_not_zero(siloed_borrowing)
 
