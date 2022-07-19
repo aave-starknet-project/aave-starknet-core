@@ -1,3 +1,5 @@
+from contracts.protocol.libraries.types.data_types import DataTypes
+
 const UNDEPLOYED_RESERVE = 29871350785143987
 const USER_1 = 011235813
 const USER_2 = 314159265

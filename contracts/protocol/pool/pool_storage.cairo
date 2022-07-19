@@ -84,8 +84,8 @@ namespace PoolStorage:
     func reserves_read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         address : felt
     ) -> (reserve_data : DataTypes.ReserveData):
-        let (reserve) = reserves.read(address)
-        return (reserve)
+        let (reserve_data) = reserves.read(address)
+        return (reserve_data)
     end
 
     func reserves_config_read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

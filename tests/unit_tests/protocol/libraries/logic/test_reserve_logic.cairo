@@ -10,9 +10,12 @@ from tests.utils.constants import MOCK_A_TOKEN_1, MOCK_TOKEN_1, MOCK_TOKEN_2, BA
 @view
 func test_init{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     let (new_reserve) = ReserveLogic.init(
-        DataTypes.ReserveData(0, 0, 0, 0, 0), MOCK_A_TOKEN_1, MOCK_TOKEN_1, MOCK_TOKEN_2
+        DataTypes.ReserveData(0, 0, 0, 0, 0, DataTypes.ReserveConfigurationMap(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+        MOCK_A_TOKEN_1,
+        MOCK_TOKEN_1,
+        MOCK_TOKEN_2,
     )
-    assert new_reserve = DataTypes.ReserveData(0, MOCK_A_TOKEN_1, MOCK_TOKEN_1, MOCK_TOKEN_2, BASE_LIQUIDITY_INDEX)
+    assert new_reserve = DataTypes.ReserveData(0, MOCK_A_TOKEN_1, MOCK_TOKEN_1, MOCK_TOKEN_2, BASE_LIQUIDITY_INDEX, DataTypes.ReserveConfigurationMap(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     return ()
 end
 
@@ -21,6 +24,11 @@ func test_init_already_initialized{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
     %{ expect_revert() %}
-    let (new_reserve) = ReserveLogic.init(DataTypes.ReserveData(0, 10, 11, 12, 0), MOCK_A_TOKEN_1)
+    let (new_reserve) = ReserveLogic.init(
+        DataTypes.ReserveData(0, 10, 11, 12, 0, DataTypes.ReserveConfigurationMap(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+        MOCK_A_TOKEN_1,
+        MOCK_TOKEN_1,
+        MOCK_TOKEN_2,
+    )
     return ()
 end

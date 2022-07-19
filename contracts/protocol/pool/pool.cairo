@@ -216,10 +216,10 @@ end
 # @view
 # func get_configuration{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 #     asset : felt
-# ) -> (reserve_config : DataTypes.ReserveConfigurationMap):
+# ) -> (config : DataTypes.ReserveConfigurationMap):
 #     let (reserve) = PoolStorage.reserves_read(asset)
-#     let (reserve_config) = reserve.configuration
-#     return (reserve_config)
+#     let (config) = reserve.configuration
+#     return (config)
 # end
 
 @view
