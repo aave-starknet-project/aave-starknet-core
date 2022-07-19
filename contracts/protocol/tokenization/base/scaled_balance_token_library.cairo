@@ -9,7 +9,10 @@ from contracts.protocol.pool.pool_storage import PoolStorage
 from starkware.cairo.common.math import assert_le_felt, assert_nn, assert_not_zero
 from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.math.uint_128 import Uint128
-from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
+from contracts.protocol.tokenization.base.incentivized_erc20_library import (
+    IncentivizedERC20,
+    MintableIncentivizedERC20,
+)
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.libraries.math.wad_ray_math import Ray, ray_sub, ray_mul, ray_div
 
@@ -32,38 +35,32 @@ namespace ScaledBalanceTokenBase:
 
     func _mint_scaled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         caller : felt, onBehalfOf : felt, amount : Uint256, index : Uint256
-    )->(success:felt):
-
+    ) -> (success : felt):
         alloc_locals
         let amount_ray = Ray(amount)
         let index_ray = Ray(index)
         let (amount_scaled) = ray_div(amount_ray, index_ray)
 
         let (scaled_balance) = IncentivizedERC20.balance_of(onBehalfOf)
-        let (scaled_balance_256)= Uint128.to_uint_256(scaled_balance)
+        let (scaled_balance_256) = Uint128.to_uint_256(scaled_balance)
         let scaled_balance_ray = Ray(scaled_balance_256)
 
         let (current_user_state) = IncentivizedERC20.get_user_state(onBehalfOf)
-        let (additionalData_256)= Uint128.to_uint_256(current_user_state.additionalData)
+        let (additionalData_256) = Uint128.to_uint_256(current_user_state.additionalData)
         let additionalData_ray = Ray(additionalData_256)
 
-        let (newBalance)=ray_mul(scaled_balance_ray, index_ray)
-        let (oldBalance)=ray_mul(scaled_balance_ray, additionalData_ray)
-        let (balance_increase) = ray_sub(
-            newBalance, oldBalance
-        )
+        let (newBalance) = ray_mul(scaled_balance_ray, index_ray)
+        let (oldBalance) = ray_mul(scaled_balance_ray, additionalData_ray)
+        let (balance_increase) = ray_sub(newBalance, oldBalance)
 
         with_attr error_message("invalid mint amount"):
             let (is_zero) = uint256_eq(amount_scaled.ray, Uint256(0, 0))
             assert is_zero = FALSE
         end
 
-        
-
         IncentivizedERC20.set_user_state(
             onBehalfOf, DataTypes.UserState(current_user_state.balance, index.low)
         )
-
 
         MintableIncentivizedERC20._mint(onBehalfOf, amount_scaled.ray.low)
         # TODO: emit transfer and mint events below
@@ -86,42 +83,37 @@ namespace ScaledBalanceTokenBase:
     func _burn_scaled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         user : felt, target : felt, amount : Uint256, index : Uint256
     ):
-
         alloc_locals
         let amount_ray = Ray(amount)
         let index_ray = Ray(index)
         let (amount_scaled) = ray_div(amount_ray, index_ray)
 
         let (scaled_balance) = IncentivizedERC20.balance_of(user)
-        let (scaled_balance_256)= Uint128.to_uint_256(scaled_balance)
+        let (scaled_balance_256) = Uint128.to_uint_256(scaled_balance)
         let scaled_balance_ray = Ray(scaled_balance_256)
 
         let (current_user_state) = IncentivizedERC20.get_user_state(user)
-        let (additionalData_256)= Uint128.to_uint_256(current_user_state.additionalData)
+        let (additionalData_256) = Uint128.to_uint_256(current_user_state.additionalData)
         let additionalData_ray = Ray(additionalData_256)
 
-        let (newBalance)=ray_mul(scaled_balance_ray, index_ray)
-        let (oldBalance)=ray_mul(scaled_balance_ray, additionalData_ray)
-        let (balance_increase) = ray_sub(
-            newBalance, oldBalance
-        )
+        let (newBalance) = ray_mul(scaled_balance_ray, index_ray)
+        let (oldBalance) = ray_mul(scaled_balance_ray, additionalData_ray)
+        let (balance_increase) = ray_sub(newBalance, oldBalance)
 
         with_attr error_message("invalid mint amount"):
             let (is_zero) = uint256_eq(amount_scaled.ray, Uint256(0, 0))
             assert is_zero = FALSE
         end
-        
-        
+
         IncentivizedERC20.set_user_state(
             user, DataTypes.UserState(current_user_state.balance, index.low)
         )
-
 
         MintableIncentivizedERC20._burn(user, amount_scaled.ray.low)
         # emit transfer and mint events below
         let (amount_is_lt_balance_increase) = uint256_lt(amount, balance_increase.ray)
         if amount_is_lt_balance_increase == 1:
-            #@Todo: is the subtraction logic correct?
+            # @Todo: is the subtraction logic correct?
             let (amount_to_mint) = uint256_sub(balance_increase.ray, amount)
             # TODO: emit events
         else:

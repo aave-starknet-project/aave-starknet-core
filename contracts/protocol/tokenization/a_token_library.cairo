@@ -13,7 +13,10 @@ from contracts.interfaces.i_incentivized_erc20 import IIncentivizedERC20
 from contracts.interfaces.i_pool import IPool
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.math.wad_ray_math import ray_mul, ray_div, Ray
-from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
+from contracts.protocol.tokenization.base.incentivized_erc20_library import (
+    IncentivizedERC20,
+    MintableIncentivizedERC20,
+)
 from contracts.protocol.tokenization.base.scaled_balance_token_library import ScaledBalanceTokenBase
 from contracts.protocol.libraries.math.uint_128 import Uint128
 
@@ -53,16 +56,15 @@ end
 func _underlying_asset() -> (res : felt):
 end
 
-#@Todo: Could introduce a getter in pool to get this variable to AToken?
+# @Todo: Could introduce a getter in pool to get this variable to AToken?
 # @storage_var
 # func _pool() -> (res : felt):
 # end
 
-
 namespace AToken:
     # Authorization
 
-    #@Todo: modifiers to be imported from IncentivizedERC20
+    # @Todo: modifiers to be imported from IncentivizedERC20
     func assert_only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         alloc_locals
         let (caller_address) = get_caller_address()
@@ -90,8 +92,7 @@ namespace AToken:
         a_token_name : felt,
         a_token_symbol : felt,
     ):
-        IncentivizedERC20.initialize(pool,a_token_name, a_token_symbol, a_token_decimals)
-
+        IncentivizedERC20.initialize(pool, a_token_name, a_token_symbol, a_token_decimals)
 
         with_attr error_message("Pool addresses do not match"):
             let (original_pool) = IncentivizedERC20.get_pool()
@@ -113,30 +114,25 @@ namespace AToken:
         return ()
     end
 
-    func mint{
-            syscall_ptr : felt*,
-            pedersen_ptr : HashBuiltin*,
-            range_check_ptr
-        }(caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256) -> (success: felt):
+    func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        caller : felt, on_behalf_of : felt, amount : Uint256, index : Uint256
+    ) -> (success : felt):
         alloc_locals
         IncentivizedERC20.assert_only_pool()
-        let (success)=ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
+        let (success) = ScaledBalanceTokenBase._mint_scaled(caller, on_behalf_of, amount, index)
         return (success)
     end
 
-
-    func burn{
-            syscall_ptr : felt*,
-            pedersen_ptr : HashBuiltin*,
-            range_check_ptr
-        }(from_ : felt, receiver_of_underlying : felt, amount : Uint256, index : Uint256):
+    func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        from_ : felt, receiver_of_underlying : felt, amount : Uint256, index : Uint256
+    ):
         alloc_locals
         let (contract_address) = get_contract_address()
-        let (underlying)=_underlying_asset.read()
+        let (underlying) = _underlying_asset.read()
 
         IncentivizedERC20.assert_only_pool()
         ScaledBalanceTokenBase._burn_scaled(from_, receiver_of_underlying, amount, index)
-        
+
         local syscall_ptr : felt* = syscall_ptr
         if receiver_of_underlying != contract_address:
             IIncentivizedERC20.transfer(underlying, receiver_of_underlying, amount)
@@ -152,21 +148,22 @@ namespace AToken:
     end
 
     func mint_to_treasury{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    amount : Uint256, index : Uint256):
+        amount : Uint256, index : Uint256
+    ):
         alloc_locals
 
         IncentivizedERC20.assert_only_pool()
 
-        let (is_equal)= uint256_eq(amount,Uint256(0,0))
+        let (is_equal) = uint256_eq(amount, Uint256(0, 0))
 
         if is_equal == TRUE:
             return ()
         end
 
-        let (pool)= POOL()
-        let (treasury)= _treasury.read()
+        let (pool) = POOL()
+        let (treasury) = _treasury.read()
         ScaledBalanceTokenBase._mint_scaled(pool, treasury, amount, index)
-        return()
+        return ()
     end
 
     func transfer_on_liquidation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -191,17 +188,18 @@ namespace AToken:
         return (balance.ray)
     end
 
-    func total_supply{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }() -> (supply : felt):
+    func total_supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        supply : felt
+    ):
         let (current_supply_scaled) = IncentivizedERC20.total_supply()
-        let pool= POOL()
+        let pool = POOL()
         if current_supply_scaled == 0:
             return (supply=0)
         end
-        let (supply) = ray_mul(current_supply_scaled, IPool.get_reserve_normalized_income(pool, _underlying_asset.read()))
+        let (supply) = ray_mul(
+            current_supply_scaled,
+            IPool.get_reserve_normalized_income(pool, _underlying_asset.read()),
+        )
         return (supply)
     end
 
@@ -220,7 +218,7 @@ namespace AToken:
 
     # IncentivizedERC20.assert_only_pool()
 
-    #     return ()
+    # return ()
     # end
 
     # func permit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
@@ -271,8 +269,6 @@ namespace AToken:
 
     # Internals
 
-
-    
     func _transfer_base{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_ : felt, to : felt, amount : Uint256, validate : felt
     ):
@@ -294,11 +290,10 @@ namespace AToken:
 
         let (amount_over_index) = ray_div(Ray(amount), Ray(index))
 
-
         # IncentivizedERC20._transfer(from_, to, amount_over_index.ray)
 
-        #calls the external function accepting Uint256 instead
-        #@Todo: will the 'from_ still be the same?
+        # calls the external function accepting Uint256 instead
+        # @Todo: will the 'from_ still be the same?
         IncentivizedERC20.transfer(to, amount_over_index.ray)
 
         if validate == TRUE:

@@ -2,16 +2,15 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.starknet.common.syscalls import get_caller_address
-from contracts.interfaces.i_pool import IPool
 from starkware.cairo.common.math import assert_le_felt, assert_nn
+from starkware.starknet.common.syscalls import get_caller_address
 
 from openzeppelin.security.safemath import SafeUint256
 
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
-from contracts.protocol.libraries.helpers.uint_128 import Uint128
-
 from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.interfaces.i_pool import IPool
+from contracts.protocol.libraries.math.uint_128 import Uint128
 
 const MAX_UINT128 = 2 ** 128 - 1
 

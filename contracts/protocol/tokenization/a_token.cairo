@@ -6,7 +6,10 @@ from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from openzeppelin.token.erc20.library import ERC20
-from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20, MintableIncentivizedERC20
+from contracts.protocol.tokenization.base.incentivized_erc20_library import (
+    IncentivizedERC20,
+    MintableIncentivizedERC20,
+)
 from contracts.protocol.tokenization.base.scaled_balance_token_library import ScaledBalanceTokenBase
 from contracts.protocol.tokenization.a_token_library import AToken
 
@@ -76,7 +79,6 @@ end
 #     return (balance)
 # end
 
-
 # @view
 # func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 #     owner : felt, spender : felt
@@ -85,8 +87,7 @@ end
 #     return (remaining)
 # end
 
-
-#Return felt
+# Return felt
 @view
 func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     account : felt
@@ -95,7 +96,7 @@ func balanceOf{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (balance)
 end
 
-#Return felt
+# Return felt
 @view
 func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owner : felt, spender : felt
@@ -104,8 +105,6 @@ func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (remaining)
 end
 
-
-
 @view
 func RESERVE_TREASURY_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (res : felt):
@@ -113,16 +112,12 @@ func RESERVE_TREASURY_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     return (res)
 end
 
-
-
-
 @view
 func UNDERLYING_ASSET_ADDRESS{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (res : felt):
     let (res) = AToken.UNDERLYING_ASSET_ADDRESS()
     return (res)
 end
-
 
 @view
 func POOL{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
@@ -183,16 +178,12 @@ func mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 end
 
 @external
-func burn{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256) -> (success: felt):
+func burn{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    from_ : felt, receiver_or_underlying : felt, amount : Uint256, index : Uint256
+) -> (success : felt):
     AToken.burn(from_, receiver_or_underlying, amount, index)
     return (TRUE)
 end
-
-
 
 # TODO: remove this once AToken.burn works
 # @external
@@ -206,14 +197,10 @@ end
 #     return (TRUE)
 # end
 
-
-
 @external
-func mint_to_treasury{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(amount : Uint256, index : Uint256) -> (success: felt):
+func mint_to_treasury{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    amount : Uint256, index : Uint256
+) -> (success : felt):
     AToken.mint_to_treasury(amount, index)
     return (TRUE)
 end
