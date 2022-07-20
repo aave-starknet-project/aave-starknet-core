@@ -69,7 +69,7 @@ namespace AToken:
         let (caller_address) = get_caller_address()
         let (pool) = POOL()
         with_attr error_message("Caller address should be {pool}"):
-            assert caller_address = pool
+            assert pool = caller_address
         end
         return ()
     end
