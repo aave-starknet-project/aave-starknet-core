@@ -22,112 +22,72 @@ const TREASURY = 44
 const INCENTIVES_CONTROLLER = 55
 
 @view
-func __setup__{syscall_ptr : felt*, range_check_ptr}():
-    %{
-        context.pool = deploy_contract("./contracts/protocol/pool/pool.cairo", [0]).contract_address
-        context.token = deploy_contract("./lib/cairo_contracts/src/openzeppelin/token/erc20/ERC20.cairo", [ids.NAME, ids.SYMBOL, ids.DECIMALS, 1000, 0, ids.PRANK_USER_1]).contract_address
-        context.a_token = deploy_contract("./contracts/protocol/tokenization/a_token.cairo", [context.pool, ids.TREASURY, ids.UNDERLYING_ASSET, ids.INCENTIVES_CONTROLLER, ids.DECIMALS, ids.NAME+1, ids.SYMBOL+1]).contract_address
-    %}
+func test_initializer{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
+    let (asset_before) = AToken.UNDERLYING_ASSET_ADDRESS()
+    assert asset_before = 0
+    let (pool_before) = AToken.POOL()
+    assert pool_before = 0
+
+    AToken.initializer(
+        POOL, TREASURY, UNDERLYING_ASSET, INCENTIVES_CONTROLLER, DECIMALS, NAME, SYMBOL
+    )
+
+    let (asset_after) = AToken.UNDERLYING_ASSET_ADDRESS()
+    assert asset_after = UNDERLYING_ASSET
+    let (pool_after) = AToken.POOL()
+    assert pool_after = POOL
     return ()
 end
 
-func get_contract_addresses() -> (
-    pool_address : felt, token_address : felt, a_token_address : felt
-):
-    tempvar pool
-    tempvar token
-    tempvar a_token
-    %{ ids.pool = context.pool %}
-    %{ ids.token = context.token %}
-    %{ ids.a_token = context.a_token %}
-    return (pool, token, a_token)
+@view
+func test_constructor{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
+    AToken.initializer(
+        POOL, TREASURY, UNDERLYING_ASSET, INCENTIVES_CONTROLLER, DECIMALS, NAME, SYMBOL
+    )
+    let (asset_after) = AToken.UNDERLYING_ASSET_ADDRESS()
+    assert asset_after = UNDERLYING_ASSET
+    let (pool_after) = AToken.POOL()
+    assert pool_after = POOL
+    return ()
 end
 
-# @view
-# func test_initializer{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
-#     # Only this function is still using references to AToken
-#     let (asset_before) = AToken.UNDERLYING_ASSET_ADDRESS()
-#     assert asset_before = 0
-#     let (pool_before) = AToken.POOL()
-#     assert pool_before = 0
-
-# AToken.initializer(
-#         POOL, TREASURY, UNDERLYING_ASSET, INCENTIVES_CONTROLLER, DECIMALS, NAME, SYMBOL
-#     )
-
-# let (asset_after) = AToken.UNDERLYING_ASSET_ADDRESS()
-#     assert asset_after = UNDERLYING_ASSET
-#     let (pool_after) = AToken.POOL()
-#     assert pool_after = POOL
-#     return ()
-# end
-
-# @view
-# func test_constructor{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
-#     alloc_locals
-#     let (local pool, local token, local a_token) = get_contract_addresses()
-
-# let (asset_after) = IAToken.UNDERLYING_ASSET_ADDRESS(a_token)
-#     assert asset_after = UNDERLYING_ASSET
-#     let (pool_after) = IAToken.POOL(a_token)
-#     assert pool_after = pool
-#     return ()
-# end
-
-# @view
-# func test_balance_of{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
-#     # Define local contracts
-#     alloc_locals
-#     let (local pool, _, local a_token) = get_contract_addresses()
-
-# # Prank get_caller_address to have the pool as caller then mint for USER_1
-#     %{ stop_prank_pool = start_prank(ids.pool, target_contract_address = ids.a_token) %}
-#     IAToken.mint(a_token, PRANK_USER_1, PRANK_USER_1, Uint256(100, 0), Uint256(RAY, 0))
-#     %{ stop_prank_pool() %}
-
-# # Check balances with different normalized rate
-#     %{ stop_mock_rate_1 = mock_call(ids.pool, "get_reserve_normalized_income", [2 * ids.RAY, 0]) %}
-#     let (balance_prank_user_1) = IAToken.balanceOf(a_token, PRANK_USER_1)
-#     assert balance_prank_user_1 = Uint256(200, 0)
-#     %{ stop_mock_rate_1() %}
-
-# %{ stop_mock_rate_2 = mock_call(ids.pool, "get_reserve_normalized_income", [ids.RAY, 0]) %}
-#     let (balance_prank_user_1) = IAToken.balanceOf(a_token, PRANK_USER_1)
-#     assert balance_prank_user_1 = Uint256(100, 0)
-#     %{ stop_mock_rate_2() %}
-
-# return ()
-# end
-
 @view
-func test_transfer_base{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
-    # Define local contracts
-    # alloc_locals
-    # let (local pool, _, local a_token) = get_contract_addresses()
-
+func test_balance_of{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
     AToken.initializer(
         POOL, TREASURY, UNDERLYING_ASSET, INCENTIVES_CONTROLLER, DECIMALS, NAME, SYMBOL
     )
     # Prank get_caller_address to have the pool as caller then mint for USER_1
     %{ stop_prank_pool = start_prank(ids.POOL) %}
-    AToken.mint(PRANK_USER_1, PRANK_USER_1, Uint256(100, 0), Uint256(RAY, 0))
+    AToken.mint(0, PRANK_USER_1, Uint256(100, 0), Uint256(RAY, 0))
 
-    # # Transfer from User_1 to User_2  and check the balances of each one
-    # %{ stop_mock = mock_call(POOL, "get_reserve_normalized_income", [2 * ids.RAY, 0]) %}
+    # Transfer from User_1 to User_2  and check the balances of each one
+    %{ stop_mock = mock_call(ids.POOL, "get_reserve_normalized_income", [ids.RAY, 0]) %}
+    let (balance_user_1) = AToken.balance_of(PRANK_USER_1)
+    assert balance_user_1 = Uint256(100, 0)
+    %{ stop_mock() %}
 
-    # let (balance_prank_user_1) = AToken.balance_of(PRANK_USER_1)
-    # let (balance_prank_user_2) = AToken.balance_of(PRANK_USER_2)
-    # %{ print("balance_prank_user_1 : " + str(balance_prank_user_1)) %}
-    # %{ print("balance_prank_user_2 : " + str(balance_prank_user_2)) %}
-    # assert balance_prank_user_1 = Uint256(200, 0)
-    # assert balance_prank_user_2 = Uint256(0, 0)
+    # Close prank pool
+    %{ stop_prank_pool() %}
+    return ()
+end
 
-    # AToken.transfer_on_liquidation(PRANK_USER_1, PRANK_USER_2, Uint256(50, 0))
-    # let (balance_prank_user_1) = AToken.balance_of(PRANK_USER_1)
-    # let (balance_prank_user_2) = AToken.balance_of(PRANK_USER_2)
-    # assert balance_prank_user_1 = Uint256(150, 0)
-    # assert balance_prank_user_2 = Uint256(50, 0)
-    # %{ stop_mock() %}
+@view
+func test_transfer_base{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
+    AToken.initializer(
+        POOL, TREASURY, UNDERLYING_ASSET, INCENTIVES_CONTROLLER, DECIMALS, NAME, SYMBOL
+    )
+    # Prank get_caller_address to have the pool as caller then mint for USER_1
+    %{ stop_prank_pool = start_prank(ids.POOL) %}
+    AToken.mint(0, PRANK_USER_1, Uint256(100, 0), Uint256(RAY, 0))
+
+    # Transfer from User_1 to User_2  and check the balances of each one
+    %{ stop_mock = mock_call(ids.POOL, "get_reserve_normalized_income", [ids.RAY, 0]) %}
+    AToken._transfer_base(PRANK_USER_1, PRANK_USER_2, Uint256(60, 0), FALSE)
+    let (balance_user_1) = AToken.balance_of(PRANK_USER_1)
+    assert balance_user_1 = Uint256(40, 0)
+    let (balance_user_2) = AToken.balance_of(PRANK_USER_2)
+    assert balance_user_2 = Uint256(60, 0)
+    %{ stop_mock() %}
 
     # Close prank pool
     %{ stop_prank_pool() %}
