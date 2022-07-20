@@ -12,7 +12,7 @@ from tests.test_suites.test_specs.pool_supply_withdraw_spec import TestPoolSuppl
 from tests.test_suites.test_specs.pool_addresses_provider_spec import (
     TestPoolAddressesProviderDeployed,
 )
-from tests.test_suites.test_specs.atoken_modifiers import ATokenModifier
+from tests.test_suites.test_specs.a_token_modifiers import ATokenModifier
 
 # @notice setup hook for the test execution. It deploys the contracts
 # saves the Starknet state at the end of this function. All test cases will be executed
@@ -259,13 +259,17 @@ func test_burn_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
 end
 
 @external
-func test_transfer_on_liquidation_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_transfer_on_liquidation_wrong_pool{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
     ATokenModifier.test_transfer_on_liquidation_wrong_pool()
     return ()
 end
 
 @external
-func test_transfer_underlying_wrong_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_transfer_underlying_wrong_pool{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
     ATokenModifier.test_transfer_underlying_wrong_pool()
     return ()
 end
