@@ -83,6 +83,7 @@ from starkware.cairo.common.alloc import alloc
 # func ReserveConfiguration_debt_ceiling(reserve_asset : felt) -> (value : felt):
 # end
 
+
 const MAX_VALID_LTV = 65535
 const MAX_VALID_LIQUIDATION_THRESHOLD = 65535
 const MAX_VALID_LIQUIDATION_BONUS = 65535
@@ -125,6 +126,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_ltv.write(reserve_asset, value)
+
         return ()
     end
 
@@ -204,6 +206,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_liquidation_bonus.write(reserve_asset, value)
+
         return ()
     end
 
@@ -246,6 +249,7 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
         # ReserveConfiguration_decimals.write(reserve_asset, value)
+
         return ()
     end
 
@@ -259,6 +263,7 @@ namespace ReserveConfiguration:
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.decimals
+
 
         return (res)
     end
@@ -286,6 +291,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_reserve_active.write(reserve_asset, active)
+
         return ()
     end
 
@@ -326,6 +332,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_reserve_frozen.write(reserve_asset, frozen)
+
         return ()
     end
 
@@ -366,6 +373,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_asset_paused.write(reserve_asset, paused)
+
         return ()
     end
 
@@ -410,6 +418,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_borrowable_in_isolation.write(reserve_asset, borrowable)
+
         return ()
     end
 
@@ -455,6 +464,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_siloed_borrowing.write(reserve_asset, siloed)
+
         return ()
     end
 
@@ -496,6 +506,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_borrowing_enabled.write(reserve_asset, enabled)
+
         return ()
     end
 
@@ -536,6 +547,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_stable_rate_borrowing_enabled.write(reserve_asset, enabled)
+
         return ()
     end
 
@@ -578,6 +590,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_reserve_factor.write(reserve_asset, value)
+
         return ()
     end
 
@@ -621,6 +634,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_borrow_cap.write(reserve_asset, value)
+
         return ()
     end
 
@@ -665,6 +679,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_supply_cap.write(reserve_asset, value)
+
         return ()
     end
 
@@ -708,6 +723,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_debt_ceiling.write(reserve_asset, ceiling)
+
         return ()
     end
 
@@ -750,6 +766,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_liquidation_protocol_fee.write(reserve_asset, value)
+
         return ()
     end
 
@@ -792,6 +809,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_unbacked_mint_cap.write(reserve_asset, value)
+
         return ()
     end
 
@@ -834,6 +852,7 @@ namespace ReserveConfiguration:
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
         # ReserveConfiguration_eMode_category.write(reserve_asset, category)
+
         return ()
     end
 
@@ -874,6 +893,7 @@ namespace ReserveConfiguration:
         let is_stable_rate_borrowing_enabled = reserves_config.stable_rate_borrowing_enabled
         let is_paused = reserves_config.asset_paused
 
+
         return (
             is_active, is_frozen, is_borrowing_enabled, is_stable_rate_borrowing_enabled, is_paused
         )
@@ -904,6 +924,7 @@ namespace ReserveConfiguration:
         let decimals_value = reserves_config.decimals
         let reserve_factor_value = reserves_config.reserve_factor
         let eMode_category_value = reserves_config.eMode_category
+
         return (
             ltv_value,
             liquidation_threshold_value,
@@ -924,6 +945,7 @@ namespace ReserveConfiguration:
 
         let borrow_cap_value = reserves_config.borrow_cap
         let supply_cap_value = reserves_config.supply_cap
+
         return (borrow_cap_value, supply_cap_value)
     end
 end
