@@ -74,7 +74,9 @@ namespace ConfiguratorLogic:
     func execute_init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pool : felt, input : ConfiguratorInputTypes.InitReserveInput
     ):
-        let (selector) = 111
+        alloc_locals
+
+        const selector = 111
 
         let (a_token_proxy_address) = _init_token_with_proxy(
             input.a_token_impl,
@@ -91,7 +93,6 @@ namespace ConfiguratorLogic:
             ProxyInitParams(selector, pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.variable_debt_token_name, input.variable_debt_token_symbol, input.params, input.proxy_class_hash, input.salt),
         )
 
-        # IPool.init_reserve(pool, input.underlying_asset, a_token_proxy_address, stable_debt_token_proxy_address, variable_debt_token_proxy_address, input.interest_rate_strategy)
         IPool.init_reserve(
             pool,
             input.underlying_asset,
@@ -100,25 +101,31 @@ namespace ConfiguratorLogic:
             variable_debt_token_proxy_address,
         )
 
-        let (config) = DataTypes.ReserveConfigurationMap(
+        IPool.set_configuration(
+            pool,
+            input.underlying_asset,
+            DataTypes.ReserveConfigurationMap(
             0, 0, 0, input.underlying_asset_decimals, TRUE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ),
         )
-
-        IPool.set_configuration(pool, input.underlying_asset, config)
 
         ReserveInitialized.emit(
             input.underlying_asset,
             a_token_proxy_address,
             stable_debt_token_proxy_address,
             variable_debt_token_proxy_address,
-            input.interest_rate_strategy,
+            0,
         )
+
+        return ()
     end
 
     func execute_update_a_token{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pool : felt, input : ConfiguratorInputTypes.UpdateATokenInput
     ):
-        let (selector) = 111
+        alloc_locals
+
+        const selector = 111
 
         let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
 
@@ -138,12 +145,16 @@ namespace ConfiguratorLogic:
         _upgrade_token_implementation(reserve.a_token_address, input.implementation, encoded_call)
 
         ATokenUpgraded.emit(input.asset, reserve.a_token_address, input.implementation)
+
+        return ()
     end
 
     func execute_update_stable_debt_token{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(pool : felt, input : ConfiguratorInputTypes.UpdateDebtTokenInput):
-        let (selector) = 111
+        alloc_locals
+
+        const selector = 111
 
         let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
 
@@ -167,12 +178,16 @@ namespace ConfiguratorLogic:
         StableDebtTokenUpgraded.emit(
             input.asset, reserve.stable_debt_token_address, input.implementation
         )
+
+        return ()
     end
 
     func execute_update_variable_debt_token{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(pool : felt, input : ConfiguratorInputTypes.UpdateDebtTokenInput):
-        let (selector) = 111
+        alloc_locals
+
+        const selector = 111
 
         let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
 
@@ -196,23 +211,27 @@ namespace ConfiguratorLogic:
         VariableDebtTokenUpgraded.emit(
             input.asset, reserve.variable_debt_token_address, input.implementation
         )
+
+        return ()
     end
 
     func _init_token_with_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         implementation : felt, init_params : ProxyInitParams
-    ):
-        let (proxy) = deploy(
-            class_hash=init_params.proxy_class_hash,
-            contract_address_salt=init_params.salt,
-            constructor_calldata_size=1,
-            constructor_calldata=cast(new (implementation), felt*),
-        )
+    ) -> (address : felt):
+        # let (proxy) = deploy(
+        #     class_hash=init_params.proxy_class_hash,
+        #     contract_address_salt=init_params.salt,
+        #     constructor_calldata_size=1,
+        #     constructor_calldata=cast(new (implementation), felt*),
+        # )
         # IProxy.initialize_params(proxy, init_params)
+        return (0)
     end
 
     func _upgrade_token_implementation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(proxy_address : felt, implementation : felt, init_params : ProxyInitParams):
         # IProxy.upgrade_to_and_call(proxy_address, implementation, init_params)
+        return ()
     end
 end

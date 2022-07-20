@@ -54,8 +54,9 @@ namespace PoolConfigurator:
         let (addresses_provider) = PoolConfigurator_addresses_provider.read()
         let (acl_manager) = IPoolAddressesProvider.get_ACL_manager(addresses_provider)
 
+        let (is_caller_pool_admin) = IACLManager.is_pool_admin(acl_manager, caller_address)
         with_attr error_message("Caller is not pool admin."):
-            assert IACLManager.is_pool_admin(acl_manager, caller_address) = TRUE
+            assert is_caller_pool_admin = TRUE
         end
 
         return ()
@@ -69,8 +70,11 @@ namespace PoolConfigurator:
         let (addresses_provider) = PoolConfigurator_addresses_provider.read()
         let (acl_manager) = IPoolAddressesProvider.get_ACL_manager(addresses_provider)
 
+        let (is_caller_emergency_admin) = IACLManager.is_emergency_admin(
+            acl_manager, caller_address
+        )
         with_attr error_message("Caller is not emergency admin."):
-            assert IACLManager.is_emergency_admin(acl_manager, caller_address) = TRUE
+            assert is_caller_emergency_admin = TRUE
         end
 
         return ()
@@ -84,9 +88,12 @@ namespace PoolConfigurator:
         let (addresses_provider) = PoolConfigurator_addresses_provider.read()
         let (acl_manager) = IPoolAddressesProvider.get_ACL_manager(addresses_provider)
 
+        let (is_caller_pool_admin) = IACLManager.is_pool_admin(acl_manager, caller_address)
+        let (is_caller_emergency_admin) = IACLManager.is_emergency_admin(
+            acl_manager, caller_address
+        )
         let (is_pool_or_emergency_admin) = BoolCompare.either(
-            IACLManager.is_pool_admin(acl_manager, caller_address),
-            IACLManager.is_emergency_admin(acl_manager, caller_address),
+            is_caller_pool_admin, is_caller_emergency_admin
         )
         with_attr error_message("Caller is not emergency or pool admin."):
             assert is_pool_or_emergency_admin = TRUE
@@ -103,9 +110,12 @@ namespace PoolConfigurator:
         let (addresses_provider) = PoolConfigurator_addresses_provider.read()
         let (acl_manager) = IPoolAddressesProvider.get_ACL_manager(addresses_provider)
 
+        let (is_caller_pool_admin) = IACLManager.is_pool_admin(acl_manager, caller_address)
+        let (is_caller_asset_listing_admin) = IACLManager.is_asset_listing_admin(
+            acl_manager, caller_address
+        )
         let (is_asset_listing_or_pool_admin) = BoolCompare.either(
-            IACLManager.is_pool_admin(acl_manager, caller_address),
-            IACLManager.is_asset_listing_admin(acl_manager, caller_address),
+            is_caller_pool_admin, is_caller_asset_listing_admin
         )
         with_attr error_message("Caller is not asset listing or pool admin."):
             assert is_asset_listing_or_pool_admin = TRUE
@@ -122,10 +132,9 @@ namespace PoolConfigurator:
         let (addresses_provider) = PoolConfigurator_addresses_provider.read()
         let (acl_manager) = IPoolAddressesProvider.get_ACL_manager(addresses_provider)
 
-        let (is_risk_or_pool_admin) = BoolCompare.either(
-            IACLManager.is_pool_admin(acl_manager, caller_address),
-            IACLManager.is_risk_admin(acl_manager, caller_address),
-        )
+        let (is_caller_pool_admin) = IACLManager.is_pool_admin(acl_manager, caller_address)
+        let (is_caller_risk_admin) = IACLManager.is_risk_admin(acl_manager, caller_address)
+        let (is_risk_or_pool_admin) = BoolCompare.either(is_caller_pool_admin, is_caller_risk_admin)
         with_attr error_message("Caller is not risk or pool admin."):
             assert is_risk_or_pool_admin = TRUE
         end
@@ -190,6 +199,8 @@ namespace PoolConfigurator:
         return ()
     end
 
+    # Internals
+
     func _init_reserves_inner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pool : felt, input_len : felt, input : ConfiguratorInputTypes.InitReserveInput*
     ):
@@ -201,5 +212,20 @@ namespace PoolConfigurator:
             pool, input_len - 1, input + ConfiguratorInputTypes.InitReserveInput.SIZE
         )
         return ()
+    end
+
+    # Getters
+
+    func get_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        pool : felt
+    ):
+        let (pool) = PoolConfigurator_pool.read()
+        return (pool)
+    end
+
+    func get_addresses_provider{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (addresses_provider : felt):
+        let (addresses_provider) = PoolConfigurator_addresses_provider.read()
+        return (addresses_provider)
     end
 end

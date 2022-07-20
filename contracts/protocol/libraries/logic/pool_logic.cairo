@@ -1,17 +1,17 @@
 %lang starknet
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
-from contracts.protocol.libraries.types.data_types import DataTypes
-from starkware.cairo.common.math_cmp import is_not_zero
-from starkware.cairo.common.math import assert_lt
 from starkware.cairo.common.bool import TRUE, FALSE
-from contracts.protocol.libraries.helpers.helpers import is_zero
-from contracts.protocol.pool.pool_storage import PoolStorage
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.math import assert_lt
+from starkware.cairo.common.math_cmp import is_not_zero
+from starkware.cairo.lang.compiler.lib.registers import get_fp_and_pc
+
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+from contracts.protocol.libraries.helpers.helpers import is_zero, update_struct
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
-from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
-from contracts.protocol.libraries.helpers.helpers import update_struct
-from starkware.cairo.lang.compiler.lib.registers import get_fp_and_pc
+from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.protocol.pool.pool_storage import PoolStorage
 
 namespace PoolLogic:
     # @notice Initialize an asset reserve and add the reserve to the list of reserves
@@ -33,7 +33,7 @@ namespace PoolLogic:
 
         let (is_id_not_zero) = is_not_zero(reserve.id)
         let (first_listed_asset) = PoolStorage.reserves_list_read(0)
-        let (is_asset_first) = is_zero(first_listed_asset - params.asset)
+        let (is_asset_first) = BoolCompare.eq(first_listed_asset, params.asset)
 
         with_attr error_message("Reserve has already been added to reserve list"):
             let (reserve_already_added) = BoolCompare.either(is_id_not_zero, is_asset_first)

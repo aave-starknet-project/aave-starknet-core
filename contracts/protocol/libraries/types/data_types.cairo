@@ -32,27 +32,6 @@ namespace DataTypes:
         # TODO add the rest of the fields
     end
 
-    struct ReserveConfigurationMap:
-        member ltv : felt
-        member liquidation_threshold : felt
-        member liquidation_bonus : felt
-        member decimals : felt
-        member reserve_active : felt
-        member reserve_frozen : felt
-        member borrowing_enabled : felt
-        member stable_rate_borrowing_enabled : felt
-        member asset_paused : felt
-        member borrowable_in_isolation : felt
-        member siloed_borrowing : felt
-        member reserve_factor : felt
-        member borrow_cap : felt
-        member supply_cap : felt
-        member liquidation_protocol_fee : felt
-        member eMode_category : felt
-        member unbacked_mint_cap : felt
-        member debt_ceiling : felt
-    end
-
     struct InitReserveParams:
         member asset : felt
         member a_token_address : felt
