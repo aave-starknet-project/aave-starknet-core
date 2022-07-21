@@ -83,7 +83,7 @@ func supply{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 ):
     # TODO user configuration bitmask
     SupplyLogic.execute_supply(
-        user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
+        user_config=DataTypes.UserConfigurationMap(0, 0),
         params=DataTypes.ExecuteSupplyParams(
         asset=asset,
         amount=amount,
@@ -109,7 +109,7 @@ func withdraw{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
 ):
     let (reserves_count) = PoolStorage.reserves_count_read()
     SupplyLogic.execute_withdraw(
-        user_config=DataTypes.UserConfigurationMap(Uint256(0, 0)),
+        user_config=DataTypes.UserConfigurationMap(0, 0),
         params=DataTypes.ExecuteWithdrawParams(
         asset=asset,
         amount=amount,
