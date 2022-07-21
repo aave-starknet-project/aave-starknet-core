@@ -31,8 +31,6 @@ namespace ReserveIndex:
     func add_reserve_index{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         type : felt, user_address : felt, index : felt
     ):
-        alloc_locals
-
         let (last_element_slot, last_index) = get_last_slot(type, 0, user_address)
 
         if last_index == 0:
@@ -130,8 +128,6 @@ namespace ReserveIndex:
     func get_lowest_reserve_index{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(type : felt, user_address : felt) -> (lowest_index : felt):
-        alloc_locals
-
         let (first_index) = get_reserve_index(type, 0, user_address)
 
         let (lowest_index) = get_lowest_reserve_index_internal(type, 1, user_address, first_index)
@@ -177,8 +173,6 @@ namespace ReserveIndex:
     func get_last_slot{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         type : felt, slot : felt, user_address : felt
     ) -> (slot : felt, index : felt):
-        alloc_locals
-
         let (current_index) = get_reserve_index(type, slot, user_address)
 
         let (next_index) = get_reserve_index(type, slot + 1, user_address)

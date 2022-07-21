@@ -19,17 +19,6 @@ from starkware.cairo.common.math import (
     assert_le,
 )
 from contracts.protocol.libraries.helpers.helpers import is_zero
-# @notice Stores which reserves user is borrowing
-# @dev using prefix UserConfiguration to prevent storage variable clashing
-# @storage_var
-# func UserConfiguration_borrowing(user_address : felt, reserve_id : felt) -> (res : felt):
-# end
-# @notice Stores which reserves user is using as collateral
-# @dev using prefix UserConfiguration to prevent storage variable clashing
-# @storage_var
-# func UserConfiguration_using_as_collateral(user_address : felt, reserve_id : felt) -> (res : felt):
-# end
-
 namespace UserConfiguration:
     const MAX_RESERVES_COUNT = 128
     # @notice Sets if the user is borrowing the reserve identified by reserve_index
@@ -59,7 +48,6 @@ namespace UserConfiguration:
         else:
             ReserveIndex.remove_reserve_index(BORROWING_TYPE, 0, user_address, reserve_index)
         end
-        # UserConfiguration_borrowing.write(user_address, reserve_index, borrowing)
 
         return ()
     end
@@ -90,10 +78,6 @@ namespace UserConfiguration:
                 USING_AS_COLLATERAL_TYPE, 0, user_address, reserve_index
             )
         end
-
-        # UserConfiguration_using_as_collateral.write(
-        #     user_address, reserve_index, using_as_collateral
-        # )
 
         return ()
     end
@@ -183,9 +167,8 @@ namespace UserConfiguration:
         )
         if is_collateral_list_empty == TRUE:
             return (FALSE)
-        else:
-            return (TRUE)
         end
+        return (TRUE)
     end
     # @notice Checks if a user has been borrowing only one asset
     # @param user_address The address of a user
@@ -212,9 +195,8 @@ namespace UserConfiguration:
 
         if is_borrowing_list_empty == TRUE:
             return (FALSE)
-        else:
-            return (TRUE)
         end
+        return (TRUE)
     end
     # @notice Checks if a user has not been using any reserve for borrowing or supply
     # @param user_address The address of a user
@@ -230,13 +212,7 @@ namespace UserConfiguration:
             USING_AS_COLLATERAL_TYPE, user_address
         )
 
-        let bool_res = is_borrowing_list_empty + is_using_collateral_list_empty
-
-        if bool_res == 2:
-            return (TRUE)
-        else:
-            return (FALSE)
-        end
+        return (is_borrowing_list_empty * is_using_collateral_list_empty)
     end
     # TODO: TESTING OF get_isolation_mode_state and get_siloed_borrowing_state
     # @notice Returns the Isolation Mode state of the user

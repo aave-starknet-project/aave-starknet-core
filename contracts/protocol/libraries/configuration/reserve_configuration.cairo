@@ -11,79 +11,6 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.alloc import alloc
 
-# @storage_var
-# func ReserveConfiguration_ltv(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_liquidation_threshold(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_liquidation_bonus(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_decimals(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_reserve_active(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_reserve_frozen(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_stable_rate_borrowing_enabled(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_asset_paused(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_borrowable_in_isolation(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_siloed_borrowing(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_reserve_factor(reserve_asset : felt) -> (boolean : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_borrow_cap(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_supply_cap(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_liquidation_protocol_fee(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_eMode_category(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_unbacked_mint_cap(reserve_asset : felt) -> (value : felt):
-# end
-
-# @storage_var
-# func ReserveConfiguration_debt_ceiling(reserve_asset : felt) -> (value : felt):
-# end
-
-
 const MAX_VALID_LTV = 65535
 const MAX_VALID_LIQUIDATION_THRESHOLD = 65535
 const MAX_VALID_LIQUIDATION_BONUS = 65535
@@ -124,8 +51,6 @@ namespace ReserveConfiguration:
         )
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
-
-        # ReserveConfiguration_ltv.write(reserve_asset, value)
 
         return ()
     end
@@ -205,8 +130,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_liquidation_bonus.write(reserve_asset, value)
-
         return ()
     end
 
@@ -215,8 +138,6 @@ namespace ReserveConfiguration:
     func get_liquidation_bonus{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_liquidation_bonus.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.liquidation_bonus
@@ -248,7 +169,6 @@ namespace ReserveConfiguration:
         )
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
-        # ReserveConfiguration_decimals.write(reserve_asset, value)
 
         return ()
     end
@@ -263,7 +183,6 @@ namespace ReserveConfiguration:
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.decimals
-
 
         return (res)
     end
@@ -289,8 +208,6 @@ namespace ReserveConfiguration:
         )
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
-
-        # ReserveConfiguration_reserve_active.write(reserve_asset, active)
 
         return ()
     end
@@ -331,8 +248,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_reserve_frozen.write(reserve_asset, frozen)
-
         return ()
     end
 
@@ -341,8 +256,6 @@ namespace ReserveConfiguration:
     func get_frozen{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_reserve_frozen.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.reserve_frozen
@@ -372,8 +285,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_asset_paused.write(reserve_asset, paused)
-
         return ()
     end
 
@@ -382,8 +293,6 @@ namespace ReserveConfiguration:
     func get_paused{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_asset_paused.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.asset_paused
@@ -417,8 +326,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_borrowable_in_isolation.write(reserve_asset, borrowable)
-
         return ()
     end
 
@@ -431,8 +338,6 @@ namespace ReserveConfiguration:
     func get_borrowable_in_isolation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        # let (res) = ReserveConfiguration_borrowable_in_isolation.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.borrowable_in_isolation
@@ -463,8 +368,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_siloed_borrowing.write(reserve_asset, siloed)
-
         return ()
     end
 
@@ -474,8 +377,6 @@ namespace ReserveConfiguration:
     func get_siloed_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_siloed_borrowing.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.siloed_borrowing
@@ -505,8 +406,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_borrowing_enabled.write(reserve_asset, enabled)
-
         return ()
     end
 
@@ -515,8 +414,6 @@ namespace ReserveConfiguration:
     func get_borrowing_enabled{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_borrowing_enabled.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.borrowing_enabled
@@ -546,8 +443,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_stable_rate_borrowing_enabled.write(reserve_asset, enabled)
-
         return ()
     end
 
@@ -556,8 +451,6 @@ namespace ReserveConfiguration:
     func get_stable_rate_borrowing_enabled{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        # let (res) = ReserveConfiguration_stable_rate_borrowing_enabled.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.stable_rate_borrowing_enabled
@@ -589,8 +482,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_reserve_factor.write(reserve_asset, value)
-
         return ()
     end
 
@@ -599,8 +490,6 @@ namespace ReserveConfiguration:
     func get_reserve_factor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_reserve_factor.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.reserve_factor
@@ -633,8 +522,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_borrow_cap.write(reserve_asset, value)
-
         return ()
     end
 
@@ -644,8 +531,6 @@ namespace ReserveConfiguration:
     func get_borrow_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_borrow_cap.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.borrow_cap
@@ -678,8 +563,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_supply_cap.write(reserve_asset, value)
-
         return ()
     end
 
@@ -689,8 +572,6 @@ namespace ReserveConfiguration:
     func get_supply_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_supply_cap.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.supply_cap
@@ -722,8 +603,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_debt_ceiling.write(reserve_asset, ceiling)
-
         return ()
     end
 
@@ -732,8 +611,6 @@ namespace ReserveConfiguration:
     func get_debt_ceiling{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_debt_ceiling.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.debt_ceiling
@@ -765,8 +642,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_liquidation_protocol_fee.write(reserve_asset, value)
-
         return ()
     end
 
@@ -775,8 +650,6 @@ namespace ReserveConfiguration:
     func get_liquidation_protocol_fee{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }(reserve_asset : felt) -> (value : felt):
-        # let (res) = ReserveConfiguration_liquidation_protocol_fee.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.liquidation_protocol_fee
@@ -808,8 +681,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_unbacked_mint_cap.write(reserve_asset, value)
-
         return ()
     end
 
@@ -818,8 +689,6 @@ namespace ReserveConfiguration:
     func get_unbacked_mint_cap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_unbacked_mint_cap.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.unbacked_mint_cap
@@ -851,8 +720,6 @@ namespace ReserveConfiguration:
 
         PoolStorage.reserves_config_write(reserve_asset, [updated_reserves_config])
 
-        # ReserveConfiguration_eMode_category.write(reserve_asset, category)
-
         return ()
     end
 
@@ -861,8 +728,6 @@ namespace ReserveConfiguration:
     func get_eMode_category{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         reserve_asset : felt
     ) -> (value : felt):
-        # let (res) = ReserveConfiguration_eMode_category.read(reserve_asset)
-
         let (current_reserves_config) = PoolStorage.reserves_config_read(reserve_asset)
 
         let res = current_reserves_config.eMode_category
@@ -892,7 +757,6 @@ namespace ReserveConfiguration:
         let is_borrowing_enabled = reserves_config.borrowing_enabled
         let is_stable_rate_borrowing_enabled = reserves_config.stable_rate_borrowing_enabled
         let is_paused = reserves_config.asset_paused
-
 
         return (
             is_active, is_frozen, is_borrowing_enabled, is_stable_rate_borrowing_enabled, is_paused
