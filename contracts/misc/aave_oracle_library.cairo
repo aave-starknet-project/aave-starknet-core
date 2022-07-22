@@ -113,7 +113,7 @@ namespace AaveOracle:
     # @notice Returns the base currency
     # @return the base currency
     func BASE_CURRENCY{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        provider : felt
+        base_currency : felt
     ):
         let (base_currency) = AaveOracle_base_currency.read()
         return (base_currency)
@@ -122,7 +122,7 @@ namespace AaveOracle:
     # @notice Returns the base_currency_unit
     # @return The address of the base_currency_unit
     func BASE_CURRENCY_UNIT{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ) -> (provider : felt):
+        ) -> (base_currency_unit : felt):
         let (base_currency_unit) = AaveOracle_base_currency_unit.read()
         return (base_currency_unit)
     end
@@ -163,9 +163,7 @@ namespace AaveOracle:
         end
 
         if ticker == 0:
-            # with_attr error_message("No price ticker for asset"):
-            #     # assert 1 = 0
-            # end
+            # no fallback oracle to rely on - we return 0
             return (0)
         else:
             return _read_price_from_oracle(ticker)
@@ -259,8 +257,7 @@ func _read_price_from_oracle{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     if either == TRUE:
         return (price)
     else:
-        # TODO fallback oracle
-        assert 1 = 0
+        # no fallback oracle
         return (0)
     end
 end
