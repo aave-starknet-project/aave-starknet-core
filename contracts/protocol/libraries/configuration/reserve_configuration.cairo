@@ -734,7 +734,6 @@ namespace ReserveConfiguration:
 
         return (res)
     end
-
     # @notice Gets the configuration flags of the reserve
     # @return The state flag representing active
     # @return The state flag representing frozen
@@ -762,7 +761,6 @@ namespace ReserveConfiguration:
             is_active, is_frozen, is_borrowing_enabled, is_stable_rate_borrowing_enabled, is_paused
         )
     end
-
     # @notice Gets the configuration parameters of the reserve from storage
     # @return The state param representing ltv
     # @return The state param representing liquidation threshold
@@ -798,7 +796,6 @@ namespace ReserveConfiguration:
             eMode_category_value,
         )
     end
-
     # @notice Gets the caps parameters of the reserve from storage
     # @return The state param representing borrow cap
     # @return The state param representing supply cap.

@@ -200,9 +200,9 @@ namespace TestUserConfiguration:
         UserConfiguration.set_borrowing(TEST_ADDRESS, TEST_RESERVE_INDEX, TRUE)
         UserConfiguration.set_borrowing(TEST_ADDRESS, TEST_RESERVE_INDEX_2, TRUE)
 
-        let (bor) = UserConfiguration.get_first_asset_by_type(TEST_ADDRESS, BORROWING_TYPE)
+        let (ast) = UserConfiguration.get_first_asset_by_type(TEST_ADDRESS, BORROWING_TYPE)
 
-        assert bor = TEST_RESERVE_INDEX
+        assert ast = TEST_RESERVE_INDEX
 
         # 2
         UserConfiguration.set_borrowing(TEST_ADDRESS2, TEST_RESERVE_INDEX, TRUE)
@@ -210,9 +210,9 @@ namespace TestUserConfiguration:
         UserConfiguration.set_borrowing(TEST_ADDRESS2, TEST_RESERVE_INDEX_3, TRUE)
         UserConfiguration.set_borrowing(TEST_ADDRESS2, TEST_RESERVE_INDEX, FALSE)
 
-        let (bor) = UserConfiguration.get_first_asset_by_type(TEST_ADDRESS2, BORROWING_TYPE)
+        let (ast) = UserConfiguration.get_first_asset_by_type(TEST_ADDRESS2, BORROWING_TYPE)
 
-        assert bor = TEST_RESERVE_INDEX_2
+        assert ast = TEST_RESERVE_INDEX_2
 
         # 3
         UserConfiguration.set_using_as_collateral(TEST_ADDRESS3, TEST_RESERVE_INDEX, TRUE)
@@ -222,11 +222,11 @@ namespace TestUserConfiguration:
         UserConfiguration.set_using_as_collateral(TEST_ADDRESS3, TEST_RESERVE_INDEX_2, FALSE)
         UserConfiguration.set_using_as_collateral(TEST_ADDRESS3, TEST_RESERVE_INDEX, TRUE)
 
-        let (bor) = UserConfiguration.get_first_asset_by_type(
+        let (ast) = UserConfiguration.get_first_asset_by_type(
             TEST_ADDRESS3, USING_AS_COLLATERAL_TYPE
         )
 
-        assert bor = TEST_RESERVE_INDEX
+        assert ast = TEST_RESERVE_INDEX
 
         return ()
     end

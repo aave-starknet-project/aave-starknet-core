@@ -19,6 +19,8 @@ from starkware.cairo.common.math import (
     assert_le,
 )
 from contracts.protocol.libraries.helpers.helpers import is_zero
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+
 namespace UserConfiguration:
     const MAX_RESERVES_COUNT = 128
     # @notice Sets if the user is borrowing the reserve identified by reserve_index
@@ -46,7 +48,7 @@ namespace UserConfiguration:
         if borrowing == TRUE:
             ReserveIndex.add_reserve_index(BORROWING_TYPE, user_address, reserve_index)
         else:
-            ReserveIndex.remove_reserve_index(BORROWING_TYPE, 0, user_address, reserve_index)
+            ReserveIndex.remove_reserve_index(BORROWING_TYPE, user_address, reserve_index)
         end
 
         return ()
@@ -74,9 +76,7 @@ namespace UserConfiguration:
         if using_as_collateral == TRUE:
             ReserveIndex.add_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
         else:
-            ReserveIndex.remove_reserve_index(
-                USING_AS_COLLATERAL_TYPE, 0, user_address, reserve_index
-            )
+            ReserveIndex.remove_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
         end
 
         return ()
@@ -212,7 +212,9 @@ namespace UserConfiguration:
             USING_AS_COLLATERAL_TYPE, user_address
         )
 
-        return (is_borrowing_list_empty * is_using_collateral_list_empty)
+        let (res) = BoolCompare.both(is_borrowing_list_empty, is_using_collateral_list_empty)
+
+        return (res)
     end
     # TODO: TESTING OF get_isolation_mode_state and get_siloed_borrowing_state
     # @notice Returns the Isolation Mode state of the user
