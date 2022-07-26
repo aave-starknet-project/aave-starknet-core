@@ -1,0 +1,121 @@
+%lang starknet
+from starkware.starknet.common.syscalls import get_contract_address
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+
+from starkware.cairo.common.alloc import alloc
+@contract_interface
+namespace IProxy:
+    func initialize(impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*) -> (
+        retdata_len : felt, retdata : felt*
+    ):
+    end
+    func upgrade_to_and_call(
+        impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
+    ) -> (retdata_len : felt, retdata : felt*):
+    end
+end
+
+@contract_interface
+namespace IToken:
+    func get_name() -> (name : felt):
+    end
+
+    func get_total_supply() -> (supply : felt):
+    end
+end
+
+@external
+func __setup__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (deployer) = get_contract_address()
+    %{
+        context.proxy_address = deploy_contract("./contracts/protocol/libraries/aave_upgradeability/initializable_immutable_admin_upgradeability_proxy.cairo", {"proxy_admin": ids.deployer}).contract_address
+        context.implementation_hash = declare("./tests/contracts/mock_token.cairo").class_hash
+        context.initialize_selector=215307247182100370520050591091822763712463273430149262739280891880522753123
+    %}
+
+    tempvar proxy
+    tempvar implementation_hash
+    tempvar selector
+
+    %{
+        ids.proxy = context.proxy_address 
+        ids.implementation_hash=context.implementation_hash
+        ids.selector=context.initialize_selector
+    %}
+    let (calldata : felt*) = alloc()
+
+    assert calldata[0] = 345
+    assert calldata[1] = 900
+    IProxy.initialize(proxy, implementation_hash, selector, 2, calldata)
+
+    return ()
+end
+
+@external
+func test_initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    tempvar proxy
+
+    %{ ids.proxy = context.proxy_address %}
+
+    let (name) = IToken.get_name(proxy)
+    let (supply) = IToken.get_total_supply(proxy)
+
+    assert name = 345
+    assert supply = 900
+    return ()
+end
+
+@external
+func test_initialize_when_already_initialized{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    alloc_locals
+    local proxy
+    local implementation_hash
+    local selector
+
+    %{
+        ids.proxy = context.proxy_address 
+        ids.implementation_hash=context.implementation_hash
+        ids.selector=context.initialize_selector
+    %}
+
+    let (calldata : felt*) = alloc()
+
+    assert calldata[0] = 33
+    assert calldata[1] = 33
+    %{ expect_revert(error_message="Already initialized") %}
+    IProxy.initialize(proxy, implementation_hash, selector, 2, calldata)
+
+    return ()
+end
+
+@external
+func test_update_implementation_and_call{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    alloc_locals
+    local proxy
+    local implementation_hash
+    local selector
+
+    %{
+        ids.proxy = context.proxy_address 
+        ids.implementation_hash=context.implementation_hash
+        ids.selector=context.initialize_selector
+    %}
+
+    let (calldata : felt*) = alloc()
+
+    assert calldata[0] = 400
+    assert calldata[1] = 500
+    # no need to change the implementation hash as long as we verify that the init value were updated
+    IProxy.upgrade_to_and_call(proxy, implementation_hash, selector, 2, calldata)
+
+    let (name) = IToken.get_name(proxy)
+    let (supply) = IToken.get_total_supply(proxy)
+
+    assert name = 400
+    assert supply = 500
+    return ()
+end
