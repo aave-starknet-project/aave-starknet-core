@@ -94,11 +94,12 @@ namespace Proxy:
 
     func _set_implementation_hash{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(new_implementation : felt):
+    }(new_implementation_hash : felt):
         with_attr error_message("Proxy: implementation hash cannot be zero"):
-            Proxy_implementation_hash.write(new_implementation)
+            assert_not_zero(new_implementation_hash)
         end
-        Upgraded.emit(new_implementation)
+        Proxy_implementation_hash.write(new_implementation_hash)
+        Upgraded.emit(new_implementation_hash)
         return ()
     end
 

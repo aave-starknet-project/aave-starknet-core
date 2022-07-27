@@ -65,6 +65,15 @@ func upgrade_to_and_call{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (retdata_len=retdata_len, retdata=retdata)
 end
 
+@external
+func upgrade_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    class_hash : felt
+):
+    Proxy.assert_only_admin()
+    Proxy._set_implementation_hash(class_hash)
+    return ()
+end
+
 #
 # Getters
 #

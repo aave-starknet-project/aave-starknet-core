@@ -13,6 +13,12 @@ namespace IProxy:
         impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
     ) -> (retdata_len : felt, retdata : felt*):
     end
+
+    func upgrade_to(impl_hash : felt):
+    end
+
+    func get_implementation() -> (implementation : felt):
+    end
 end
 
 @contract_interface
@@ -91,9 +97,7 @@ func test_initialize_when_already_initialized{
 end
 
 @external
-func test_update_implementation_and_call{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}():
+func test_update_to_and_call{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     local proxy
     local implementation_hash
@@ -109,7 +113,7 @@ func test_update_implementation_and_call{
 
     assert calldata[0] = 400
     assert calldata[1] = 500
-    # no need to change the implementation hash as long as we verify that the init value were updated
+    # no need to change the implementation hash as long as we verify that the init values were updated
     IProxy.upgrade_to_and_call(proxy, implementation_hash, selector, 2, calldata)
 
     let (name) = IToken.get_name(proxy)
@@ -117,5 +121,23 @@ func test_update_implementation_and_call{
 
     assert name = 400
     assert supply = 500
+    return ()
+end
+
+@external
+func test_upgrade_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    local proxy
+
+    %{ ids.proxy = context.proxy_address %}
+
+    let new_implementation_hash = 34004
+
+    IProxy.upgrade_to(proxy, new_implementation_hash)
+
+    let (current_implementation) = IProxy.get_implementation(proxy)
+
+    assert current_implementation = new_implementation_hash
+
     return ()
 end
