@@ -45,3 +45,12 @@ func test_both{range_check_ptr}():
     assert false_3 = FALSE
     return ()
 end
+
+@external
+func test_not{range_check_ptr}():
+    let (true) = BoolCompare.not(0)
+    let (false) = BoolCompare.not(1)
+    assert true = TRUE
+    assert false = FALSE
+    return ()
+end

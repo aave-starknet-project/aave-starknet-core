@@ -27,4 +27,10 @@ namespace BoolCompare:
         let (res) = eq((x + y), 2)
         return (res=res)
     end
+
+    func not(x : felt) -> (res : felt):
+        assert x * x = x
+        let res = (x - 1) * (x - 1)
+        return (res=res)
+    end
 end
