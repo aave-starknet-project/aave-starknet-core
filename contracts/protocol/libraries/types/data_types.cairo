@@ -37,11 +37,12 @@ namespace DataTypes:
         # member user_eMode_category : felt
     end
 
-    # @dev UserState - additionalData is a flexible field.
-    # ATokens and VariableDebtTokens use this field store the index of the user's last supply/withdrawal/borrow/repayment.
+    # @dev UserState - additional_data is a flexible field.
+    # ATokens and VariableDebtTokens use this field to store the index of the user's last
+    # supply/withdrawal/borrow/repayment.
     # StableDebtTokens use this field to store the user's stable rate.
     struct UserState:
-        member balance : felt
-        member additionalData : felt
+        member balance : Uint256
+        member additional_data : felt
     end
 end

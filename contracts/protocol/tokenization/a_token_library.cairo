@@ -184,6 +184,7 @@ namespace AToken:
         let (pool) = POOL()
         let (underlying) = UNDERLYING_ASSET_ADDRESS()
         let (liquidity_index) = IPool.get_reserve_normalized_income(pool, underlying)
+        # TODO review this conversion
         let (balance) = ray_mul(Ray(balance_scaled), Ray(liquidity_index))
         return (balance.ray)
     end

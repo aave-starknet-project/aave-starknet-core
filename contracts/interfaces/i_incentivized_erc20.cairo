@@ -22,7 +22,7 @@ namespace IIncentivizedERC20:
     func decrease_balance(address : felt, amount : felt):
     end
 
-    func balanceOf(account : felt) -> (balance : felt):
+    func balanceOf(account : felt) -> (balance : Uint256):
     end
 
     func totalSupply() -> (totalSupply : Uint256):
@@ -50,5 +50,15 @@ namespace IIncentivizedERC20:
     end
 
     func burn(address : felt, amount : felt):
+    end
+
+    # Move
+    func set_name(name : felt):
+    end
+
+    func set_symbol(symbol : felt):
+    end
+
+    func set_decimals(decimals : felt):
     end
 end

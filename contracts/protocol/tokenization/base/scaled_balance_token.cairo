@@ -102,7 +102,7 @@ func get_previous_index{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     user : felt
 ) -> (index : felt):
     let (state) = IncentivizedERC20.get_user_state(user)
-    return (state.additionalData)
+    return (state.additional_data)
 end
 
 # setters

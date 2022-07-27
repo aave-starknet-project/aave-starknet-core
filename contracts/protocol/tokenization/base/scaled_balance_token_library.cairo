@@ -42,15 +42,15 @@ namespace ScaledBalanceTokenBase:
         let (amount_scaled) = ray_div(amount_ray, index_ray)
 
         let (scaled_balance) = IncentivizedERC20.balance_of(onBehalfOf)
-        let (scaled_balance_256) = Uint128.to_uint_256(scaled_balance)
-        let scaled_balance_ray = Ray(scaled_balance_256)
+        # let (scaled_balance_256) = Uint128.to_uint_256(scaled_balance)
+        let scaled_balance_ray = Ray(scaled_balance)
 
         let (current_user_state) = IncentivizedERC20.get_user_state(onBehalfOf)
-        let (additionalData_256) = Uint128.to_uint_256(current_user_state.additionalData)
-        let additionalData_ray = Ray(additionalData_256)
+        let (additional_data_256) = Uint128.to_uint_256(current_user_state.additional_data)
+        let additional_data_ray = Ray(additional_data_256)
 
         let (newBalance) = ray_mul(scaled_balance_ray, index_ray)
-        let (oldBalance) = ray_mul(scaled_balance_ray, additionalData_ray)
+        let (oldBalance) = ray_mul(scaled_balance_ray, additional_data_ray)
         let (balance_increase) = ray_sub(newBalance, oldBalance)
 
         with_attr error_message("invalid mint amount"):
@@ -93,11 +93,11 @@ namespace ScaledBalanceTokenBase:
         let scaled_balance_ray = Ray(scaled_balance_256)
 
         let (current_user_state) = IncentivizedERC20.get_user_state(user)
-        let (additionalData_256) = Uint128.to_uint_256(current_user_state.additionalData)
-        let additionalData_ray = Ray(additionalData_256)
+        let (additional_data_256) = Uint128.to_uint_256(current_user_state.additional_data)
+        let additional_data_ray = Ray(additional_data_256)
 
         let (newBalance) = ray_mul(scaled_balance_ray, index_ray)
-        let (oldBalance) = ray_mul(scaled_balance_ray, additionalData_ray)
+        let (oldBalance) = ray_mul(scaled_balance_ray, additional_data_ray)
         let (balance_increase) = ray_sub(newBalance, oldBalance)
 
         with_attr error_message("invalid mint amount"):

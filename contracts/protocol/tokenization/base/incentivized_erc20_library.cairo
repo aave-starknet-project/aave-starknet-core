@@ -1,8 +1,8 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_le_felt, assert_nn
+from starkware.cairo.common.uint256 import Uint256, uint256_le
+from starkware.cairo.common.math import assert_le_felt, assert_le, assert_nn
 from starkware.starknet.common.syscalls import get_caller_address
 
 from openzeppelin.security.safemath import SafeUint256
@@ -80,13 +80,14 @@ namespace MintableIncentivizedERC20:
 
         let (amount_256) = Uint128.to_uint_256(amount)
 
-        # use SafeMath
         let (new_total_supply) = SafeUint256.add(old_total_supply, amount_256)
         incentivized_erc20_total_supply.write(new_total_supply)
 
         let old_account_balance = old_user_state.balance
-        let new_account_balance = old_account_balance + amount
-        let new_user_state = DataTypes.UserState(new_account_balance, old_user_state.additionalData)
+        let (new_account_balance) = SafeUint256.add(old_account_balance, amount_256)
+        let new_user_state = DataTypes.UserState(
+            new_account_balance, old_user_state.additional_data
+        )
 
         incentivized_erc20_user_state.write(address, new_user_state)
 
@@ -108,13 +109,14 @@ namespace MintableIncentivizedERC20:
 
         let (amount_256) = Uint128.to_uint_256(amount)
 
-        # use SafeMath
         let (new_total_supply) = SafeUint256.sub_le(old_total_supply, amount_256)
         incentivized_erc20_total_supply.write(new_total_supply)
 
         let old_account_balance = old_user_state.balance
-        let new_account_balance = old_account_balance - amount
-        let new_user_state = DataTypes.UserState(new_account_balance, old_user_state.additionalData)
+        let (new_account_balance) = SafeUint256.sub_le(old_account_balance, amount_256)
+        let new_user_state = DataTypes.UserState(
+            new_account_balance, old_user_state.additional_data
+        )
 
         incentivized_erc20_user_state.write(address, new_user_state)
 
@@ -182,7 +184,7 @@ namespace IncentivizedERC20:
 
     func balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         account : felt
-    ) -> (balance : felt):
+    ) -> (balance : Uint256):
         let (state : DataTypes.UserState) = incentivized_erc20_user_state.read(account)
         return (state.balance)
     end
@@ -354,8 +356,8 @@ namespace IncentivizedERC20:
     ):
         alloc_locals
 
-        let (oldUserState) = _userState.read(address)
-        let (oldTotalSupply) = _totalSupply.read()
+        let (oldUserState) = incentivized_erc20_user_state.read(address)
+        let (oldTotalSupply) = incentivized_erc20_total_supply.read()
 
         with_attr error_message("amount doesn't fit in 128 bits"):
             assert_le_felt(amount, MAX_UINT128)
@@ -365,13 +367,13 @@ namespace IncentivizedERC20:
 
         # use SafeMath
         let (newTotalSupply) = SafeUint256.add(oldTotalSupply, amount_256)
-        _totalSupply.write(newTotalSupply)
+        incentivized_erc20_total_supply.write(newTotalSupply)
 
         let oldAccountBalance = oldUserState.balance
         let newAccountBalance = oldAccountBalance + amount
-        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+        let newUserState = DataTypes.UserState(newAccountBalance, oldUserState.additional_data)
 
-        _userState.write(address, newUserState)
+        incentivized_erc20_user_state.write(address, newUserState)
 
         # @Todo: Incentives controller logic here
 
@@ -385,24 +387,23 @@ namespace IncentivizedERC20:
         address : felt, amount : felt
     ):
         alloc_locals
-        let (oldUserState) = _userState.read(address)
-        let (oldTotalSupply) = _totalSupply.read()
+        let (oldUserState) = incentivized_erc20_user_state.read(address)
+        let (oldTotalSupply) = incentivized_erc20_total_supply.read()
 
         with_attr error_message("amount doesn't fit in 128 bits"):
-            assert_le_felt(amount, MAX_UINT128)
+            assert_le(amount, MAX_UINT128)
         end
 
         let amount_256 = Uint256(amount, 0)
 
-        # use SafeMath
         let (newTotalSupply) = SafeUint256.sub_le(oldTotalSupply, amount_256)
-        _totalSupply.write(newTotalSupply)
+        incentivized_erc20_total_supply.write(newTotalSupply)
 
         let oldAccountBalance = oldUserState.balance
         let newAccountBalance = oldAccountBalance - amount
-        let newUserState = UserState(newAccountBalance, oldUserState.additionalData)
+        let newUserState = DataTypes.UserState(newAccountBalance, oldUserState.additional_data)
 
-        _userState.write(address, newUserState)
+        incentivized_erc20_user_state.write(address, newUserState)
 
         # @Todo: Incentives controller logic here
 
@@ -415,21 +416,23 @@ namespace IncentivizedERC20:
         alloc_locals
 
         let (old_sender_state) = incentivized_erc20_user_state.read(sender)
+        let amount_256 = Uint256(amount, 0)
 
         with_attr error_message("Not enough balance"):
-            assert_le_felt(amount, old_sender_state.balance)
+            let (is_enough_balance) = uint256_le(amount_256, old_sender_state.balance)
+            assert is_enough_balance = 1
         end
 
-        let new_sender_balance = old_sender_state.balance - amount
+        let (new_sender_balance) = SafeUint256.sub_le(old_sender_state.balance, amount_256)
         let new_sender_state = DataTypes.UserState(
-            new_sender_balance, old_sender_state.additionalData
+            new_sender_balance, old_sender_state.additional_data
         )
         incentivized_erc20_user_state.write(sender, new_sender_state)
 
         let (old_recipient_state) = incentivized_erc20_user_state.read(recipient)
-        let new_recipient_balance = old_recipient_state.balance + amount
+        let (new_recipient_balance) = SafeUint256.add(old_recipient_state.balance, amount_256)
         let new_recipient_state = DataTypes.UserState(
-            new_recipient_balance, old_recipient_state.additionalData
+            new_recipient_balance, old_recipient_state.additional_data
         )
         incentivized_erc20_user_state.write(recipient, new_recipient_state)
 
