@@ -5,6 +5,9 @@ namespace IMockInitializableImplementation:
     func initialize(val : felt, txt : felt):
     end
 
+    func set_revision(revision : felt):
+    end
+
     func get_revision() -> (revision : felt):
     end
 

@@ -11,6 +11,10 @@ func VersionedInitializable_last_initialized_revision() -> (revision : felt):
 end
 
 @storage_var
+func VersionedInitializable_current_revision() -> (revision : felt):
+end
+
+@storage_var
 func VersionedInitializable_initializing() -> (boolean : felt):
 end
 
@@ -21,15 +25,12 @@ namespace VersionedInitializable:
         let (last_revision) = VersionedInitializable_last_initialized_revision.read()
         let (current_revision) = get_revision()
         let (initializing) = VersionedInitializable_initializing.read()
-        # TODO find a way to detect its usage in a constructor
-        let constructor = FALSE
-        let (is_current_gt_last) = is_le(last_revision, current_revision - 1)  # is_le(a,b-1) <=> is_lt(a,b)
+        let (is_current_revision_gt_last) = is_le(last_revision, current_revision - 1)  # is_le(a,b-1) <=> is_lt(a,b)
+        # Not possible to check if it's in the constructor or not.
 
         with_attr error_message("Contract instance has already been initialized"):
-            let (requirement_1) = BoolCompare.either(initializing, constructor)
-            let (requirement_2) = BoolCompare.either(initializing, is_current_gt_last)
-            let (requirement_final) = BoolCompare.either(requirement_1, requirement_2)
-            assert requirement_final = TRUE
+            let (requirement) = BoolCompare.either(initializing, is_current_revision_gt_last)
+            assert requirement = TRUE
         end
 
         let (is_top_level_call) = BoolCompare.not(initializing)
@@ -37,20 +38,16 @@ namespace VersionedInitializable:
         if is_top_level_call == TRUE:
             VersionedInitializable_initializing.write(TRUE)
             VersionedInitializable_last_initialized_revision.write(current_revision)
-            tempvar syscall_ptr = syscall_ptr
-            tempvar pedersen_ptr = pedersen_ptr
-            tempvar range_check_ptr = range_check_ptr
-        else:
-            tempvar syscall_ptr = syscall_ptr
-            tempvar pedersen_ptr = pedersen_ptr
-            tempvar range_check_ptr = range_check_ptr
+            return (is_top_level_call)
         end
+
         return (is_top_level_call)
     end
 
     func _after_initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         is_top_level_call : felt
     ) -> ():
+        BoolCompare.is_valid(is_top_level_call)
         if is_top_level_call == TRUE:
             VersionedInitializable_initializing.write(FALSE)
             return ()
@@ -58,15 +55,17 @@ namespace VersionedInitializable:
         return ()
     end
 
+    func set_revision{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        revision : felt
+    ):
+        VersionedInitializable_current_revision.write(revision)
+        return ()
+    end
+
     func get_revision{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         revision : felt
     ):
-        return (1)
-    end
-
-    func is_constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        is_constructor : felt
-    ):
-        return (0)
+        let (revision) = VersionedInitializable_current_revision.read()
+        return (revision)
     end
 end

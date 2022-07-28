@@ -6,7 +6,7 @@ from contracts.protocol.libraries.aave_upgradeability.versioned_initializable_li
     VersionedInitializable,
 )
 
-const REVISION = 2
+const REVISION = 1
 
 @storage_var
 func value() -> (val : felt):

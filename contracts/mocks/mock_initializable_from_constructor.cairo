@@ -12,12 +12,10 @@ const REVISION = 2
 func value() -> (val : felt):
 end
 
-@storage_var
-func text() -> (txt : felt):
-end
-
-@storage_var
-func values(index : felt) -> (val : felt):
+@constructor
+func constructor():
+    # TODO
+    return ()
 end
 
 @view
@@ -35,12 +33,6 @@ func get_value{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (val)
 end
 
-@view
-func get_text{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (text : felt):
-    let (txt) = text.read()
-    return (txt)
-end
-
 @external
 func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     val : felt, txt : felt
@@ -48,7 +40,6 @@ func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_pt
     VersionedInitializable.set_revision(REVISION)
     let (is_top_level_call) = VersionedInitializable._before_initialize()
     value.write(val)
-    text.write(txt)
     VersionedInitializable._after_initialize(is_top_level_call)
     return ()
 end

@@ -5,7 +5,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 from contracts.mocks.i_mock_initializable_implementation import IMockInitializableImplementation
 
-const INIT_VALUE = 0
+const INIT_VALUE = 10
 const INIT_TEXT = 'text'
 
 @external
@@ -74,7 +74,7 @@ func test_initialize_when_already_initialized{
     local impl_address
     %{
         ids.impl_address = context.proxy 
-        expect_revert()
+        expect_revert(error_message="Contract instance has already been initialized")
     %}
     IMockInitializableImplementation.initialize(impl_address, INIT_VALUE, INIT_TEXT)
     return ()
