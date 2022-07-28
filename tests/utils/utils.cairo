@@ -9,9 +9,10 @@ from openzeppelin.security.safemath import SafeUint256
 func parse_units{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     amount : felt, decimals : felt
 ) -> (res : Uint256):
-    let (power) = pow(10, decimals)
+    alloc_locals
+    let (local power) = pow(10, decimals)
     let (res) = SafeUint256.mul(Uint256(amount, 0), Uint256(power, 0))
-    return (amount * power)
+    return (res)
 end
 
 func parse_ether{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

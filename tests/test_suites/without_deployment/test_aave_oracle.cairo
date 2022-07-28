@@ -36,6 +36,13 @@ func test_get_price_of_BASE_CURRENCY_asset{
 end
 
 @external
+func test_non_owner_sets_ticker{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ):
+    TestAaveOracle.test_non_owner_sets_ticker()
+    return ()
+end
+
+@external
 func test_get_price_of_BASE_CURRENCY_asset_with_registered_ticker{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():

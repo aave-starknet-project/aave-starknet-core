@@ -8,6 +8,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import split_felt
 from contracts.dependencies.stork.i_oracle_proxy import IOracleProxy
 from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
+from contracts.interfaces.i_ACL_manager import IACLManager
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.helpers.helpers import is_zero
 
@@ -58,15 +59,15 @@ end
 func assert_only_asset_listing_or_pool_admin{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
-    # let (pool_addresses_provider) = AaveOracle_addresses_provider.read()
-    # let (ACL_manager_address) = IPoolAddressesProvider.get_ACL_manager(pool_addresses_provider)
-    # let (caller) = get_caller_address()
-    # let (is_asset_listing_admin) = IACLManager.is_asset_listing_admin(caller)
-    # let (is_pool_admin) = IACLManager.is_pool_admin(caller)
-    # let (either) = BoolCompare.either(is_asset_listing_admin, is_pool_admin)
-    # with_attr error_message("The caller of the function is not an asset listing or pool admin"):
-    #     assert either = TRUE
-    # end
+    let (pool_addresses_provider) = AaveOracle_addresses_provider.read()
+    let (ACL_manager_address) = IPoolAddressesProvider.get_ACL_manager(pool_addresses_provider)
+    let (caller) = get_caller_address()
+    let (is_asset_listing_admin) = IACLManager.is_asset_listing_admin(ACL_manager_address, caller)
+    let (is_pool_admin) = IACLManager.is_pool_admin(ACL_manager_address, caller)
+    let (either) = BoolCompare.either(is_asset_listing_admin, is_pool_admin)
+    with_attr error_message("The caller of the function is not an asset listing or pool admin"):
+        assert either = TRUE
+    end
     return ()
 end
 
