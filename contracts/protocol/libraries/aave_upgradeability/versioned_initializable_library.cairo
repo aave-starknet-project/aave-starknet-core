@@ -11,19 +11,15 @@ func VersionedInitializable_last_initialized_revision() -> (revision : felt):
 end
 
 @storage_var
-func VersionedInitializable_current_revision() -> (revision : felt):
-end
-
-@storage_var
 func VersionedInitializable_initializing() -> (boolean : felt):
 end
 
 namespace VersionedInitializable:
     func _before_initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        ) -> (is_top_level_call : felt):
+        current_revision
+    ) -> (is_top_level_call : felt):
         alloc_locals
         let (last_revision) = VersionedInitializable_last_initialized_revision.read()
-        let (current_revision) = get_revision()
         let (initializing) = VersionedInitializable_initializing.read()
         let (is_current_revision_gt_last) = is_le(last_revision, current_revision - 1)  # is_le(a,b-1) <=> is_lt(a,b)
         # Not possible to check if it's in the constructor or not.
@@ -53,19 +49,5 @@ namespace VersionedInitializable:
             return ()
         end
         return ()
-    end
-
-    func set_revision{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        revision : felt
-    ):
-        VersionedInitializable_current_revision.write(revision)
-        return ()
-    end
-
-    func get_revision{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        revision : felt
-    ):
-        let (revision) = VersionedInitializable_current_revision.read()
-        return (revision)
     end
 end

@@ -25,6 +25,7 @@ aave_oracle = [
 
 ["protostar.shared_command_configs"]
 cairo_path = ["./lib/cairo_contracts/src"]
+stdout-on-success = true
 
 [profile.devnet.protostar.deploy]
 gateway-url = "http://127.0.0.1:5050/"
