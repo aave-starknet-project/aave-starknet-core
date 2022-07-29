@@ -23,10 +23,9 @@ namespace MockInitializableImplementation:
     func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         val : felt, txt : felt
     ):
-        let (is_top_level_call) = VersionedInitializable._before_initialize(REVISION_V1)
+        VersionedInitializable.initializer(REVISION_V1)
         value.write(val)
         text.write(txt)
-        VersionedInitializable._after_initialize(is_top_level_call)
         return ()
     end
 
@@ -69,10 +68,9 @@ namespace MockInitializableImplementationV2:
     func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         val : felt, txt : felt
     ):
-        let (is_top_level_call) = VersionedInitializable._before_initialize(REVISION_V2)
+        VersionedInitializable.initializer(REVISION_V2)
         value.write(val)
         text.write(txt)
-        VersionedInitializable._after_initialize(is_top_level_call)
         return ()
     end
 
@@ -86,7 +84,7 @@ end
 namespace MockInitializableReentrant:
     func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(val : felt):
         alloc_locals
-        let (is_top_level_call) = VersionedInitializable._before_initialize(REVISION_V2)
+        VersionedInitializable.initializer(REVISION_V2)
         value.write(val)
         let (is_value_lt_2) = is_le(val, 1)
         if is_value_lt_2 == 1:
@@ -99,7 +97,6 @@ namespace MockInitializableReentrant:
             tempvar pedersen_ptr = pedersen_ptr
             tempvar range_check_ptr = range_check_ptr
         end
-        VersionedInitializable._after_initialize(is_top_level_call)
         return ()
     end
 
