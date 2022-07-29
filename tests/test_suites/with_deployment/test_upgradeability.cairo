@@ -30,18 +30,14 @@ func __setup__{syscall_ptr : felt*, range_check_ptr}():
 
             return int.from_bytes(text.encode(), "big")
 
-        #declare class implementation of basic_proxy_impl
+        # Declare the 3 mock initializable implementations
         context.mock_initializable_v1 = declare("./contracts/mocks/mock_initializable_implementation.cairo").class_hash
         context.mock_initializable_v2 = declare("./contracts/mocks/mock_initializable_implementation_v2.cairo").class_hash
-        # context.mock_initializable_constructor = declare("./contracts/mocks/mock_initializable_from_constructor.cairo").class_hash
         context.mock_initializable_reentrant = declare("./contracts/mocks/mock_initializable_reentrant.cairo").class_hash
 
-        # declare proxy_class_hash so that starknet knows about it. It's required to deploy proxies from PoolAddressesProvider
-        # declared_proxy = declare("./lib/cairo_contracts/src/openzeppelin/upgrades/Proxy.cairo")
-        # context.proxy_class_hash = declared_proxy.class_hash
-        # deploy OZ proxy contract, admin is deployer. Implementation hash is basic_proxy_impl upon deployment.
-        # prepared_proxy = prepare(declared_proxy,{"implementation_hash":context.mock_initializable_v1})
-        context.proxy = deploy_contract("./tests/contracts/basic_proxy_impl.cairo",{"proxy_admin":ids.deployer,"implementation_hash":context.mock_initializable_v1}).contract_address
+        # Deploy proxy with initializable_v1 as implementation
+        # TODO use InitializableImmutableAdminUpgradeabilityProxy when implemented
+        context.proxy = deploy_contract("./tests/contracts/mock_aave_upgradeable_proxy.cairo",{"proxy_admin":ids.deployer,"implementation_hash":context.mock_initializable_v1}).contract_address
 
         context.deployer = ids.deployer
         ids.proxy_address = context.proxy
@@ -122,7 +118,7 @@ func test_initialize_from_non_admin_when_already_initialized{
 end
 
 @external
-func test_upgrade_from_non_admin_when_already_initialized{
+func test_upgrade_to_new_impl_from_admin{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }():
     alloc_locals

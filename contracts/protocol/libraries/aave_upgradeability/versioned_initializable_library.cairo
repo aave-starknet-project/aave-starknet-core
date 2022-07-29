@@ -21,12 +21,13 @@ namespace VersionedInitializable:
         alloc_locals
         let (last_revision) = VersionedInitializable_last_initialized_revision.read()
         let (initializing) = VersionedInitializable_initializing.read()
-        let (is_current_revision_gt_last) = is_le(last_revision, current_revision - 1)  # is_le(a,b-1) <=> is_lt(a,b)
-        # Not possible to check if it's in the constructor or not.
+        let (is_current_revision_gt_last) = is_le(last_revision, current_revision - 1)
 
         with_attr error_message("Contract instance has already been initialized"):
-            let (requirement) = BoolCompare.either(initializing, is_current_revision_gt_last)
-            assert requirement = TRUE
+            let (initializing_or_revision_gt_last) = BoolCompare.either(
+                initializing, is_current_revision_gt_last
+            )
+            assert initializing_or_revision_gt_last = TRUE
         end
 
         let (is_top_level_call) = BoolCompare.not(initializing)
