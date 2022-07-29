@@ -61,14 +61,14 @@ namespace ATestTokenTransfer:
         %{ stop_prank_USER_1() %}
 
         %{ stop_prank_pool = start_prank(ids.USER_1, target_contract_address = ids.pool) %}
-        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)  # TODO explain 0 at the end
+        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)
         %{ stop_prank_pool() %}
 
         # Check a_token balance
         let (balance_user_1_a_token) = IAToken.balanceOf(a_token, USER_1)
         assert balance_user_1_a_token = token_amount_to_supply
 
-        # check user state : To understand
+        # check user state
         let (state) = incentivized_erc20_user_state.read(USER_1)
         assert state.additionalData = 0
 
@@ -85,7 +85,12 @@ namespace ATestTokenTransfer:
         return ()
     end
 
-    # one test is missing. The one with setUserUseReserveAsCollateral to false
+    # To be implemented later
+    func test_transfer_without_collateral{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }():
+        return ()
+    end
 
     func test_multiple_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
@@ -107,7 +112,7 @@ namespace ATestTokenTransfer:
         %{ stop_prank_USER_1() %}
 
         %{ stop_prank_pool = start_prank(ids.USER_1, target_contract_address = ids.pool) %}
-        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)  # TODO explain 0 at the end
+        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)
         %{ stop_prank_pool() %}
 
         # ADD expect name
@@ -164,7 +169,7 @@ namespace ATestTokenTransfer:
         %{ stop_prank_USER_1() %}
 
         %{ stop_prank_pool = start_prank(ids.USER_1, target_contract_address = ids.pool) %}
-        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)  # TODO explain 0 at the end
+        IPool.supply(pool, token, token_amount_to_supply, USER_1, 0)
         %{ stop_prank_pool() %}
 
         # Transfer All
@@ -225,60 +230,22 @@ namespace ATestTokenTransfer:
         %{ stop_mock() %}
         return ()
     end
+
+    func test_transfer_after_borrow{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }():
+        return ()
+    end
+
+    func test_transfer_back_all_after_borrow{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }():
+        return ()
+    end
+
+    func test_transfer_back_small_after_borrow{
+        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+    }():
+        return ()
+    end
 end
-
-# it('User 0 deposits 1 WETH and user 1 tries to borrow the WETH with the received DAI as collateral', async () => {
-#     const { users, pool, weth, helpersContract } = testEnv;
-#     const userAddress = await pool.signer.getAddress();
-
-# const amountWETHtoDeposit = await convertToCurrencyDecimals(weth.address, '1');
-#     const amountWETHtoBorrow = await convertToCurrencyDecimals(weth.address, '0.1');
-
-# expect(await weth.connect(users[0].signer)['mint(uint256)'](amountWETHtoDeposit));
-
-# expect(await weth.connect(users[0].signer).approve(pool.address, MAX_UINT_AMOUNT));
-
-# expect(
-#       await pool
-#         .connect(users[0].signer)
-#         .deposit(weth.address, amountWETHtoDeposit, userAddress, '0')
-#     );
-#     expect(
-#       await pool
-#         .connect(users[1].signer)
-#         .borrow(weth.address, amountWETHtoBorrow, RateMode.Stable, '0', users[1].address)
-#     );
-
-# const userReserveData = await helpersContract.getUserReserveData(
-#       weth.address,
-#       users[1].address
-#     );
-
-# expect(userReserveData.currentStableDebt.toString()).to.be.eq(amountWETHtoBorrow);
-#   });
-
-# it('User 1 tries to transfer all the DAI used as collateral back to user 0 (revert expected)', async () => {
-#     const { users, aDai, dai } = testEnv;
-
-# const amountDAItoTransfer = await convertToCurrencyDecimals(dai.address, DAI_AMOUNT_TO_DEPOSIT);
-
-# await expect(
-#       aDai.connect(users[1].signer).transfer(users[0].address, amountDAItoTransfer),
-#       HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
-#     ).to.be.revertedWith(HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD);
-#   });
-
-# it('User 1 transfers a small amount of DAI used as collateral back to user 0', async () => {
-#     const { users, aDai, dai } = testEnv;
-
-# const aDAItoTransfer = await convertToCurrencyDecimals(dai.address, '100');
-
-# expect(await aDai.connect(users[1].signer).transfer(users[0].address, aDAItoTransfer))
-#       .to.emit(aDai, 'Transfer')
-#       .withArgs(users[1].address, users[0].address, aDAItoTransfer);
-
-# const user0Balance = await aDai.balanceOf(users[0].address);
-
-# expect(user0Balance.toString()).to.be.eq(aDAItoTransfer.toString());
-#   });
-# });
