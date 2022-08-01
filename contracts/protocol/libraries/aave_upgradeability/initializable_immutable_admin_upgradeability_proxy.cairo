@@ -27,12 +27,12 @@ func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_pt
     class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
     Proxy.assert_only_admin()
-    let (is_initialized) = Proxy.is_initialized()
+    let (is_initialized) = Proxy.get_initialized()
 
     with_attr error_message("Already initialized"):
         assert is_initialized = FALSE
     end
-    Proxy._set_is_initialized(TRUE)
+    Proxy._set_initialized()
     # set implementation
     Proxy._set_implementation_hash(class_hash)
 

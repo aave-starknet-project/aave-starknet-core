@@ -1,13 +1,10 @@
-# SPDX-License-Identifier: MIT
-# OpenZeppelin Contracts for Cairo v0.2.0 (upgrades/library.cairo)
-
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.math import assert_not_zero
-from starkware.starknet.common.syscalls import library_call_l1_handler, library_call
+
 #
 # Events
 #
@@ -69,7 +66,7 @@ namespace Proxy:
         return (implementation)
     end
 
-    func is_initialized{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    func get_initialized{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         implementation : felt
     ):
         let (initialized) = Proxy_initialized.read()
@@ -112,9 +109,7 @@ namespace Proxy:
         return ()
     end
 
-    func _set_is_initialized{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        new_implementation : felt
-    ):
+    func _set_initialized{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
         Proxy_initialized.write(TRUE)
         return ()
     end

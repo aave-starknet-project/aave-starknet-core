@@ -14,10 +14,10 @@ end
 
 @external
 func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt, totalSupply : felt
+    name : felt, total_supply : felt
 ):
     _name.write(name)
-    _total_supply.write(totalSupply)
+    _total_supply.write(total_supply)
 
     return ()
 end

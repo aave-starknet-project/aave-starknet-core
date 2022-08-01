@@ -3,6 +3,7 @@ from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from tests.utils.constants import USER_1, USER_2
 from starkware.cairo.common.alloc import alloc
+
 @contract_interface
 namespace IProxy:
     func initialize(impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*) -> (
