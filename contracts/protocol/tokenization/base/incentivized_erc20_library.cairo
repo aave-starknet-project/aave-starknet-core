@@ -2,9 +2,9 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_le_felt, assert_nn
+from starkware.cairo.common.math import assert_le_felt, assert_nn, assert_not_zero
+from starkware.cairo.common.bool import TRUE
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.starknet.common.bool import TRUE
 
 from openzeppelin.security.safemath import SafeUint256
 
@@ -52,7 +52,7 @@ func incentivized_erc20_user_state(address : felt) -> (state : DataTypes.UserSta
 end
 
 @storage_var
-func incentivized_erc20_allowances(delegator : felt, delegatee : felt) -> (allowance : felt):
+func incentivized_erc20_allowances(delegator : felt, delegatee : felt) -> (allowance : Uint256):
 end
 
 @storage_var
@@ -79,7 +79,7 @@ end
 # @dev the amount should be passed as uint128 according to solidity code. TODO: should it?
 #
 func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    sender : felt, recipient : felt, amount : felt
+    sender : felt, recipient : felt, amount : Uint256
 ) -> ():
     alloc_locals
 
@@ -87,9 +87,9 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
         assert_not_zero(sender)
     end
 
-    with_attr error_message("IncentivizedERC20: amount is not 128Uint"):
-        assert_le_felt(amount, UINT128_MAX)
-    end
+    # with_attr error_message("IncentivizedERC20: amount is not 128Uint"):
+    #     assert_le_felt(amount, UINT128_MAX)
+    # end
 
     let (sender_state) = incentivized_erc20_user_state.read(sender)
 
@@ -97,12 +97,14 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     with_attr error_message("IncentivizedERC20: transfer amount exceeds balance"):
         assert_nn(new_sender_balance)
     end
-    let new_sender_state = UserState(new_sender_balance, sender_state.additionalData)
+    let new_sender_state = DataTypes.UserState(new_sender_balance, sender_state.additional_data)
     incentivized_erc20_user_state.write(sender, new_sender_state)
 
     let (recipient_state) = incentivized_erc20_user_state.read(recipient)
     let new_recipient_balance = recipient_state.balance + amount
-    let new_recipient_state = UserState(new_recipient_balance, recipient_state.additionalData)
+    let new_recipient_state = DataTypes.UserState(
+        new_recipient_balance, recipient_state.additional_data
+    )
     incentivized_erc20_user_state.write(recipient, new_recipient_state)
 
     # TODO import incentives_controller & handle action
@@ -119,7 +121,7 @@ end
 # @param amount The amount of tokens to approve spending of
 #
 func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    owner : felt, spender : felt, amount : felt
+    owner : felt, spender : felt, amount : Uint256
 ) -> ():
     incentivized_erc20_allowances.write(owner, spender, amount)
 
@@ -209,7 +211,7 @@ namespace IncentivizedERC20:
 
     func allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt, spender : felt
-    ) -> (remaining : felt):
+    ) -> (remaining : Uint256):
         let (remaining) = incentivized_erc20_allowances.read(owner, spender)
         return (remaining)
     end
@@ -263,9 +265,9 @@ namespace IncentivizedERC20:
         recipient : felt, amount : Uint256
     ):
         let (caller_address) = get_caller_address()
-        let (amount_128) = Uint128.to_uint_128(amount)
+        # let (amount_128) = Uint128.to_uint_128(amount)
 
-        _transfer(caller_address, recipient, amount_128)
+        _transfer(caller_address, recipient, amount)
 
         return ()
     end
@@ -295,9 +297,9 @@ namespace IncentivizedERC20:
     ):
         let (caller_address) = get_caller_address()
 
-        let (amount_128) = Uint128.to_uint_128(amount)
+        # let (amount_128) = Uint128.to_uint_128(amount)
 
-        _approve(caller_address, spender, amount_128)
+        _approve(caller_address, spender, amount)
         return ()
     end
 

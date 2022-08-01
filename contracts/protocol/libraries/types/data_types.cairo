@@ -64,6 +64,6 @@ namespace DataTypes:
     # StableDebtTokens use this field to store the user's stable rate.
     struct UserState:
         member balance : felt
-        member additionalData : felt
+        member additional_data : felt
     end
 end
