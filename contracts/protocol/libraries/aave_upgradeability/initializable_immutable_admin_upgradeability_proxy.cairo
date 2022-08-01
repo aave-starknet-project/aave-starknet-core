@@ -122,6 +122,8 @@ end
 func __default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     selector : felt, calldata_size : felt, calldata : felt*
 ) -> (retdata_size : felt, retdata : felt*):
+    # Only fall back when the sender is not the admin.
+    Proxy.assert_not_admin()
     let (class_hash) = Proxy.get_implementation_hash()
     with_attr error_message("Proxy: does not have a class hash."):
         assert_not_zero(class_hash)
@@ -142,6 +144,7 @@ end
 func __l1_default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     selector : felt, calldata_size : felt, calldata : felt*
 ):
+    Proxy.assert_not_admin()
     let (class_hash) = Proxy.get_implementation_hash()
     with_attr error_message("Proxy: does not have a class hash."):
         assert_not_zero(class_hash)

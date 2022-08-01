@@ -1,7 +1,7 @@
 %lang starknet
 from starkware.starknet.common.syscalls import get_contract_address
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-
+from tests.utils.constants import USER_1, USER_2
 from starkware.cairo.common.alloc import alloc
 @contract_interface
 namespace IProxy:
@@ -62,10 +62,10 @@ func test_initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     tempvar proxy
 
     %{ ids.proxy = context.proxy_address %}
-
+    %{ stop_prank_non_admin = start_prank(ids.USER_1,target_contract_address=context.proxy_address) %}
     let (name) = IToken.get_name(proxy)
     let (supply) = IToken.get_total_supply(proxy)
-
+    %{ stop_prank_non_admin() %}
     assert name = 345
     assert supply = 900
     return ()
@@ -115,10 +115,10 @@ func test_update_to_and_call{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     assert calldata[1] = 500
     # no need to change the implementation hash as long as we verify that the init values were updated
     IProxy.upgrade_to_and_call(proxy, implementation_hash, selector, 2, calldata)
-
+    %{ stop_prank_non_admin = start_prank(ids.USER_1,target_contract_address=context.proxy_address) %}
     let (name) = IToken.get_name(proxy)
     let (supply) = IToken.get_total_supply(proxy)
-
+    %{ stop_prank_non_admin() %}
     assert name = 400
     assert supply = 500
     return ()
@@ -138,6 +138,21 @@ func test_upgrade_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     let (current_implementation) = IProxy.get_implementation(proxy)
 
     assert current_implementation = new_implementation_hash
+
+    return ()
+end
+
+@external
+func test_proxy_admin_calls_fall_back_function{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}():
+    alloc_locals
+    local proxy
+
+    %{ ids.proxy = context.proxy_address %}
+
+    %{ expect_revert(error_message="Proxy: caller is admin") %}
+    let (name) = IToken.get_name(proxy)
 
     return ()
 end

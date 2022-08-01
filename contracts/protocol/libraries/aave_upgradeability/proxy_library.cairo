@@ -50,6 +50,15 @@ namespace Proxy:
         return ()
     end
 
+    func assert_not_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+        let (caller) = get_caller_address()
+        let (admin) = Proxy_admin.read()
+        with_attr error_message("Proxy: caller is admin"):
+            assert_not_zero(admin - caller)
+        end
+        return ()
+    end
+
     #
     # Getters
     #
