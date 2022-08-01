@@ -1,9 +1,11 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_eq
+from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_add
 from starkware.cairo.common.bool import TRUE
 from starkware.starknet.common.syscalls import get_contract_address
+
+from openzeppelin.security.safemath import SafeUint256
 
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
@@ -111,7 +113,6 @@ func test_approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 
     # Verify ammount was approved
     local allowance : Uint256
-    # # TODO: Change when Data Transformer is supported: https://docs.swmansion.com/protostar/docs/tutorials/guides/testing#load
     %{ (ids.allowance.low, ids.allowance.high) = load(ids.contract_address, "incentivized_erc20_allowances", "Uint256", key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
     let (is_the_allowance_expected) = uint256_eq(amount256, allowance)
     assert is_the_allowance_expected = TRUE
@@ -124,12 +125,12 @@ func test_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     alloc_locals
     let (local contract_address) = get_contract_address()
 
+    # Set allowance
     local amount256 : Uint256 = Uint256(AMOUNT, 0)
-    # # TODO: Change when Data Transformer is supported: https://docs.swmansion.com/protostar/docs/tutorials/guides/testing#store
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
 
+    # Check allowance is correct
     let (allowance) = IncentivizedERC20.allowance(PRANK_USER1, PRANK_USER2)
-
     let (is_the_allowance_expected) = uint256_eq(amount256, allowance)
     assert is_the_allowance_expected = TRUE
 
@@ -140,6 +141,24 @@ end
 func test_increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
+
+    # Set an allowance
+    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
+
+    let (new_allowance) = SafeUint256.add(amount256, amount256)
+
+    # Increase it AMMOUNT
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_events({"name": "Approval", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.new_allowance.low, ids.new_allowance.high]}) %}
+    IncentivizedERC20.increase_allowance(PRANK_USER2, amount256)
+    %{ stop_prank_callable() %}
+
+    # Check allowance
+    let (allowance) = IncentivizedERC20.allowance(PRANK_USER1, PRANK_USER2)
+    let (is_the_allowance_expected) = uint256_eq(new_allowance, allowance)
+    assert is_the_allowance_expected = TRUE
+
     return ()
 end
 
@@ -147,5 +166,24 @@ end
 func test_decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
+
+    # Set an allowance
+    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
+
+    # Zero
+    let new_allowance : Uint256 = SafeUint256.sub_le(amount256, amount256)
+
+    # Decrease it AMMOUNT
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_events({"name": "Approval", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.new_allowance.low, ids.new_allowance.high]}) %}
+    IncentivizedERC20.decrease_allowance(PRANK_USER2, amount256)
+    %{ stop_prank_callable() %}
+
+    # Check allowance
+    let (allowance) = IncentivizedERC20.allowance(PRANK_USER1, PRANK_USER2)
+    let (is_the_allowance_expected) = uint256_eq(new_allowance, allowance)
+    assert is_the_allowance_expected = TRUE
+
     return ()
 end

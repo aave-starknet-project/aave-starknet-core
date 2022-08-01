@@ -309,13 +309,7 @@ namespace IncentivizedERC20:
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (amount_128) = Uint128.to_uint_128(amount)
-
-        let new_allowance = old_allowance + amount_128
-
-        with_attr error_message("result doesn't fit in 128 bits"):
-            assert_le_felt(new_allowance, UINT128_MAX)
-        end
+        let (new_allowance) = SafeUint256.add(old_allowance, amount)
 
         _approve(caller_address, spender, new_allowance)
 
@@ -329,17 +323,7 @@ namespace IncentivizedERC20:
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (amount_128) = Uint128.to_uint_128(amount)
-
-        let new_allowance = old_allowance - amount_128
-
-        with_attr error_message("allowance cannot be negative"):
-            assert_nn(new_allowance)
-        end
-
-        with_attr error_message("result doesn't fit in 128 bits"):
-            assert_le_felt(new_allowance, UINT128_MAX)
-        end
+        let (new_allowance) = SafeUint256.sub_le(old_allowance, amount)
 
         _approve(caller_address, spender, new_allowance)
 
