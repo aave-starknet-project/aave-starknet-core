@@ -12,9 +12,9 @@ from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 from contracts.protocol.libraries.math.uint_128 import Uint128
 from contracts.protocol.libraries.math.uint_250 import Uint250
 from contracts.protocol.libraries.types.data_types import DataTypes
-from contracts.interfaces.i_ACL_manager import IACLManager
+# from contracts.interfaces.i_ACL_manager import IACLManager
 # from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
-from contracts.interfaces.i_pool import IPool
+# from contracts.interfaces.i_pool import IPool
 
 #
 # Events
@@ -140,17 +140,17 @@ namespace IncentivizedERC20:
     #
     func assert_only_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
-        with_attr error_message("Caller not pool admin"):
-            let (caller) = get_caller_address()
-            let (pool) = incentivized_erc20_pool.read()
-            # let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
-            #     contract_address=pool
-            # )
-            # let (is_pool_admin) = IACLManager.is_pool_admin(
-            #     contract_address=acl_manager_address, admin=caller
-            # )
-            # assert is_pool_admin = TRUE
-        end
+        # with_attr error_message("Caller not pool admin"):
+        # let (caller) = get_caller_address()
+        # let (pool) = incentivized_erc20_pool.read()
+        # let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
+        #     contract_address=pool
+        # )
+        # let (is_pool_admin) = IACLManager.is_pool_admin(
+        #     contract_address=acl_manager_address, admin=caller
+        # )
+        # assert is_pool_admin = TRUE
+        # end
         return ()
     end
 
@@ -158,12 +158,12 @@ namespace IncentivizedERC20:
     # @dev Only pool can call functions marked by this modifier.
     #
     func assert_only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-        alloc_locals
-        let (caller_address) = get_caller_address()
-        let (pool) = incentivized_erc20_pool.read()
-        with_attr error_message("Caller must be pool"):
-            assert caller_address = pool
-        end
+        # alloc_locals
+        # let (caller_address) = get_caller_address()
+        # let (pool) = incentivized_erc20_pool.read()
+        # with_attr error_message("Caller must be pool"):
+        #     assert caller_address = pool
+        # end
         return ()
     end
 

@@ -15,9 +15,6 @@ from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 from contracts.protocol.libraries.math.uint_128 import Uint128
 from contracts.protocol.libraries.types.data_types import DataTypes
-from contracts.interfaces.i_ACL_manager import IACLManager
-from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
-from contracts.interfaces.i_pool import IPool
 
 namespace MintableIncentivizedERC20:
     #
