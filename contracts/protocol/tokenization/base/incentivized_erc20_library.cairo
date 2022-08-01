@@ -9,7 +9,6 @@ from starkware.starknet.common.syscalls import get_caller_address
 from openzeppelin.security.safemath import SafeUint256
 
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
-from contracts.protocol.libraries.math.uint_128 import Uint128
 from contracts.protocol.libraries.math.uint_250 import Uint250
 from contracts.protocol.libraries.types.data_types import DataTypes
 # from contracts.interfaces.i_ACL_manager import IACLManager
@@ -169,6 +168,10 @@ namespace IncentivizedERC20:
 
     # Getters
 
+    #
+    # @notice Returns the address of the Incentives Controller contract
+    # @return The address of the Incentives Controller
+    #
     func get_incentives_controller{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     }() -> (incentives_controller : felt):
@@ -289,41 +292,56 @@ namespace IncentivizedERC20:
         return ()
     end
 
-    # Amount is passed as Uint256 but only .low is used
+    #
+    # @notice Approve `spender` to use `amount` of `owner`s balance
+    # @param owner The address owning the tokens
+    # @param spender The address approved for spending
+    # @param amount The amount of tokens to approve spending of
+    #
     func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
     ):
         alloc_locals
         let (local caller_address) = get_caller_address()
 
-        # let (amount_128) = Uint128.to_uint_128(amount)
-
         _approve(caller_address, spender, amount)
         return ()
     end
 
+    #
+    # @notice Increases the allowance of spender to spend _msgSender() tokens
+    # @param spender The user allowed to spend on behalf of _msgSender()
+    # @param added_value The amount being added to the allowance
+    # @return `true`
+    #
     func increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        spender : felt, amount : Uint256
+        spender : felt, added_value : Uint256
     ):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (new_allowance) = SafeUint256.add(old_allowance, amount)
+        let (new_allowance) = SafeUint256.add(old_allowance, added_value)
 
         _approve(caller_address, spender, new_allowance)
 
         return ()
     end
 
+    #
+    # @notice Decreases the allowance of spender to spend _msgSender() tokens
+    # @param spender The user allowed to spend on behalf of _msgSender()
+    # @param subtracted_value The amount being subtracted to the allowance
+    # @return `true`
+    #
     func decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        spender : felt, amount : Uint256
+        spender : felt, subtracted_value : Uint256
     ):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (new_allowance) = SafeUint256.sub_le(old_allowance, amount)
+        let (new_allowance) = SafeUint256.sub_le(old_allowance, subtracted_value)
 
         _approve(caller_address, spender, new_allowance)
 

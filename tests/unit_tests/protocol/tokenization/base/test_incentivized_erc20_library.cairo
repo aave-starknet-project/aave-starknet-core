@@ -9,6 +9,7 @@ from openzeppelin.security.safemath import SafeUint256
 
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
 from contracts.protocol.libraries.types.data_types import DataTypes
+from contracts.protocol.libraries.math.uint_250 import Uint250
 
 const PRANK_USER1 = 123
 const PRANK_USER2 = 456
@@ -33,7 +34,7 @@ end
 func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
 
     tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
     %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
@@ -71,7 +72,8 @@ func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     # Set balances and allowances
     tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
     %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER2]) %}
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
+
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER2, ids.PRANK_USER1]) %}
 
     # Amount sent
@@ -103,7 +105,7 @@ end
 func test_approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
 
     # Approve an ammount
     %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
@@ -126,7 +128,7 @@ func test_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     let (local contract_address) = get_contract_address()
 
     # Set allowance
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
 
     # Check allowance is correct
@@ -143,7 +145,7 @@ func test_increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     let (local contract_address) = get_contract_address()
 
     # Set an allowance
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
 
     let (new_allowance) = SafeUint256.add(amount256, amount256)
@@ -168,7 +170,7 @@ func test_decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     let (local contract_address) = get_contract_address()
 
     # Set an allowance
-    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    let (local amount256) = Uint250.to_uint_256(AMOUNT)
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER1, ids.PRANK_USER2]) %}
 
     # Zero
