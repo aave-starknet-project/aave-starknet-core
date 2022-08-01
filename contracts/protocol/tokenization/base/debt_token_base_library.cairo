@@ -13,9 +13,9 @@ end
 func DebtTokenBase_underlying_asset() -> (asset : felt):
 end
 
-# @dev Emitted on `approveDelegation` and `borrowAllowance
-# @param fromUser The address of the delegator
-# @param toUser The address of the delegatee
+# @dev Emitted on `approve_delegation` and `borrow_allowance`
+# @param from_user The address of the delegator
+# @param to_user The address of the delegatee
 # @param asset The address of the delegated asset
 # @param amount The amount being delegated
 @event
