@@ -143,13 +143,13 @@ namespace IncentivizedERC20:
         with_attr error_message("Caller not pool admin"):
             let (caller) = get_caller_address()
             let (pool) = incentivized_erc20_pool.read()
-            let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
-                contract_address=pool
-            )
-            let (is_pool_admin) = IACLManager.is_pool_admin(
-                contract_address=acl_manager_address, admin=caller
-            )
-            assert is_pool_admin = TRUE
+            # let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
+            #     contract_address=pool
+            # )
+            # let (is_pool_admin) = IACLManager.is_pool_admin(
+            #     contract_address=acl_manager_address, admin=caller
+            # )
+            # assert is_pool_admin = TRUE
         end
         return ()
     end
