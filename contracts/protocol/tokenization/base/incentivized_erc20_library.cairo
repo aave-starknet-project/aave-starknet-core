@@ -205,7 +205,7 @@ namespace IncentivizedERC20:
     func balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         account : felt
     ) -> (balance : felt):
-        let (state : UserState) = incentivized_erc20_user_state.read(account)
+        let (state) = incentivized_erc20_user_state.read(account)
         return (state.balance)
     end
 
@@ -265,7 +265,6 @@ namespace IncentivizedERC20:
         recipient : felt, amount : Uint256
     ):
         let (caller_address) = get_caller_address()
-        # let (amount_128) = Uint128.to_uint_128(amount)
 
         _transfer(caller_address, recipient, amount)
 

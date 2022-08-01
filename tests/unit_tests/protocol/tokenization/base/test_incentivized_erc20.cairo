@@ -12,9 +12,6 @@ const PRANK_USER1 = 123
 const PRANK_USER2 = 456
 const AMOUNT = 100
 
-# Should test for:
-# Event
-# Stored value.
 @external
 func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
@@ -22,7 +19,6 @@ func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     local amount256 : Uint256 = Uint256(AMOUNT, 0)
 
     tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
-
     %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
 
     # Amount sent
@@ -47,6 +43,27 @@ func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     IncentivizedERC20.transfer(PRANK_USER2, amount256)
     %{ stop_prank_callable() %}
 
+    return ()
+end
+
+@external
+func test_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
+    # Mock balance
+    tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
+    %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
+
+    let (balance) = IncentivizedERC20.balance_of(PRANK_USER1)
+    assert balance = AMOUNT
+
+    return ()
+end
+
+@external
+func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
     return ()
 end
 
@@ -86,5 +103,19 @@ func test_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     let (is_the_allowance_expected) = uint256_eq(amount256, allowance)
     assert is_the_allowance_expected = TRUE
 
+    return ()
+end
+
+@external
+func test_increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
+    return ()
+end
+
+@external
+func test_decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
     return ()
 end
