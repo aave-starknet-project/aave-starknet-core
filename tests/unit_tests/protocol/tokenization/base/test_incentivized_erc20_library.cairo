@@ -10,7 +10,22 @@ from contracts.protocol.libraries.types.data_types import DataTypes
 
 const PRANK_USER1 = 123
 const PRANK_USER2 = 456
+const PRANK_USER3 = 789
 const AMOUNT = 100
+
+@external
+func test_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
+    # Mock balance
+    tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
+    %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
+
+    let (balance) = IncentivizedERC20.balance_of(PRANK_USER1)
+    assert balance = AMOUNT
+
+    return ()
+end
 
 @external
 func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
@@ -47,23 +62,38 @@ func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @external
-func test_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    alloc_locals
-    let (local contract_address) = get_contract_address()
-    # Mock balance
-    tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
-    %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
-
-    let (balance) = IncentivizedERC20.balance_of(PRANK_USER1)
-    assert balance = AMOUNT
-
-    return ()
-end
-
-@external
 func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
+
+    # Set balances and allowances
+    tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
+    %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER2]) %}
+    local amount256 : Uint256 = Uint256(AMOUNT, 0)
+    %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.PRANK_USER2, ids.PRANK_USER1]) %}
+
+    # Amount sent
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_events({"name": "Transfer", "data": [ids.PRANK_USER2, ids.PRANK_USER3, ids.amount256.low, ids.amount256.high]}) %}
+    IncentivizedERC20.transfer_from(PRANK_USER2, PRANK_USER3, amount256)
+    %{ stop_prank_callable() %}
+
+    # Check amount was received
+    tempvar receiver_user_state : DataTypes.UserState
+    %{ (ids.receiver_user_state.balance, ids.receiver_user_state.additional_data) = load(ids.contract_address, "incentivized_erc20_user_state", "UserState", key=[ids.PRANK_USER3]) %}
+    assert receiver_user_state.balance = AMOUNT
+
+    # Check sender balance
+    tempvar after_send_user_state : DataTypes.UserState
+    %{ (ids.after_send_user_state.balance, ids.after_send_user_state.additional_data) = load(ids.contract_address, "incentivized_erc20_user_state", "UserState", key=[ids.PRANK_USER2]) %}
+    assert after_send_user_state.balance = 0
+
+    # Do not let transfer more than balance
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_revert() %}
+    IncentivizedERC20.transfer_from(PRANK_USER2, PRANK_USER2, amount256)
+    %{ stop_prank_callable() %}
+
     return ()
 end
 

@@ -14,7 +14,7 @@ from contracts.protocol.libraries.math.uint_250 import Uint250
 from contracts.protocol.libraries.types.data_types import DataTypes
 # from contracts.interfaces.i_ACL_manager import IACLManager
 # from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
-# from contracts.interfaces.i_pool import IPool
+from contracts.interfaces.i_pool import IPool
 
 #
 # Events
@@ -264,7 +264,8 @@ namespace IncentivizedERC20:
     func transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         recipient : felt, amount : Uint256
     ):
-        let (caller_address) = get_caller_address()
+        alloc_locals
+        let (local caller_address) = get_caller_address()
 
         _transfer(caller_address, recipient, amount)
 
@@ -274,18 +275,16 @@ namespace IncentivizedERC20:
     func transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         sender : felt, recipient : felt, amount : Uint256
     ):
-        let (caller_address) = get_caller_address()
+        alloc_locals
+        let (local caller_address) = get_caller_address()
         let (allowance) = incentivized_erc20_allowances.read(sender, caller_address)
-        let (amount_128) = Uint128.to_uint_128(amount)
 
-        let new_allowance = allowance - amount_128
-
-        with_attr error_message("result does not fit in 128 bits"):
-            assert_le_felt(new_allowance, UINT128_MAX)
+        with_attr error_message("IncentivizedERC20: Caller does not have enough allowance"):
+            let (new_allowance) = SafeUint256.sub_le(allowance, amount)
         end
 
         _approve(sender, caller_address, new_allowance)
-        _transfer(sender, recipient, amount_128)
+        _transfer(sender, recipient, amount)
 
         return ()
     end
@@ -294,7 +293,8 @@ namespace IncentivizedERC20:
     func approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, amount : Uint256
     ):
-        let (caller_address) = get_caller_address()
+        alloc_locals
+        let (local caller_address) = get_caller_address()
 
         # let (amount_128) = Uint128.to_uint_128(amount)
 
