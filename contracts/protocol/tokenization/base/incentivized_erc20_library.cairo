@@ -13,7 +13,7 @@ from contracts.protocol.libraries.math.uint_128 import Uint128
 from contracts.protocol.libraries.math.uint_250 import Uint250
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.interfaces.i_ACL_manager import IACLManager
-from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
+# from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
 from contracts.interfaces.i_pool import IPool
 
 #
