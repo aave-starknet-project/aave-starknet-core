@@ -15,23 +15,40 @@ const AMOUNT = 100
 # Should test for:
 # Event
 # Stored value.
-# @external
-# func test_transfer{syscall_ptr : felt*, range_check_ptr}():
-#     alloc_locals
-#     let (local contract_address) = get_contract_address()
-#     local amount256 : Uint256 = Uint256(AMOUNT, 0)
+@external
+func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local contract_address) = get_contract_address()
+    local amount256 : Uint256 = Uint256(AMOUNT, 0)
 
-# local user_state = DataTypes.UserState(AMOUNT, 0)
+    tempvar user_state = DataTypes.UserState(balance=AMOUNT, additional_data=0)
 
-# %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.aditional_data], key=[ids.PRANK_USER1]) %}
+    %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.PRANK_USER1]) %}
 
-# %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
-#     %{ expect_events({"name": "Transfer", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.amount256.low, ids.amount256.high]}) %}
-#     IncentivizedERC20.transfer(PRANK_USER2, amount256)
-#     %{ stop_prank_callable() %}
+    # Amount sent
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_events({"name": "Transfer", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.amount256.low, ids.amount256.high]}) %}
+    IncentivizedERC20.transfer(PRANK_USER2, amount256)
+    %{ stop_prank_callable() %}
 
-# return ()
-# end
+    # Check amount was received
+    tempvar receiver_user_state : DataTypes.UserState
+    %{ (ids.receiver_user_state.balance, ids.receiver_user_state.additional_data) = load(ids.contract_address, "incentivized_erc20_user_state", "UserState", key=[ids.PRANK_USER2]) %}
+    assert receiver_user_state.balance = AMOUNT
+
+    # Check sender balance
+    tempvar after_send_user_state : DataTypes.UserState
+    %{ (ids.after_send_user_state.balance, ids.after_send_user_state.additional_data) = load(ids.contract_address, "incentivized_erc20_user_state", "UserState", key=[ids.PRANK_USER1]) %}
+    assert after_send_user_state.balance = 0
+
+    # Do not let transfer more than balance
+    %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
+    %{ expect_revert(error_message="IncentivizedERC20: transfer amount exceeds balance") %}
+    IncentivizedERC20.transfer(PRANK_USER2, amount256)
+    %{ stop_prank_callable() %}
+
+    return ()
+end
 
 @external
 func test_approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
