@@ -11,11 +11,9 @@ a_token = [
 pool = [
     "./contracts/protocol/pool/pool.cairo",
 ]
-
 pool_addresses_provider = [
     "./contracts/protocol/configuration/pool_addresses_provider.cairo",
 ]
-
 aave_oracle = [
     "./contracts/misc/aave_oracle.cairo",
 ]
