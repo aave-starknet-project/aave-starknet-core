@@ -9,7 +9,7 @@ from starkware.starknet.common.syscalls import get_caller_address
 from openzeppelin.security.safemath import SafeUint256
 
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
-from contracts.protocol.libraries.math.uint_250 import Uint250
+from contracts.protocol.libraries.math.helpers import to_felt
 from contracts.protocol.libraries.types.data_types import DataTypes
 # from contracts.interfaces.i_ACL_manager import IACLManager
 # from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
@@ -87,7 +87,7 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
         assert_not_zero(sender)
     end
 
-    let (amount_felt) = Uint250.to_felt(amount)
+    let (amount_felt) = to_felt(amount)
 
     let (sender_state) = incentivized_erc20_user_state.read(sender)
     let new_sender_balance = sender_state.balance - amount_felt
