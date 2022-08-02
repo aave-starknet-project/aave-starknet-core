@@ -7,21 +7,21 @@ from starkware.cairo.common.bool import TRUE
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 from contracts.protocol.libraries.math.helpers import to_felt, to_uint_256
 
-# Values chosen randomly
+# Values chosen randomly where: Uint(LOW, HIGH) = VALUE
 const HIGH = 21
 const LOW = 37
 const VALUE = 7145929705339707732730866756067132440613
 
-# Largest Uint256 possible
-const LARGE_UINT_256 = 2 ** 256 - 1
+# Largest Uint256 possible, will not fit felt
+const NEGATIVE_VALUE = -1
 
 @view
 func test_to_felt{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let uint_256 = Uint256(LOW, HIGH)
-    let (felt_250) = to_felt(uint_256)
+    let (value_felt) = to_felt(uint_256)
 
-    assert felt_250 = VALUE
+    assert value_felt = VALUE
 
     return ()
 end
@@ -43,9 +43,16 @@ func test_failure_to_felt{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     alloc_locals
     let uint_256 = Uint256(UINT128_MAX, UINT128_MAX)
     %{ expect_revert() %}
-    let (felt_250) = to_felt(uint_256)
+    let (value_felt) = to_felt(uint_256)
 
     return ()
 end
 
-# test failure to_tint_256
+# TODO: research more as to range_checks, it might make sense to stick to uint_128
+# Right now, it will convert negative valued felts to Uint_256
+# @view
+# func test_failure_to_uint_256{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+#     %{ expect_revert() %}
+#     let (value_felt) = to_uint_256(NEGATIVE_VALUE)
+#     return ()
+# end
