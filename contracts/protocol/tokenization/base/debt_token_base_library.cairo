@@ -33,8 +33,11 @@ namespace DebtTokenBase:
 
     # @notice Sets the underlying asset of the debt token
     # @param underlying The underlying asset of the debt token
-    func set_underlying_asset(underlying : felt):
+    func set_underlying_asset{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        underlying : felt
+    ):
         DebtTokenBase_underlying_asset.write(underlying)
+        return ()
     end
 
     # @notice Delegates borrowing power to a user on the specific debt token.
@@ -42,16 +45,20 @@ namespace DebtTokenBase:
     # delegatee cannot force a delegator HF to go below 1)
     # @param delegatee The address receiving the delegated borrowing power
     # @param amount The maximum amount being delegated.
-    func approve_delegation(delegatee : felt, amount : Uint256):
+    func approve_delegation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        delegatee : felt, amount : Uint256
+    ):
         let (caller) = get_caller_address()
-        _approve_delegation(caller, delegatee, amount)
+        return _approve_delegation(caller, delegatee, amount)
     end
 
     # @notice Returns the borrow allowance of the user
     # @param from_user The user to giving allowance
     # @param to_user The user to give allowance to
     # @return The current allowance of `toUser`
-    func borrow_allowance(from_user : felt, to_user : felt):
+    func borrow_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        from_user : felt, to_user : felt
+    ) -> (allowance : Uint256):
         let (allowance) = DebtTokenBase_borrow_allowances.read(from_user, to_user)
         return (allowance)
     end
