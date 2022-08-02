@@ -401,6 +401,7 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
             contract_address_salt=salt,
             constructor_calldata_size=1,
             constructor_calldata=cast(new (new_implementation), felt*),
+            deploy_from_zero=0,
         )
         IProxy.initialize(contract_address, proxy_admin)
         PoolAddressesProvider_addresses.write(id, contract_address)
