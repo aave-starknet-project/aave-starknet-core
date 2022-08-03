@@ -2,7 +2,8 @@ from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.memcpy import memcpy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_lt
-
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.uint256 import Uint256, uint256_sub, uint256_lt, uint256_check
 # Returns 0 if value != 0. Returns 1 otherwise.
 func is_zero(value) -> (res : felt):
     let (res) = is_not_zero(value)
@@ -27,4 +28,19 @@ func update_struct{range_check_ptr}(
 
     # _modify_struct(struct_fields, struct_size, member_value, member_index, res, 0)
     return (res)
+end
+
+func uint256_checked_sub_return_zero_when_lt{
+    range_check_ptr
+}(a : Uint256, b : Uint256) -> (c : Uint256):
+    alloc_locals
+    uint256_check(a)
+    uint256_check(b)
+
+    let (is_lt) = uint256_lt(a, b)
+    if is_lt == 1:
+        return (Uint256(0, 0))
+    end
+    let (c : Uint256) = uint256_sub(a, b)
+    return (c)
 end
