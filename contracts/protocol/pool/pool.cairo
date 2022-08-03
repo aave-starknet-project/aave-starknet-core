@@ -3,14 +3,17 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.bool import TRUE
+from starkware.cairo.common.math import assert_not_zero
+from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.starknet.common.syscalls import get_caller_address
 
-from contracts.protocol.pool.pool_storage import PoolStorage
+from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.logic.pool_logic import PoolLogic
+from contracts.protocol.libraries.logic.reserve_configuration import ReserveConfiguration
 from contracts.protocol.libraries.logic.supply_logic import SupplyLogic
 from contracts.protocol.libraries.types.data_types import DataTypes
-from contracts.protocol.libraries.logic.reserve_configuration import ReserveConfiguration
 from contracts.protocol.pool.pool_library import Pool
+from contracts.protocol.pool.pool_storage import PoolStorage
 
 func assert_only_pool_configurator{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
@@ -129,7 +132,10 @@ end
 # TODO add the rest of reserves parameters (debt tokens, interest_rate_strategy, etc)
 @external
 func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    asset : felt, a_token_address : felt
+    asset : felt,
+    a_token_address : felt,
+    stable_debt_token_address : felt,
+    variable_debt_token_address : felt,
 ):
     alloc_locals
     assert_only_pool_configurator()
@@ -138,6 +144,8 @@ func init_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         params=DataTypes.InitReserveParams(
         asset=asset,
         a_token_address=a_token_address,
+        stable_debt_token_address=stable_debt_token_address,
+        variable_debt_token_address=variable_debt_token_address,
         reserves_count=reserves_count,
         max_number_reserves=128
         ),
@@ -164,6 +172,32 @@ func drop_reserve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     return ()
 end
 
+# @notice Set pool configuration
+# @dev Only callable by the PoolConfigurator contract
+# @param asset The address of the underlying asset of the reserve
+# @param configuration The configuration to set for the reserve
+@external
+func set_configuration{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    asset : felt, configuration : DataTypes.ReserveConfigurationMap
+):
+    alloc_locals
+    assert_only_pool_configurator()
+    with_attr error_message("Zero address is not valid"):
+        assert_not_zero(asset)
+    end
+    let (reserve) = PoolStorage.reserves_read(asset)
+    let (is_id_not_zero) = is_not_zero(reserve.id)
+    let (first_asset) = Pool.get_reserve_address_by_id(0)
+    let (are_assets_equal) = BoolCompare.eq(first_asset, asset)
+    let (is_asset_listed) = BoolCompare.either(is_id_not_zero, are_assets_equal)
+    with_attr error_message("Asset is not listed"):
+        assert_not_zero(is_asset_listed)
+    end
+    assert reserve.configuration = configuration
+    PoolStorage.reserves_write(asset, reserve)
+    return ()
+end
+
 @view
 func get_addresses_provider{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (provider : felt):
@@ -178,6 +212,15 @@ func get_reserve_data{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (reserve) = PoolStorage.reserves_read(asset)
     return (reserve)
 end
+
+# @view
+# func get_configuration{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     asset : felt
+# ) -> (config : DataTypes.ReserveConfigurationMap):
+#     let (reserve) = PoolStorage.reserves_read(asset)
+#     let (config) = reserve.configuration
+#     return (config)
+# end
 
 @view
 func get_reserves_list{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
