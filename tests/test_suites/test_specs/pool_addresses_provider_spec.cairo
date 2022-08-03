@@ -1,8 +1,10 @@
 %lang starknet
 
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_equal
 from starkware.starknet.common.syscalls import get_contract_address
+
 from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
 from contracts.interfaces.i_proxy import IProxy
 from contracts.protocol.configuration.pool_addresses_provider_library import PoolAddressesProvider
@@ -357,7 +359,8 @@ namespace TestPoolAddressesProviderDeployed:
         %{ ids.new_proxy = deploy_contract("./lib/cairo_contracts/src/openzeppelin/upgrades/Proxy.cairo",{"implementation_hash":context.implementation_hash}).contract_address %}
 
         # Initialize proxy w/ USER_2 as admin
-        IProxy.initialize(new_proxy, USER_2)
+        let (local empty_calldata : felt*) = alloc()
+        IProxy.initialize(new_proxy, USER_2, 0, empty_calldata)
         let (proxy_admin) = IProxy.get_admin(new_proxy)
         let (version) = IBasicProxyImpl.get_version(new_proxy)
         assert proxy_admin = USER_2
@@ -365,7 +368,7 @@ namespace TestPoolAddressesProviderDeployed:
 
         # Register basic_proxy_impl contract in PoolAddressesProvider
         %{ stop_prank_proxy= start_prank(ids.USER_2,target_contract_address=ids.new_proxy) %}
-        IProxy.set_admin(new_proxy, pool_addresses_provider)
+        IProxy.change_proxy_admin(new_proxy, pool_addresses_provider)
         %{ stop_prank_proxy() %}
         IPoolAddressesProvider.set_address(
             pool_addresses_provider, new_registered_contract_id, new_proxy

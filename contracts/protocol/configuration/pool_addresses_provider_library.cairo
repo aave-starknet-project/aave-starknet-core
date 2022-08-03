@@ -1,6 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import deploy, get_contract_address
 
 from openzeppelin.access.ownable import Ownable
@@ -397,6 +398,7 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ):
     alloc_locals
     let (proxy_address) = PoolAddressesProvider.get_address(id)
+    let (local empty_calldata : felt*) = alloc()
     if proxy_address == 0:
         let (proxy_admin) = get_contract_address()
         let (proxy_class_hash) = PoolAddressesProvider_proxy_class_hash.read()
@@ -407,13 +409,13 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
             constructor_calldata=cast(new (proxy_admin), felt*),
             deploy_from_zero=0,
         )
-        IProxy.initialize(contract_address, new_implementation, 0, cast(0, felt*))
+        IProxy.initialize(contract_address, new_implementation, 0, empty_calldata)
         PoolAddressesProvider_addresses.write(id, contract_address)
         ProxyCreated.emit(id, proxy_address, new_implementation)
         return ()
     else:
         IProxy.upgrade_to_and_call(
-            proxy_address, new_implementation, INITIALIZE_SELECTOR, 0, cast(0, felt*)
+            proxy_address, new_implementation, INITIALIZE_SELECTOR, 0, empty_calldata
         )
         return ()
     end

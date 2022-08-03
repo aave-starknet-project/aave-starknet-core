@@ -1,5 +1,6 @@
 %lang starknet
 
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_zero
 from starkware.starknet.common.syscalls import library_call_l1_handler, library_call
@@ -27,6 +28,7 @@ end
 func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     impl_class_hash : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
+    alloc_locals
     Proxy.assert_only_admin()
     let (is_initialized) = Proxy.get_initialized()
 
@@ -38,7 +40,8 @@ func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_pt
     Proxy._set_implementation_hash(impl_class_hash)
 
     if calldata_len == 0:
-        return (0, cast(0, felt*))
+        let (local empty_calldata : felt*) = alloc()
+        return (0, empty_calldata)
     else:
         let (retdata_len : felt, retdata : felt*) = library_call(
             class_hash=impl_class_hash,
