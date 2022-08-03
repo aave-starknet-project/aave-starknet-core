@@ -14,7 +14,7 @@ func Upgraded(implementation : felt):
 end
 
 @event
-func Admin_changed(previous_admin : felt, new_admin : felt):
+func AdminChanged(previous_admin : felt, new_admin : felt):
 end
 
 #
@@ -90,7 +90,7 @@ namespace Proxy:
     ):
         let (previous_admin) = get_admin()
         Proxy_admin.write(new_admin)
-        Admin_changed.emit(previous_admin, new_admin)
+        AdminChanged.emit(previous_admin, new_admin)
         return ()
     end
 
