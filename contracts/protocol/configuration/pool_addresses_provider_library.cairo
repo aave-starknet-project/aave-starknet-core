@@ -1,9 +1,13 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import deploy, get_contract_address
+
 from openzeppelin.access.ownable import Ownable
+
 from contracts.interfaces.i_proxy import IProxy
+from contracts.protocol.libraries.helpers.constants import INITIALIZE_SELECTOR
 
 #
 # Identifiers
@@ -385,14 +389,16 @@ end
 # @dev If there is no proxy registered with the given identifier, it creates the proxy setting `new_implementation`
 #   as implementation and calls the initialize() function on the proxy
 # @dev If there is already a proxy registered, it just updates the implementation to `new_implementation` and
-#   via IProxy.upgrade()
+#   via IProxy.upgrade_to_and_call()
 # @param id The id of the proxy to be updated
 # @param new_implementation The hash of the new implementation class
 # @param salt random number required to deploy a proxy
 func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id : felt, new_implementation : felt, salt : felt
 ):
+    alloc_locals
     let (proxy_address) = PoolAddressesProvider.get_address(id)
+    let (local empty_calldata : felt*) = alloc()
     if proxy_address == 0:
         let (proxy_admin) = get_contract_address()
         let (proxy_class_hash) = PoolAddressesProvider_proxy_class_hash.read()
@@ -400,15 +406,17 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
             class_hash=proxy_class_hash,
             contract_address_salt=salt,
             constructor_calldata_size=1,
-            constructor_calldata=cast(new (new_implementation), felt*),
+            constructor_calldata=cast(new (proxy_admin), felt*),
             deploy_from_zero=0,
         )
-        IProxy.initialize(contract_address, proxy_admin)
+        IProxy.initialize(contract_address, new_implementation, 0, empty_calldata)
         PoolAddressesProvider_addresses.write(id, contract_address)
         ProxyCreated.emit(id, proxy_address, new_implementation)
         return ()
     else:
-        IProxy.upgrade(proxy_address, new_implementation)
+        IProxy.upgrade_to_and_call(
+            proxy_address, new_implementation, INITIALIZE_SELECTOR, 0, empty_calldata
+        )
         return ()
     end
 end
