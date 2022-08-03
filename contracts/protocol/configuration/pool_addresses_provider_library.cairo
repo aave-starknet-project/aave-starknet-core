@@ -5,7 +5,8 @@ from starkware.starknet.common.syscalls import deploy, get_contract_address
 
 from openzeppelin.access.ownable import Ownable
 
-# from contracts.interfaces.i_proxy import IProxy
+from contracts.interfaces.i_proxy import IProxy
+from contracts.protocol.libraries.helpers.constants import INITIALIZE_SELECTOR
 
 #
 # Identifiers
@@ -394,6 +395,7 @@ end
 func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id : felt, new_implementation : felt, salt : felt
 ):
+    alloc_locals
     let (proxy_address) = PoolAddressesProvider.get_address(id)
     if proxy_address == 0:
         let (proxy_admin) = get_contract_address()
@@ -405,12 +407,14 @@ func update_impl{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
             constructor_calldata=cast(new (proxy_admin), felt*),
             deploy_from_zero=0,
         )
-        # IProxy.initialize(contract_address, new_implementation, 0, cast(0, felt*))
+        IProxy.initialize(contract_address, new_implementation, 0, cast(0, felt*))
         PoolAddressesProvider_addresses.write(id, contract_address)
         ProxyCreated.emit(id, proxy_address, new_implementation)
         return ()
     else:
-        # IProxy.upgrade_to_and_call(proxy_address, new_implementation)
+        IProxy.upgrade_to_and_call(
+            proxy_address, new_implementation, INITIALIZE_SELECTOR, 0, cast(0, felt*)
+        )
         return ()
     end
 end
@@ -427,7 +431,6 @@ func get_proxy_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     if proxy_address == 0:
         return (0)
     end
-    # let (implementation) = IProxy.get_implementation(proxy_address)
-    # return (implementation)
-    return (0)
+    let (implementation) = IProxy.get_implementation(proxy_address)
+    return (implementation)
 end

@@ -2,17 +2,17 @@
 
 @contract_interface
 namespace IProxy:
-    func initialize(class_hash : felt, calldata_len : felt, calldata : felt*) -> (
+    func initialize(impl_class_hash : felt, calldata_len : felt, calldata : felt*) -> (
         retdata_len : felt, retdata : felt*
     ):
     end
 
     func upgrade_to_and_call(
-        class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
+        impl_class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
     ) -> (retdata_len : felt, retdata : felt*):
     end
 
-    func upgrade_to(class_hash : felt):
+    func upgrade_to(impl_class_hash : felt):
     end
 
     func get_admin() -> (admin : felt):

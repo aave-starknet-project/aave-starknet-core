@@ -7,12 +7,11 @@ from starkware.starknet.common.syscalls import deploy, get_contract_address
 from contracts.interfaces.i_pool import IPool
 from contracts.interfaces.i_proxy import IProxy
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
+from contracts.protocol.libraries.helpers.constants import INITIALIZE_SELECTOR
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
 from contracts.protocol.libraries.types.configurator_input_types import ConfiguratorInputTypes
 from contracts.protocol.libraries.types.data_types import DataTypes
-
-const INITIALIZE_SELECTOR = 215307247182100370520050591091822763712463273430149262739280891880522753123
 
 #
 # Struct
@@ -109,6 +108,7 @@ namespace ConfiguratorLogic:
             ),
         )
 
+        # TODO: update this once we implement interest rate strategy
         ReserveInitialized.emit(
             input.underlying_asset,
             a_token_proxy_address,
@@ -127,7 +127,8 @@ namespace ConfiguratorLogic:
 
         let (reserve) = IPool.get_reserve_data(pool, input.asset)
 
-        let (decimals) = IPool.get_configuration(pool, input.underlying_asset).decimals
+        let (config) = IPool.get_configuration(pool, input.underlying_asset)
+        let decimals = config.decimals
 
         let encoded_call = ProxyCallParams(
             INITIALIZE_SELECTOR,
@@ -210,28 +211,32 @@ namespace ConfiguratorLogic:
     end
 
     func _init_token_with_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        implementation : felt, init_params : ProxyInitParams
-    ) -> (address : felt):
+        impl_class_hash : felt, init_params : ProxyInitParams
+    ) -> (proxy_address : felt):
+        let (contract_address) = get_contract_address()
         let (proxy) = deploy(
             class_hash=init_params.proxy_class_hash,
             contract_address_salt=init_params.salt,
             constructor_calldata_size=1,
-            constructor_calldata=cast(new (implementation), felt*),
+            constructor_calldata=cast(new (contract_address), felt*),
+            deploy_from_zero=0,
         )
-        IProxy.initialize(proxy, init_params.proxy_class_hash, ProxyInitParams.SIZE, &init_params)
-        return (0)
+        IProxy.initialize(
+            proxy, impl_class_hash, ProxyInitParams.SIZE, cast(new (init_params), ProxyInitParams*)
+        )
+        return (proxy)
     end
 
     func _upgrade_token_implementation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(
-        proxy_address : felt,
-        class_hash : felt,
-        selector : felt,
-        calldata_len : felt,
-        calldata : felt*,
-    ):
-        IProxy.upgrade_to_and_call(proxy_address, class_hash, selector, calldata_len, calldata)
+    }(proxy_address : felt, impl_class_hash : felt, upgrade_params : ProxyCallParams):
+        IProxy.upgrade_to_and_call(
+            proxy_address,
+            impl_class_hash,
+            upgrade_params.selector,
+            ProxyCallParams.SIZE,
+            cast(new (upgrade_params), ProxyCallParams*),
+        )
         return ()
     end
 end

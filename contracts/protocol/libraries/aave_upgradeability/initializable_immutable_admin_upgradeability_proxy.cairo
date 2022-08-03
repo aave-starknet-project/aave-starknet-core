@@ -6,8 +6,7 @@ from starkware.starknet.common.syscalls import library_call_l1_handler, library_
 from starkware.cairo.common.bool import TRUE, FALSE
 
 from contracts.protocol.libraries.aave_upgradeability.proxy_library import Proxy
-
-const INITIALIZE_SELECTOR = 215307247182100370520050591091822763712463273430149262739280891880522753123
+from contracts.protocol.libraries.helpers.constants import INITIALIZE_SELECTOR
 
 #
 # Constructor
@@ -26,7 +25,7 @@ end
 
 @external
 func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    class_hash : felt, calldata_len : felt, calldata : felt*
+    impl_class_hash : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
     Proxy.assert_only_admin()
     let (is_initialized) = Proxy.get_initialized()
@@ -36,13 +35,13 @@ func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_pt
     end
     Proxy._set_initialized()
     # set implementation
-    Proxy._set_implementation_hash(class_hash)
+    Proxy._set_implementation_hash(impl_class_hash)
 
     if calldata_len == 0:
         return (0, cast(0, felt*))
     else:
         let (retdata_len : felt, retdata : felt*) = library_call(
-            class_hash=class_hash,
+            class_hash=impl_class_hash,
             function_selector=INITIALIZE_SELECTOR,
             calldata_size=calldata_len,
             calldata=calldata,
@@ -53,15 +52,15 @@ end
 
 @external
 func upgrade_to_and_call{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
+    impl_class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
     Proxy.assert_only_admin()
     # set implementation
-    Proxy._set_implementation_hash(class_hash)
+    Proxy._set_implementation_hash(impl_class_hash)
 
     # library_call
     let (retdata_len : felt, retdata : felt*) = library_call(
-        class_hash=class_hash,
+        class_hash=impl_class_hash,
         function_selector=selector,
         calldata_size=calldata_len,
         calldata=calldata,
@@ -72,10 +71,10 @@ end
 
 @external
 func upgrade_to{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    class_hash : felt
+    impl_class_hash : felt
 ):
     Proxy.assert_only_admin()
-    Proxy._set_implementation_hash(class_hash)
+    Proxy._set_implementation_hash(impl_class_hash)
     return ()
 end
 
@@ -129,13 +128,13 @@ func __default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> (retdata_size : felt, retdata : felt*):
     # Only fall back when the sender is not the admin.
     Proxy.assert_not_admin()
-    let (class_hash) = Proxy.get_implementation_hash()
+    let (impl_class_hash) = Proxy.get_implementation_hash()
     with_attr error_message("Proxy: does not have a class hash."):
-        assert_not_zero(class_hash)
+        assert_not_zero(impl_class_hash)
     end
 
     let (retdata_size : felt, retdata : felt*) = library_call(
-        class_hash=class_hash,
+        class_hash=impl_class_hash,
         function_selector=selector,
         calldata_size=calldata_size,
         calldata=calldata,
@@ -150,13 +149,13 @@ func __l1_default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     selector : felt, calldata_size : felt, calldata : felt*
 ):
     Proxy.assert_not_admin()
-    let (class_hash) = Proxy.get_implementation_hash()
+    let (impl_class_hash) = Proxy.get_implementation_hash()
     with_attr error_message("Proxy: does not have a class hash."):
-        assert_not_zero(class_hash)
+        assert_not_zero(impl_class_hash)
     end
 
     library_call_l1_handler(
-        class_hash=class_hash,
+        class_hash=impl_class_hash,
         function_selector=selector,
         calldata_size=calldata_size,
         calldata=calldata,
