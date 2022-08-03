@@ -1,6 +1,6 @@
 %lang starknet
 
-from starkware.cairo.common.bool import TRUE
+from starkware.cairo.common.bool import FALSE, TRUE
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_add
 from starkware.starknet.common.syscalls import get_contract_address
@@ -10,12 +10,48 @@ from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.math.helpers import to_uint_256
 from contracts.protocol.libraries.types.data_types import DataTypes
 from contracts.protocol.tokenization.base.incentivized_erc20_library import IncentivizedERC20
-from tests.utils.constants import USER_1, USER_2, USER_3, POOL_ADMIN, AMOUNT_1
+from tests.utils.constants import (
+    ACL_MANAGER,
+    AMOUNT_1,
+    INCENTIVES_CONTROLLER,
+    POOL,
+    POOL_ADDRESSES_PROVIDER,
+    USER_1,
+    USER_2,
+    USER_3,
+)
+
+func store_external_contracts{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    let (contract_address) = get_contract_address()
+    %{
+        store(ids.contract_address, "incentivized_erc20_pool",[ids.POOL]) 
+        store(ids.contract_address, "incentivized_erc20_incentives_controller",[ids.INCENTIVES_CONTROLLER]) 
+        store(ids.contract_address, "incentivized_erc20_addresses_provider",[ids.POOL_ADDRESSES_PROVIDER])
+    %}
+    return ()
+end
+
+func mock_is_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    %{
+        stop_mock_1 = mock_call(ids.POOL_ADDRESSES_PROVIDER, "get_ACL_manager", [ids.ACL_MANAGER])
+        stop_mock_2 = mock_call(ids.ACL_MANAGER, "is_pool_admin", [ids.TRUE])
+    %}
+    return ()
+end
+
+func mock_is_not_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    %{
+        stop_mock_1 = mock_call(ids.POOL_ADDRESSES_PROVIDER, "get_ACL_manager", [ids.ACL_MANAGER])
+        stop_mock_2 = mock_call(ids.ACL_MANAGER, "is_pool_admin", [ids.FALSE])
+    %}
+    return ()
+end
 
 @external
 func test_balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (local contract_address) = get_contract_address()
+
     # Mock balance
     tempvar user_state = DataTypes.UserState(balance=AMOUNT_1, additional_data=0)
     %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.USER_1]) %}
@@ -141,7 +177,19 @@ func test_set_incentives_controller{
 }():
     alloc_locals
     let (local contract_address) = get_contract_address()
-    %{ store(ids.contract_address, "incentivized_erc20_pool", [ids.POOL_ADMIN]) %}
+    store_external_contracts()
+
+    # Test failure if not pool_admin
+    %{ expect_revert() %}
+    mock_is_not_pool_admin()
+    IncentivizedERC20.set_incentives_controller(INCENTIVES_CONTROLLER)
+
+    # Test success
+    mock_is_pool_admin()
+    IncentivizedERC20.set_incentives_controller(INCENTIVES_CONTROLLER)
+    let (incentives_controller) = IncentivizedERC20.get_incentives_controller()
+    assert INCENTIVES_CONTROLLER = incentives_controller
+
     return ()
 end
 

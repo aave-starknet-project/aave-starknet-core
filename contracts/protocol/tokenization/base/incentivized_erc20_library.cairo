@@ -11,8 +11,9 @@ from openzeppelin.security.safemath import SafeUint256
 from contracts.protocol.libraries.helpers.constants import UINT128_MAX
 from contracts.protocol.libraries.math.helpers import to_felt
 from contracts.protocol.libraries.types.data_types import DataTypes
-# from contracts.interfaces.i_ACL_manager import IACLManager
-# from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
+from contracts.interfaces.i_ACL_manager import IACLManager
+from contracts.interfaces.i_pool_addresses_provider import IPoolAddressesProvider
+from contracts.interfaces.i_aave_incentives_controller import IAaveIncentivesController
 from contracts.interfaces.i_pool import IPool
 
 #
@@ -60,15 +61,15 @@ func incentivized_erc20_total_supply() -> (total_supply : Uint256):
 end
 
 @storage_var
-func incentivized_erc20_incentives_controller() -> (address : felt):
+func incentivized_erc20_incentives_controller() -> (incentives_controller : felt):
 end
 
 @storage_var
-func incentivized_erc20_addresses_provider() -> (addressesProvider : felt):
+func incentivized_erc20_addresses_provider() -> (addresses_provider : felt):
 end
 
 @storage_var
-func incentivized_erc20_owner() -> (incentivized_erc20_owner : felt):
+func incentivized_erc20_owner() -> (owner : felt):
 end
 
 #
@@ -143,17 +144,17 @@ namespace IncentivizedERC20:
     #
     func assert_only_pool_admin{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         ):
-        # with_attr error_message("Caller not pool admin"):
-        # let (caller) = get_caller_address()
-        # let (pool) = incentivized_erc20_pool.read()
-        # let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
-        #     contract_address=pool
-        # )
-        # let (is_pool_admin) = IACLManager.is_pool_admin(
-        #     contract_address=acl_manager_address, admin=caller
-        # )
-        # assert is_pool_admin = TRUE
-        # end
+        with_attr error_message("IncentivizedERC20: Caller is not pool admin"):
+            let (caller) = get_caller_address()
+            let (address_provider) = incentivized_erc20_addresses_provider.read()
+            let (acl_manager_address) = IPoolAddressesProvider.get_ACL_manager(
+                contract_address=address_provider
+            )
+            let (is_pool_admin) = IACLManager.is_pool_admin(
+                contract_address=acl_manager_address, admin=caller
+            )
+            assert is_pool_admin = TRUE
+        end
         return ()
     end
 
@@ -161,12 +162,12 @@ namespace IncentivizedERC20:
     # @dev Only pool can call functions marked by this modifier.
     #
     func assert_only_pool{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-        # alloc_locals
-        # let (caller_address) = get_caller_address()
-        # let (pool) = incentivized_erc20_pool.read()
-        # with_attr error_message("Caller must be pool"):
-        #     assert caller_address = pool
-        # end
+        alloc_locals
+        let (caller_address) = get_caller_address()
+        let (pool) = incentivized_erc20_pool.read()
+        with_attr error_message("IncentivizedERC20: Caller must be pool"):
+            assert caller_address = pool
+        end
         return ()
     end
 
@@ -246,9 +247,9 @@ namespace IncentivizedERC20:
 
     func set_incentives_controller{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(IAaveIncentivesController : felt):
-        assert_only_pool()
-        incentivized_erc20_incentives_controller.write(IAaveIncentivesController)
+    }(incentives_controller : felt):
+        assert_only_pool_admin()
+        incentivized_erc20_incentives_controller.write(incentives_controller)
         return ()
     end
 
@@ -256,7 +257,7 @@ namespace IncentivizedERC20:
     # Main functions
     #
 
-    func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func initializer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pool : felt, name : felt, symbol : felt, decimals : felt
     ):
         let (addresses_provider) = IPool.get_addresses_provider(contract_address=pool)
@@ -265,6 +266,7 @@ namespace IncentivizedERC20:
         incentivized_erc20_symbol.write(symbol)
         incentivized_erc20_decimals.write(decimals)
         incentivized_erc20_pool.write(pool)
+
         return ()
     end
 
@@ -309,6 +311,7 @@ namespace IncentivizedERC20:
         let (local caller_address) = get_caller_address()
 
         _approve(caller_address, spender, amount)
+
         return ()
     end
 
