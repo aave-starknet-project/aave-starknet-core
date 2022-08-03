@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_nn, assert_not_zero
+from starkware.cairo.common.math import assert_le, assert_not_zero
 from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.bool import TRUE
 from starkware.starknet.common.syscalls import get_caller_address
@@ -95,11 +95,11 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 
     let (sender_state) = incentivized_erc20_user_state.read(sender)
     let old_sender_balance = sender_state.balance
-    let new_sender_balance = old_sender_balance - amount_felt
-
     with_attr error_message("IncentivizedERC20: transfer amount exceeds balance"):
-        assert_nn(new_sender_balance)
+        assert_le(amount_felt, old_sender_balance)
     end
+
+    let new_sender_balance = old_sender_balance - amount_felt
 
     let new_sender_state = DataTypes.UserState(new_sender_balance, sender_state.additional_data)
     incentivized_erc20_user_state.write(sender, new_sender_state)
