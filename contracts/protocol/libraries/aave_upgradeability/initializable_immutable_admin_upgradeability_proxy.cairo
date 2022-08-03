@@ -7,6 +7,8 @@ from starkware.cairo.common.bool import TRUE, FALSE
 
 from contracts.protocol.libraries.aave_upgradeability.proxy_library import Proxy
 
+const INITIALIZE_SELECTOR = 215307247182100370520050591091822763712463273430149262739280891880522753123
+
 #
 # Constructor
 #
@@ -24,7 +26,7 @@ end
 
 @external
 func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
+    class_hash : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
     Proxy.assert_only_admin()
     let (is_initialized) = Proxy.get_initialized()
@@ -36,14 +38,17 @@ func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_pt
     # set implementation
     Proxy._set_implementation_hash(class_hash)
 
-    let (retdata_len : felt, retdata : felt*) = library_call(
-        class_hash=class_hash,
-        function_selector=selector,
-        calldata_size=calldata_len,
-        calldata=calldata,
-    )
-
-    return (retdata_len=retdata_len, retdata=retdata)
+    if calldata_len == 0:
+        return (0, cast(0, felt*))
+    else:
+        let (retdata_len : felt, retdata : felt*) = library_call(
+            class_hash=class_hash,
+            function_selector=INITIALIZE_SELECTOR,
+            calldata_size=calldata_len,
+            calldata=calldata,
+        )
+        return (retdata_len=retdata_len, retdata=retdata)
+    end
 end
 
 @external

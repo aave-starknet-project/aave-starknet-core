@@ -6,10 +6,11 @@ from starkware.cairo.common.alloc import alloc
 
 @contract_interface
 namespace IProxy:
-    func initialize(impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*) -> (
+    func initialize(impl_hash : felt, calldata_len : felt, calldata : felt*) -> (
         retdata_len : felt, retdata : felt*
     ):
     end
+
     func upgrade_to_and_call(
         impl_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
     ) -> (retdata_len : felt, retdata : felt*):
@@ -53,7 +54,7 @@ func __setup__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 
     assert calldata[0] = 345
     assert calldata[1] = 900
-    IProxy.initialize(proxy, implementation_hash, selector, 2, calldata)
+    IProxy.initialize(proxy, implementation_hash, 2, calldata)
 
     return ()
 end
@@ -92,7 +93,7 @@ func test_initialize_when_already_initialized{
     assert calldata[0] = 33
     assert calldata[1] = 33
     %{ expect_revert(error_message="Already initialized") %}
-    IProxy.initialize(proxy, implementation_hash, selector, 2, calldata)
+    IProxy.initialize(proxy, implementation_hash, 2, calldata)
 
     return ()
 end

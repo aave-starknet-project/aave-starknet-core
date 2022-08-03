@@ -5,18 +5,20 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import deploy, get_contract_address
 
 from contracts.interfaces.i_pool import IPool
+from contracts.interfaces.i_proxy import IProxy
 from contracts.protocol.libraries.helpers.bool_cmp import BoolCompare
 from contracts.protocol.libraries.logic.reserve_logic import ReserveLogic
 from contracts.protocol.libraries.logic.validation_logic import ValidationLogic
 from contracts.protocol.libraries.types.configurator_input_types import ConfiguratorInputTypes
 from contracts.protocol.libraries.types.data_types import DataTypes
 
+const INITIALIZE_SELECTOR = 215307247182100370520050591091822763712463273430149262739280891880522753123
+
 #
 # Struct
 #
 
 struct ProxyInitParams:
-    member selector : felt
     member pool : felt
     member treasury : felt
     member underlying_asset : felt
@@ -76,21 +78,19 @@ namespace ConfiguratorLogic:
     ):
         alloc_locals
 
-        const selector = 111
-
         let (a_token_proxy_address) = _init_token_with_proxy(
             input.a_token_impl,
-            ProxyInitParams(selector, pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.a_token_name, input.a_token_symbol, input.params, input.proxy_class_hash, input.salt),
+            ProxyInitParams(pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.a_token_name, input.a_token_symbol, input.params, input.proxy_class_hash, input.salt),
         )
 
         let (stable_debt_token_proxy_address) = _init_token_with_proxy(
             input.stable_debt_token_impl,
-            ProxyInitParams(selector, pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.a_token_name, input.a_token_symbol, input.params, input.proxy_class_hash, input.salt),
+            ProxyInitParams(pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.a_token_name, input.a_token_symbol, input.params, input.proxy_class_hash, input.salt),
         )
 
         let (variable_debt_token_proxy_address) = _init_token_with_proxy(
             input.variable_debt_token_impl,
-            ProxyInitParams(selector, pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.variable_debt_token_name, input.variable_debt_token_symbol, input.params, input.proxy_class_hash, input.salt),
+            ProxyInitParams(pool, input.treasury, input.underlying_asset, input.incentives_controller, input.underlying_asset_decimals, input.variable_debt_token_name, input.variable_debt_token_symbol, input.params, input.proxy_class_hash, input.salt),
         )
 
         IPool.init_reserve(
@@ -125,14 +125,12 @@ namespace ConfiguratorLogic:
     ):
         alloc_locals
 
-        const selector = 111
-
-        let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
+        let (reserve) = IPool.get_reserve_data(pool, input.asset)
 
         let (decimals) = IPool.get_configuration(pool, input.underlying_asset).decimals
 
-        let (encoded_call) = ProxyCallParams(
-            selector,
+        let encoded_call = ProxyCallParams(
+            INITIALIZE_SELECTOR,
             pool,
             input.asset,
             input.incentives_controller,
@@ -154,14 +152,12 @@ namespace ConfiguratorLogic:
     }(pool : felt, input : ConfiguratorInputTypes.UpdateDebtTokenInput):
         alloc_locals
 
-        const selector = 111
-
-        let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
+        let (reserve) = IPool.get_reserve_data(pool, input.asset)
 
         let (decimals) = IPool.get_configuration(pool, input.underlying_asset).decimals
 
-        let (encoded_call) = ProxyCallParams(
-            selector,
+        let encoded_call = ProxyCallParams(
+            INITIALIZE_SELECTOR,
             pool,
             input.asset,
             input.incentives_controller,
@@ -187,14 +183,12 @@ namespace ConfiguratorLogic:
     }(pool : felt, input : ConfiguratorInputTypes.UpdateDebtTokenInput):
         alloc_locals
 
-        const selector = 111
-
-        let (reserve) = IPool.get_reserve_data(pool, input.underlying_asset)
+        let (reserve) = IPool.get_reserve_data(pool, input.asset)
 
         let (decimals) = IPool.get_configuration(pool, input.underlying_asset).decimals
 
-        let (encoded_call) = ProxyCallParams(
-            selector,
+        let encoded_call = ProxyCallParams(
+            INITIALIZE_SELECTOR,
             pool,
             input.asset,
             input.incentives_controller,
@@ -218,20 +212,26 @@ namespace ConfiguratorLogic:
     func _init_token_with_proxy{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         implementation : felt, init_params : ProxyInitParams
     ) -> (address : felt):
-        # let (proxy) = deploy(
-        #     class_hash=init_params.proxy_class_hash,
-        #     contract_address_salt=init_params.salt,
-        #     constructor_calldata_size=1,
-        #     constructor_calldata=cast(new (implementation), felt*),
-        # )
-        # IProxy.initialize_params(proxy, init_params)
+        let (proxy) = deploy(
+            class_hash=init_params.proxy_class_hash,
+            contract_address_salt=init_params.salt,
+            constructor_calldata_size=1,
+            constructor_calldata=cast(new (implementation), felt*),
+        )
+        IProxy.initialize(proxy, init_params.proxy_class_hash, ProxyInitParams.SIZE, &init_params)
         return (0)
     end
 
     func _upgrade_token_implementation{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(proxy_address : felt, implementation : felt, init_params : ProxyInitParams):
-        # IProxy.upgrade_to_and_call(proxy_address, implementation, init_params)
+    }(
+        proxy_address : felt,
+        class_hash : felt,
+        selector : felt,
+        calldata_len : felt,
+        calldata : felt*,
+    ):
+        IProxy.upgrade_to_and_call(proxy_address, class_hash, selector, calldata_len, calldata)
         return ()
     end
 end

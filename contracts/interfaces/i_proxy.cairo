@@ -2,18 +2,25 @@
 
 @contract_interface
 namespace IProxy:
-    func initialize(proxy_admin : felt):
+    func initialize(class_hash : felt, calldata_len : felt, calldata : felt*) -> (
+        retdata_len : felt, retdata : felt*
+    ):
     end
 
-    func upgrade(new_implementation : felt):
+    func upgrade_to_and_call(
+        class_hash : felt, selector : felt, calldata_len : felt, calldata : felt*
+    ) -> (retdata_len : felt, retdata : felt*):
     end
 
-    func get_implementation() -> (implementation : felt):
+    func upgrade_to(class_hash : felt):
     end
 
     func get_admin() -> (admin : felt):
     end
 
-    func set_admin(new_admin : felt) -> ():
+    func get_implementation() -> (implementation : felt):
+    end
+
+    func change_proxy_admin(new_admin : felt):
     end
 end
