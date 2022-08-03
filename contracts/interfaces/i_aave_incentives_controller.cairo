@@ -1,6 +1,8 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.uint256 import Uint256
+
 from contracts.misc.aave_oracle_library import AaveOracle
 
 @contract_interface
@@ -22,7 +24,9 @@ namespace IAaveIncentivesController:
     ) -> ():
     end
 
-    func handle_action(asset : felt, user_balance : felt, total_supply : felt) -> (rewards : felt):
+    func handle_action(asset : felt, user_balance : Uint256, total_supply : felt) -> (
+        rewards : felt
+    ):
     end
 
     func get_rewards_balance(assets_len : felt, assets : felt*, user : felt):

@@ -2,7 +2,8 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_le_felt, assert_nn, assert_not_zero
+from starkware.cairo.common.math import assert_nn, assert_not_zero
+from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.bool import TRUE
 from starkware.starknet.common.syscalls import get_caller_address
 
@@ -86,8 +87,6 @@ end
 func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     sender : felt, recipient : felt, amount : Uint256
 ) -> ():
-    alloc_locals
-
     with_attr error_message("IncentivizedERC20: cannot transfer from the zero address"):
         assert_not_zero(sender)
     end
@@ -95,7 +94,8 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     let (amount_felt) = to_felt(amount)
 
     let (sender_state) = incentivized_erc20_user_state.read(sender)
-    let new_sender_balance = sender_state.balance - amount_felt
+    let old_sender_balance = sender_state.balance
+    let new_sender_balance = old_sender_balance - amount_felt
 
     with_attr error_message("IncentivizedERC20: transfer amount exceeds balance"):
         assert_nn(new_sender_balance)
@@ -105,15 +105,51 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     incentivized_erc20_user_state.write(sender, new_sender_state)
 
     let (recipient_state) = incentivized_erc20_user_state.read(recipient)
-    let new_recipient_balance = recipient_state.balance + amount_felt
+    let recipient_balance = recipient_state.balance
+    let new_recipient_balance = recipient_balance + amount_felt
     let new_recipient_state = DataTypes.UserState(
         new_recipient_balance, recipient_state.additional_data
     )
     incentivized_erc20_user_state.write(recipient, new_recipient_state)
 
-    # TODO import incentives_controller & handle action
-
     Transfer.emit(sender, recipient, amount)
+
+    let (incentives_controller) = incentivized_erc20_incentives_controller.read()
+    let (incentives_controller_not_zero) = is_not_zero(incentives_controller)
+
+    let (total_supply) = incentivized_erc20_total_supply.read()
+
+    if incentives_controller_not_zero == 1:
+        IAaveIncentivesController.handle_action(
+            contract_address=incentives_controller,
+            asset=sender,
+            user_balance=total_supply,
+            total_supply=old_sender_balance,
+        )
+        let (sender_not_the_recipient) = is_not_zero(sender - recipient)
+        if sender_not_the_recipient == 1:
+            IAaveIncentivesController.handle_action(
+                contract_address=incentives_controller,
+                asset=recipient,
+                user_balance=total_supply,
+                total_supply=recipient_balance,
+            )
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        else:
+            tempvar syscall_ptr = syscall_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar range_check_ptr = range_check_ptr
+        end
+        tempvar syscall_ptr = syscall_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar range_check_ptr = range_check_ptr
+    else:
+        tempvar syscall_ptr = syscall_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar range_check_ptr = range_check_ptr
+    end
 
     return ()
 end

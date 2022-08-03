@@ -65,11 +65,15 @@ end
 @external
 func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
+
+    store_external_contracts()
     let (local contract_address) = get_contract_address()
     let (local amount256) = to_uint_256(AMOUNT_1)
 
     tempvar user_state = DataTypes.UserState(balance=AMOUNT_1, additional_data=0)
     %{ store(ids.contract_address, "incentivized_erc20_user_state", [ids.user_state.balance, ids.user_state.additional_data], key=[ids.USER_1]) %}
+
+    %{ stop_mock_handle_action = mock_call(ids.INCENTIVES_CONTROLLER, "handle_action", [ids.TRUE]) %}
 
     # Amount sent
     %{ stop_prank_callable = start_prank(ids.USER_1) %}
@@ -93,12 +97,16 @@ func test_transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     IncentivizedERC20.transfer(USER_2, amount256)
     %{ stop_prank_callable() %}
 
+    %{ stop_mock_handle_action() %}
+
     return ()
 end
 
 @external
 func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
+
+    store_external_contracts()
     let (local contract_address) = get_contract_address()
 
     # Set balances and allowances
@@ -107,6 +115,8 @@ func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     let (local amount256) = to_uint_256(AMOUNT_1)
 
     %{ store(ids.contract_address, "incentivized_erc20_allowances", [ids.amount256.low, ids.amount256.high], key=[ids.USER_2, ids.USER_1]) %}
+
+    %{ stop_mock_handle_action = mock_call(ids.INCENTIVES_CONTROLLER, "handle_action", [ids.TRUE]) %}
 
     # Amount sent
     %{ stop_prank_callable = start_prank(ids.USER_1) %}
@@ -129,6 +139,8 @@ func test_transfer_from{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     %{ expect_revert() %}
     IncentivizedERC20.transfer_from(USER_2, USER_2, amount256)
     %{ stop_prank_callable() %}
+
+    %{ stop_mock_handle_action() %}
 
     return ()
 end
