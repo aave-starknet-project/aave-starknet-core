@@ -30,9 +30,9 @@ func update_struct{range_check_ptr}(
     return (res)
 end
 
-func uint256_checked_sub_return_zero_when_lt{
-    range_check_ptr
-}(a : Uint256, b : Uint256) -> (c : Uint256):
+func uint256_checked_sub_return_zero_when_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (
+    c : Uint256
+):
     alloc_locals
     uint256_check(a)
     uint256_check(b)
