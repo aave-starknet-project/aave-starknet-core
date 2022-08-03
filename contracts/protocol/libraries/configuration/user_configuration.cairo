@@ -29,21 +29,21 @@ namespace UserConfiguration:
     # @param reserve_index The index of the reserve object
     # @param borrowing TRUE if user is borrowing the reserve, FALSE otherwise
     func set_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt, borrowing : felt
-    ):
+        user_address : felt, reserve_index : felt, current_user_config : DataTypes.UserConfigurationMap, borrowing : felt
+    ) -> (res : DataTypes.UserConfigurationMap):
         alloc_locals
 
         assert_lt(borrowing, 2)  # only TURE=1/FALSE=0 values
         assert_le(reserve_index, MAX_RESERVES_COUNT)
         assert_not_zero(user_address)
 
-        let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        # let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
 
         let new_user_config = DataTypes.UserConfigurationMap(
             borrowing=borrowing, using_as_collateral=current_user_config.using_as_collateral
         )
 
-        PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
+        # PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
 
         if borrowing == TRUE:
             ReserveIndex.add_reserve_index(BORROWING_TYPE, user_address, reserve_index)
@@ -51,7 +51,7 @@ namespace UserConfiguration:
             ReserveIndex.remove_reserve_index(BORROWING_TYPE, user_address, reserve_index)
         end
 
-        return ()
+        return (new_user_config)
     end
     # @notice Sets if the user is using as collateral the reserve identified by reserve_index
     # @dev uses ReserveIndex to store reserve indices in a packed list
@@ -59,19 +59,19 @@ namespace UserConfiguration:
     # @param reserve_index The index of the reserve object
     # @param using_as_collateral TRUE if user is using the reserve as collateral, FALSE otherwise
     func set_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt, using_as_collateral : felt
-    ):
+        user_address : felt, reserve_index : felt, current_user_config : DataTypes.UserConfigurationMap, using_as_collateral : felt
+    ) -> (res : DataTypes.UserConfigurationMap):
         assert_lt(using_as_collateral, 2)  # only TURE=1/FALSE=0 values
         assert_le(reserve_index, MAX_RESERVES_COUNT)
         assert_not_zero(user_address)
 
-        let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        # let (current_user_config) = PoolStorage.users_config_read(user_address, reserve_index)
 
         let new_user_config = DataTypes.UserConfigurationMap(
             borrowing=current_user_config.borrowing, using_as_collateral=using_as_collateral
         )
 
-        PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
+        # PoolStorage.users_config_write(user_address, reserve_index, new_user_config)
 
         if using_as_collateral == TRUE:
             ReserveIndex.add_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
@@ -79,7 +79,7 @@ namespace UserConfiguration:
             ReserveIndex.remove_reserve_index(USING_AS_COLLATERAL_TYPE, user_address, reserve_index)
         end
 
-        return ()
+        return (new_user_config)
     end
     # @notice Returns if a user has been using the reserve for borrowing or as collateral
     # @param user_address The address of a user
@@ -87,11 +87,11 @@ namespace UserConfiguration:
     # @return TRUE if the user has been using a reserve for borrowing or as collateral, FALSE otherwise
     func is_using_as_collateral_or_borrowing{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-    }(user_address : felt, reserve_index : felt) -> (res : felt):
-        assert_not_zero(user_address)
-        assert_le(reserve_index, MAX_RESERVES_COUNT)
+    }(user_config : DataTypes.UserConfigurationMap) -> (res : felt):
+        # assert_not_zero(user_address)
+        # assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        # let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
         let res_col = user_config.using_as_collateral
 
         let (is_not_zero_col) = is_not_zero(res_col)
@@ -115,12 +115,12 @@ namespace UserConfiguration:
     # @param reserve_index The index of the reserve object
     # @return TRUE if the user has been using a reserve for borrowing, FALSE otherwise
     func is_borrowing{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt
+        user_config : DataTypes.UserConfigurationMap
     ) -> (res : felt):
-        assert_not_zero(user_address)
-        assert_le(reserve_index, MAX_RESERVES_COUNT)
+        # assert_not_zero(user_address)
+        # assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        # let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
 
         let res = user_config.borrowing
 
@@ -131,12 +131,12 @@ namespace UserConfiguration:
     # @param reserve_index The index of the reserve object
     # @return TRUE if the user has been using a reserve as collateral, FALSE otherwise
     func is_using_as_collateral{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt, reserve_index : felt
+        user_config : DataTypes.UserConfigurationMap
     ) -> (res : felt):
-        assert_not_zero(user_address)
-        assert_le(reserve_index, MAX_RESERVES_COUNT)
+        # assert_not_zero(user_address)
+        # assert_le(reserve_index, MAX_RESERVES_COUNT)
 
-        let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
+        # let (user_config) = PoolStorage.users_config_read(user_address, reserve_index)
 
         let res = user_config.using_as_collateral
 
@@ -223,7 +223,7 @@ namespace UserConfiguration:
     # @return The address of the only asset used as collateral
     # @return The debt ceiling of the reserve
     func get_isolation_mode_sate{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        user_address : felt
+        user_address : felt, reserves_list : felt*
     ) -> (bool : felt, asset_address : felt, ceilling : felt):
         assert_not_zero(user_address)
 
@@ -234,7 +234,8 @@ namespace UserConfiguration:
         end
 
         let (asset_index) = get_first_asset_by_type(USING_AS_COLLATERAL_TYPE, user_address)
-        let (asset_address) = PoolStorage.reserves_list_read(asset_index)
+        let asset_address = [reserves_list + asset_index]
+        # let (asset_address) = PoolStorage.reserves_list_read(asset_index)
         let (ceilling) = ReserveConfiguration.get_debt_ceiling(asset_address)
         let (is_ceilling_not_zero) = is_not_zero(ceilling)
 
