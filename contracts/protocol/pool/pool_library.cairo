@@ -1,10 +1,12 @@
 %lang starknet
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE
-from contracts.protocol.pool.pool_storage import PoolStorage
+
 from contracts.protocol.libraries.helpers.helpers import is_zero
+from contracts.protocol.pool.pool_storage import PoolStorage
+
 namespace Pool:
     func get_reserves_list{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         assets_len : felt, assets : felt*
