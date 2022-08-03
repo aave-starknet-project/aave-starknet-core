@@ -357,7 +357,7 @@ namespace TestPoolAddressesProviderDeployed:
         %{ ids.new_proxy = deploy_contract("./lib/cairo_contracts/src/openzeppelin/upgrades/Proxy.cairo",{"implementation_hash":context.implementation_hash}).contract_address %}
 
         # Initialize proxy w/ USER_2 as admin
-        IProxy.initialize(new_proxy, USER_2)
+        IProxy.initialize(new_proxy, USER_2, 0, cast(0, felt*))
         let (proxy_admin) = IProxy.get_admin(new_proxy)
         let (version) = IBasicProxyImpl.get_version(new_proxy)
         assert proxy_admin = USER_2

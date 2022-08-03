@@ -8,15 +8,17 @@ libs_path = "lib"
 a_token = [
     "contracts/protocol/tokenization/a_token.cairo",
 ]
-pool = [
-    "./contracts/protocol/pool/pool.cairo",
-]
 incentivized_erc20 = [
     "./contracts/protocol/tokenization/base/incentivized_erc20.cairo",
 ]
-
+pool = [
+    "./contracts/protocol/pool/pool.cairo",
+]
 pool_addresses_provider = [
     "./contracts/protocol/configuration/pool_addresses_provider.cairo",
+]
+pool_configurator = [
+    "./contracts/protocol/pool/pool_configurator.cairo",
 ]
 
 aave_oracle = [

@@ -1,13 +1,6 @@
 from starkware.cairo.common.uint256 import Uint256
 
 namespace DataTypes:
-    struct ReserveData:
-        member id : felt
-        member a_token_address : felt
-        member liquidity_index : felt
-        # TODO add the rest of the fields
-    end
-
     struct ReserveConfigurationMap:
         member ltv : felt
         member liquidation_threshold : felt
@@ -29,9 +22,21 @@ namespace DataTypes:
         member debt_ceiling : felt
     end
 
+    struct ReserveData:
+        member id : felt
+        member a_token_address : felt
+        member stable_debt_token_address : felt
+        member variable_debt_token_address : felt
+        member liquidity_index : felt
+        member configuration : ReserveConfigurationMap
+        # TODO add the rest of the fields
+    end
+
     struct InitReserveParams:
         member asset : felt
         member a_token_address : felt
+        member stable_debt_token_address : felt
+        member variable_debt_token_address : felt
         member reserves_count : felt
         member max_number_reserves : felt
         # TODO add the rest of the fields
