@@ -355,7 +355,7 @@ namespace IncentivizedERC20:
     # @notice Increases the allowance of spender to spend caller tokens
     # @param spender The user allowed to spend on behalf of caller
     # @param added_value The amount being added to the allowance
-    # @return `true`
+    # @return TRUE or 1
     #
     func increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, added_value : Uint256
@@ -377,7 +377,7 @@ namespace IncentivizedERC20:
     # @notice Decreases the allowance of spender to spend caller tokens
     # @param spender The user allowed to spend on behalf of caller
     # @param subtracted_value The amount being subtracted to the allowance
-    # @return `true`
+    # @return TRUE or 1
     #
     func decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, subtracted_value : Uint256
