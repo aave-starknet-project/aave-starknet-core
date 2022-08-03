@@ -72,6 +72,10 @@ func incentivized_erc20_owner() -> (incentivized_erc20_owner : felt):
 end
 
 #
+# Internal
+#
+
+#
 # @notice Transfers tokens between two users and apply incentives if defined.
 # @param sender The source address
 # @param recipient The destination address
@@ -309,42 +313,46 @@ namespace IncentivizedERC20:
     end
 
     #
-    # @notice Increases the allowance of spender to spend _msgSender() tokens
-    # @param spender The user allowed to spend on behalf of _msgSender()
+    # @notice Increases the allowance of spender to spend caller tokens
+    # @param spender The user allowed to spend on behalf of caller
     # @param added_value The amount being added to the allowance
     # @return `true`
     #
     func increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, added_value : Uint256
-    ):
+    ) -> (success : felt):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (new_allowance) = SafeUint256.add(old_allowance, added_value)
+        with_attr error_message("IncentivizedERC20: Increased allowance is not in range"):
+            let (new_allowance) = SafeUint256.add(old_allowance, added_value)
+        end
 
         _approve(caller_address, spender, new_allowance)
 
-        return ()
+        return (TRUE)
     end
 
     #
-    # @notice Decreases the allowance of spender to spend _msgSender() tokens
-    # @param spender The user allowed to spend on behalf of _msgSender()
+    # @notice Decreases the allowance of spender to spend caller tokens
+    # @param spender The user allowed to spend on behalf of caller
     # @param subtracted_value The amount being subtracted to the allowance
     # @return `true`
     #
     func decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         spender : felt, subtracted_value : Uint256
-    ):
+    ) -> (success : felt):
         alloc_locals
         let (caller_address) = get_caller_address()
         let (old_allowance) = incentivized_erc20_allowances.read(caller_address, spender)
 
-        let (new_allowance) = SafeUint256.sub_le(old_allowance, subtracted_value)
+        with_attr error_message("IncentivizedERC20: Decreased allowance is not in range"):
+            let (new_allowance) = SafeUint256.sub_le(old_allowance, subtracted_value)
+        end
 
         _approve(caller_address, spender, new_allowance)
 
-        return ()
+        return (TRUE)
     end
 end

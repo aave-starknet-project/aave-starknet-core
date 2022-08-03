@@ -153,8 +153,9 @@ func test_increase_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     # Increase it AMMOUNT
     %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
     %{ expect_events({"name": "Approval", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.new_allowance.low, ids.new_allowance.high]}) %}
-    IncentivizedERC20.increase_allowance(PRANK_USER2, amount256)
+    let (is_allowance_increased) = IncentivizedERC20.increase_allowance(PRANK_USER2, amount256)
     %{ stop_prank_callable() %}
+    assert is_allowance_increased = TRUE
 
     # Check allowance
     let (allowance) = IncentivizedERC20.allowance(PRANK_USER1, PRANK_USER2)
@@ -179,8 +180,9 @@ func test_decrease_allowance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     # Decrease it AMMOUNT
     %{ stop_prank_callable = start_prank(ids.PRANK_USER1) %}
     %{ expect_events({"name": "Approval", "data": [ids.PRANK_USER1, ids.PRANK_USER2, ids.new_allowance.low, ids.new_allowance.high]}) %}
-    IncentivizedERC20.decrease_allowance(PRANK_USER2, amount256)
+    let (is_allowance_decreased) = IncentivizedERC20.decrease_allowance(PRANK_USER2, amount256)
     %{ stop_prank_callable() %}
+    assert is_allowance_decreased = TRUE
 
     # Check allowance
     let (allowance) = IncentivizedERC20.allowance(PRANK_USER1, PRANK_USER2)
